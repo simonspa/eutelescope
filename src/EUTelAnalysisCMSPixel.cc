@@ -81,7 +81,7 @@
 #include "TH1D.h"
 
 // Include the CMSPixelDecoder class:
-#include "CMSPixelDecoder/CMSPixelDecoder.h"
+#include "CMSPixelDecoder.h"
 
 using namespace std;
 using namespace lcio;
@@ -420,13 +420,13 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     // skip first DUT events
     streamlog_out(MESSAGE5) << "Skip first " << _nSkipDUT << " DUT events" << std::endl;
     for( int iskip = 0; iskip < _nSkipDUT; ++iskip ){
-      if(_dutDecoder->get_event(dutPixels, time_now_dut) <= DEC_ERROR_NO_MORE_DATA) break;
+      if(_dutDecoder->get_event(dutPixels, evt_time_dut) <= DEC_ERROR_NO_MORE_DATA) break;
     }
 
     // skip first REF events
     streamlog_out(MESSAGE5) << "Skip first " << _nSkipRef << " REF events" << std::endl;
     for( int iskip = 0; iskip < _nSkipRef; ++iskip ) {
-      if(_refDecoder->get_event(refPixels, time_now_ref) <= DEC_ERROR_NO_MORE_DATA) break;
+      if(_refDecoder->get_event(refPixels, evt_time_ref) <= DEC_ERROR_NO_MORE_DATA) break;
     }
 
     // Restore error reporting of the decoders:
@@ -590,7 +590,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   if( n_uncorrelated_triggers_dut > 2 ) { 
     streamlog_out(MESSAGE5) << "Event " << event->getEventNumber() 
 			    << ": Resync DUT" << std::endl;
-    _dutDecoder->get_event( dutPixels, time_now_dut);
+    _dutDecoder->get_event( dutPixels, evt_time_dut);
     dutnsync++;
     n_uncorrelated_triggers_dut = 0; // reset
   }
@@ -598,7 +598,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   if( n_uncorrelated_triggers_ref > 2 ) {
     streamlog_out(MESSAGE5) << "Event " << event->getEventNumber() 
 			    << ": Resync REF" << std::endl;
-    _refDecoder->get_event(refPixels, time_now_ref);
+    _refDecoder->get_event(refPixels, evt_time_ref);
     refnsync++;
     n_uncorrelated_triggers_ref = 0; // reset
   }
@@ -618,8 +618,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   // Read the DUT event:
 
   if( n_uncorrelated_triggers_dut < 3 ) { // DP 20.1.2014
-    if(_dutDecoder->get_event(dutPixels, time_now_dut) <= DEC_ERROR_NO_MORE_DATA)
+    if(_dutDecoder->get_event(dutPixels, evt_time_dut) <= DEC_ERROR_NO_MORE_DATA)
       throw StopProcessingException(this);
+    time_now_dut = evt_time_dut.timestamp;
   }
   else {
     streamlog_out(MESSAGE5) << "Event " << event->getEventNumber() 
@@ -635,8 +636,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
   // Read the REF event:
   if( n_uncorrelated_triggers_ref < 3 ) { // DP 20.1.2014
-    if(_refDecoder->get_event(refPixels, time_now_ref) <= DEC_ERROR_NO_MORE_DATA)
+    if(_refDecoder->get_event(refPixels, evt_time_ref) <= DEC_ERROR_NO_MORE_DATA)
       throw StopProcessingException(this);
+    time_now_ref = evt_time_ref.timestamp;
   }
   else {
     streamlog_out(MESSAGE5) << "Event " << event->getEventNumber() 
@@ -701,9 +703,10 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   double reference_tlu = ( time_now_tlu - time_reference ) / gTLU/1E3;
 
   double dutddtns = ( time_now_tlu - time_prev_tlu ) / gTLU - dutdt / 0.040;
-  double dutddtnsX =
+  /*double dutddtnsX =
     ( time_now_tlu - time_prev_tlu ) / gTLU -
     ( time_now_dut - time_prev_dut ) / 0.040;
+  */
 
   double reference_dut = (time_now_dut - dutTimeReference) / 40;
 
@@ -5269,16 +5272,6 @@ void EUTelAnalysisCMSPixel::bookHistos()
   if(_dutSkipScanner.get())
     _dutSkipScanner->bookHistos(this);
 
-  // FIXME not used atm. Check header file for info:
-  /*// List all booked histogram - check of histogram map filling
-    streamlog_out( DEBUG2 ) <<  _aidaHistoMap.size() << " histograms booked" << std::endl;
-
-
-    std::map<std::string, AIDA::IBaseHistogram *>::iterator mapIter;
-    for(mapIter = _aidaHistoMap.begin(); mapIter != _aidaHistoMap.end(); mapIter++ )
-    streamlog_out( DEBUG2 ) <<  mapIter->first << " : " << ( mapIter->second)->title()  << std::endl;
-  */
-
   streamlog_out( DEBUG2 ) << "Histogram booking completed \n\n" << std::endl;
 
 #else
@@ -5288,6 +5281,160 @@ void EUTelAnalysisCMSPixel::bookHistos()
 #endif
 
   return;
+}
+
+double GetCorrelationFactor(AIDA::IHistogram2D* histo)
+{
+  const int binsX = histo->xAxis().bins();
+  const int binsY = histo->yAxis().bins();
+
+  double sumw = 0;
+  double sumwx = 0;
+  double sumwxx= 0;
+  double sumwy = 0;
+  double sumwyy = 0;
+  double sumwxy = 0;
+
+  for(int y = 0; y < binsY; ++y)
+    {
+      const double yc = (histo->yAxis().binUpperEdge(y) + histo->yAxis().binLowerEdge(y))/2;
+      for(int x = 0; x < binsX; ++x)
+	{
+	  const double xc = (histo->xAxis().binUpperEdge(x) + histo->xAxis().binLowerEdge(x))/2;
+	  const double w = histo->binHeight(x, y);
+
+	  sumw += w;
+	  sumwx += xc*w;
+	  sumwxx += xc*xc*w;
+	  sumwy += yc*w;
+	  sumwyy += yc*yc*w;
+	  sumwxy += xc*yc*w;
+	}
+    }
+
+  const double rmsX = sqrt(fabs(sumwxx/sumw - sumwx/sumw * sumwx/sumw));
+  const double rmsY = sqrt(fabs(sumwyy/sumw - sumwy/sumw * sumwy/sumw));
+
+  const double cov = sumwxy/sumw - sumwx/sumw*sumwy/sumw;
+  return cov/rmsX/rmsY;
+}
+
+CMSSkipScanner::CMSSkipScanner(unsigned int range):
+  _range(range), _eventNumber(0) {}
+
+void CMSSkipScanner::bookHistos(marlin::Processor* processor)
+{
+  cmsxxHisto.resize(_range);
+  cmsyyHisto.resize(_range);
+
+  AIDAProcessor::tree(processor)->mkdir("SkipScan");
+
+  for(unsigned int i = 0; i < _range; ++i)
+    {
+      std::stringstream skipNumS;
+      skipNumS << i;
+      std::string skipNum = skipNumS.str();
+
+      // TODO: Find out how to put these into a subdirectory
+      cmsxxHisto[i] = AIDAProcessor::histogramFactory(processor)->
+	createHistogram2D( "SkipScan/cmsxx_skip" + skipNum, 52, -0.5, 51.5, 110, -11, 11 );
+      cmsxxHisto[i]->setTitle( "x correlation (skip " + skipNum + ");CMS cluster col;telescope triplet x [mm];clusters" );
+
+      cmsyyHisto[i] = AIDAProcessor::histogramFactory(processor)->
+	createHistogram2D( "SkipScan/cmsyy_skip" + skipNum, 80, -0.5, 79.5, 55, -5.5, 5.5 );
+      cmsyyHisto[i]->setTitle( "y correlation (skip " + skipNum + ");CMS cluster row;telescope triplet y [mm];clusters" );
+
+      /*		cmssxHisto = AIDAProcessor::histogramFactory(fitter)->
+			createHistogram1D( "skipScan/cmssx", 200, -500, 500 );
+			cmssxHisto->setTitle( "Pixel + Telescope x;cluster + triplet #Sigmax [#mum];clusters" );
+
+			cmsdyHisto = AIDAProcessor::histogramFactory(fitter)->
+			createHistogram1D( "skipScan/cmsdy", 200, -500, 500 );
+			cmsdyHisto->setTitle( "Pixel - telescope y;cluster - triplet #Deltay [#mum];clusters" );*/
+    }
+}
+
+void CMSSkipScanner::newEvent(unsigned int eventNumber)
+{
+  _eventNumber = eventNumber;
+
+  _triplets.push_front(std::vector<TelescopeTriplet>());
+  while(_triplets.size() > _range) _triplets.pop_back();
+  _cmsHits.clear();
+}
+
+void CMSSkipScanner::telescopeTriplet(double xs, double ys)
+{
+  TelescopeTriplet triplet;
+  triplet.xs = xs;
+  triplet.ys = ys;
+  _triplets[0].push_back(triplet);
+
+  // Correlate CMS hits with the new triplet
+  for(unsigned int i = 0; i < _cmsHits.size(); ++i)
+    {
+      cmsxxHisto[0]->fill(_cmsHits[i].first, xs);
+      cmsyyHisto[0]->fill(_cmsHits[i].second, ys);
+    }
+}
+
+void CMSSkipScanner::cmsHit(double cmsCol, double cmsRow)
+{
+  // Some x-check...
+  for(unsigned int i = 0; i < _cmsHits.size(); ++i)
+    if(_cmsHits[i].first == cmsCol && _cmsHits[i].second == cmsRow)
+      throw std::runtime_error("CMSSkipScanner: Double CMS hit!");
+  std::pair<double, double> hit;
+  hit.first = cmsCol;
+  hit.second = cmsRow;
+  _cmsHits.push_back(hit);
+
+  // Correlate this hit with the triplets from the last _range telescope events
+  for(unsigned i = 0; i < _triplets.size(); ++i)
+    {
+      for(unsigned int j = 0; j < _triplets[i].size(); ++j)
+	{
+	  cmsxxHisto[i]->fill(cmsCol, _triplets[i][j].xs);
+	  cmsyyHisto[i]->fill(cmsRow, _triplets[i][j].ys);
+	}
+    }
+}
+
+int CMSSkipScanner::scan() const
+{
+  double maxXX = fabs(GetCorrelationFactor(cmsxxHisto[0])); unsigned int maxXSkip = 0;
+  double maxYY = fabs(GetCorrelationFactor(cmsyyHisto[0])); unsigned int maxYSkip = 0;
+
+  for(unsigned int i = 1; i < _triplets.size(); ++i)
+    {
+      double corrXX = fabs(GetCorrelationFactor(cmsxxHisto[i]));
+      double corrYY = fabs(GetCorrelationFactor(cmsyyHisto[i]));
+
+      if(corrXX > maxXX) { maxXX = corrXX; maxXSkip = i; }
+      if(corrYY > maxYY) { maxYY = corrYY; maxYSkip = i; }
+    }
+
+  if(maxXX > 1.0e-1)
+    std::cout << "Threshold reached in XX: " << maxXX << ", skip " << maxXSkip << std::endl;
+  if(maxYY > 1.0e-1)
+    std::cout << "Threshold reached in YY: " << maxYY << ", skip " << maxYSkip << std::endl;
+
+  // No correlations found
+  if(maxXX < 1.0e-1 && maxYY < 1.0e-1)
+    return -1;
+
+  if(maxXX < 1.0e-1 && maxYY > 1.0e-1)
+    return maxYSkip;
+  if(maxXX > 1.0e-1 && maxYY < 1.0e-1)
+    return maxXSkip;
+
+  if(maxXSkip != maxYSkip)
+    {
+      std::cout << "WARNING: Max correlations differ in X and Y!!" << std::endl;
+      return -1;
+    }
+
+  return maxXSkip;
 }
 
 std::string EUTelAnalysisCMSPixel::ZeroPadNumber(int num, int len)
@@ -5696,7 +5843,7 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
   if(pixels->empty()) return clusters;
 
   int* gone = new int[pixels->size()];
-  for( int i=0; i<pixels->size(); i++) gone[i] = 0;
+  for(size_t i = 0; i < pixels->size(); i++) gone[i] = 0;
 
   uint seed = 0;
 
@@ -5718,7 +5865,7 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
     int growing;
     do{
       growing = 0;
-      for( int i = 0; i < pixels->size(); i++ ){
+      for(size_t i = 0; i < pixels->size(); i++ ){
         if( !gone[i] ){//unused pixel
           for( unsigned int p = 0; p < c.vpix.size(); p++ ){//vpix in cluster so far
             int dr = c.vpix.at(p).row - pixels->at(i).row;
