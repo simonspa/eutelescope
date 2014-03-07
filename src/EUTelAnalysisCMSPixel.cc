@@ -1843,7 +1843,18 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	    if( lq ) cmsnrowqHisto->fill( nrow ); // no 3-rows anymore
 
-	    if( nrow == 2 ) cmsetaHisto->fill( eta );
+	    if( nrow == 2 ) {
+	      // For cluster only occupying one column:
+	      if( ncol == 1) {
+		// ETA only in odd column numbers (readout token going upwards):
+		// (Check col of first pixel, since we only have one column...)
+		if(c->vpix.at(0).col%2 != 0) { cmsetaoddHisto->fill( eta ); }
+		// ETA only in even column numbers (readout token going downwards):
+		else { cmsetaevenHisto->fill( eta ); }
+	      }
+
+	      cmsetaHisto->fill( eta );
+	    }
 	    
 	    float qseed = 0;
 	    for( std::vector<CMSPixel::pixel>::iterator px = c->vpix.begin(); px != c->vpix.end(); px++ ){
@@ -3896,6 +3907,14 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsetaHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmseta", 100, -1, 1 );
   cmsetaHisto->setTitle( "DUT 2-row eta;DUT cluster 2-row eta;DUT 2-row clusters" );
+
+  cmsetaevenHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsetaeven", 100, -1, 1 );
+  cmsetaevenHisto->setTitle( "DUT 2-row eta (even columns);DUT cluster 2-row eta;DUT 2-row clusters" );
+
+  cmsetaoddHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsetaodd", 100, -1, 1 );
+  cmsetaoddHisto->setTitle( "DUT 2-row eta (odd columns);DUT cluster 2-row eta;DUT 2-row clusters" );
 
   cmsqfHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsqf", 100, 0, 100 );
