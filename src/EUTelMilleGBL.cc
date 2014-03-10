@@ -1131,6 +1131,15 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 
 	  double DUTz =  25 + _siPlaneZPosition[2];
 	  double DUTX0 = 0.08; // CMS
+	  if( event->getRunNumber() >= 8669 &&
+	      event->getRunNumber() <= 8870 )
+	  	DUTX0 = 0.16; //CMS with cooling block
+	  if( event->getRunNumber() >= 11006 &&
+	      event->getRunNumber() <= 11296 ) 
+	  	DUTX0 = 0.16; //CMS with cooling block
+	  if( event->getRunNumber() >= 12563 &&
+	      event->getRunNumber() <= 12587 ) 
+	  	DUTX0 = 0.16; //CMS with cooling block
 	  if( event->getRunNumber() == 202 ) DUTX0 = 0.01; // 1 mm Al
 	  if( event->getRunNumber() == 203 ) DUTX0 = 0.01; // 1 mm Al
 	  if( event->getRunNumber() == 204 ) DUTX0 = 0.01; // 1 mm Al
