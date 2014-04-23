@@ -5963,7 +5963,10 @@ bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixel
     if( cal.chip_id ==  22 ) keV = 0.50; // Landau peak at 24 ke
     if( cal.chip_id >= 100 ) keV = 0.35; // xdb 15.7.2012 (7*0.05 = 0.35)
     if( cal.chip_id >= 110 && cal.chip_id <= 120) keV = 0.45; // AB -- sync to b2h, 5.10.2013
-    if( cal.chip_id == 202) keV = 0.307;
+    //if( cal.chip_id == 202) keV = 0.307;
+    if( cal.chip_id == 202) keV = 0.288; // VS -- data vs pixelav
+					 // comparison, Landau peak
+ 					 // Feb 2014
     if( cal.chip_id == 203) keV = 0.324;
     
     // PSI Tanh Calibration (psi46expert vanilla):
