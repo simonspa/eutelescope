@@ -1,3 +1,4 @@
+
 // -*- mode: c++; mode: auto-fill; mode: flyspell-prog; -*-
 
 /*
@@ -1601,6 +1602,10 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	if( colmin ==  0 ) fiducial = 0;
 	if( colmax == 51 ) fiducial = 0;
 
+	bool lowClusterCharge = false;
+	if(c->charge < 8)
+	  lowClusterCharge = true;
+
 	int ncol = colmax - colmin + 1;
 	int nrow = rowmax - rowmin + 1;
 
@@ -1699,7 +1704,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  cmsdyHisto->fill( cmsdy*1E3 );
 	}
 
-	if( leff & fiducial ) {
+	if( leff && fiducial ) {
 
 	  cmsdxfHisto->fill( cmsdx*1E3 );
 	  cmsdyfHisto->fill( cmsdy*1E3 );
@@ -1738,6 +1743,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	  if( abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) {
 	    cmsdyfctHisto->fill( cmsdy*1E3 );
+	    if(lowClusterCharge)
+	      cmsdyfctLowChargeHisto->fill( cmsdy*1E3 );
 	    if( nrow <= 2 ) cmsdyfcntHisto->fill( cmsdy*1E3 );
 	  }
 
@@ -1776,6 +1783,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	  if( abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ){
 	    cmsdxfctHisto->fill( cmsdx*1E3 );
+	    if(lowClusterCharge)
+	      cmsdxfctLowChargeHisto->fill( cmsdx*1E3 );
 	  }
 
 	  if( abs( ty-0.000 ) < 0.002 &&
@@ -1839,6 +1848,11 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    cmsnpxHisto->fill( c->size );
 	    cmsncolHisto->fill( ncol );
 	    cmsnrowHisto->fill( nrow );
+	    if(lowClusterCharge) {
+	      cmsnpxLowChargeHisto->fill( c->size );
+	      cmsncolLowChargeHisto->fill( ncol );
+	      cmsnrowLowChargeHisto->fill( nrow );
+	    }
 	    cmsnrowvst1->fill( (time_now_tlu-time_event0)/fTLU, nrow ); // cluster rows vs time
 
 	    if( lq ) cmsnrowqHisto->fill( nrow ); // no 3-rows anymore
@@ -1902,12 +1916,17 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      }//core
 	    }//dot
 
+	    cmsxyHitMap->fill( xAt, yAt );
+	    if(lowClusterCharge) {
+	      cmsxyHitMapLowCharge->fill( xAt, yAt );
+	    }
+	    
 	    cmsqvsx->fill( xAt, c->charge ); // cluster charge profile
 	    cmsqvsy->fill( yAt, c->charge ); // cluster charge profile
 	    cmsqvsxm->fill( xmod, c->charge ); //q within pixel
 	    cmsqvsym->fill( ymod, c->charge ); //q within pixel
 	    cmsqvsxmym->fill( xmod, ymod, c->charge ); // cluster charge profile
-
+	    
 	    // KIT: added for efficiency analysis
 	    double dotsize=10;
 	    double cutsize=5;
@@ -1950,6 +1969,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      cmsdxvsym->fill( ymod, cmsdx*1E3 );
 
 	      cmspixvsxmym->fill( xmod, ymod ); // occupancy map
+	      if(lowClusterCharge)
+		cmspixvsxmymLowCharge->fill( xmod, ymod );
 
 	      // KIT: added for efficiency analysis
 	      dotsize=10;
@@ -3746,9 +3767,17 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsdxfct", 500, -500, 500 );
   cmsdxfctHisto->setTitle( "fiducial Pixel - telescope x;fiducial cluster - triplet #Deltax [#mum];fiducial clusters" );
 
+  cmsdxfctLowChargeHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdxfctLowCharge", 500, -500, 500 );
+  cmsdxfctLowChargeHisto->setTitle( "fiducial Pixel - telescope x;fiducial cluster - triplet #Deltax [#mum];fiducial clusters" );
+
   cmsdyfctHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfct", 500, -500, 500 );
   cmsdyfctHisto->setTitle( "fiducial Pixel - telescope y;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
+
+  cmsdyfctLowChargeHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfctLowCharge", 500, -500, 500 );
+  cmsdyfctLowChargeHisto->setTitle( "fiducial Pixel - telescope y;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
 
   cmsdyfcntHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfcnt", 500, -500, 500 );
@@ -3872,6 +3901,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsnpx", 11, -0.5, 10.5 );
   cmsnpxHisto->setTitle( "linked CMS cluster size;CMS pixel per linked cluster;linked CMS clusters" );
 
+  cmsnpxLowChargeHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsnpxLowCharge", 11, -0.5, 10.5 );
+  cmsnpxLowChargeHisto->setTitle( "linked low charge CMS cluster size;CMS pixel per linked cluster;linked CMS clusters" );
+
   cmsnpx0Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsnpx0", 11, -0.5, 10.5 );
   cmsnpx0Histo->setTitle( "linked CMS cluster size, bias dot;CMS pixel per linked cluster;linked CMS clusters in bias dot" );
@@ -3892,9 +3925,17 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsncol", 11, -0.5, 10.5 );
   cmsncolHisto->setTitle( "DUT cluster col size;columns per cluster;DUT clusters" );
 
+  cmsncolLowChargeHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsncolLowCharge", 11, -0.5, 10.5 );
+  cmsncolLowChargeHisto->setTitle( "linked low charge CMS col size;CMS pixel per linked cluster;linked CMS clusters" );
+
   cmsnrowHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsnrow", 11, -0.5, 10.5 );
   cmsnrowHisto->setTitle( "DUT cluster row size;rows per cluster;DUT clusters" );
+
+  cmsnrowLowChargeHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsnrowLowCharge", 11, -0.5, 10.5 );
+  cmsnrowLowChargeHisto->setTitle( "linked low charge CMS row size;CMS pixel per linked cluster;linked CMS clusters" );
 
   cmsnrowqHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsnrowq", 11, -0.5, 10.5 );
@@ -3979,6 +4020,11 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmspixvsxmym = AIDAProcessor::histogramFactory(this)->
     createHistogram2D( "cmspixvsxmym", 60, 0, 300, 40, 0, 200 );
   cmspixvsxmym->setTitle( "DUT pixel occupancy;x mod 300 #mum;y mod 200 #mum;clusters" );
+
+  cmspixvsxmymLowCharge = AIDAProcessor::histogramFactory(this)->
+    createHistogram2D( "cmspixvsxmymLowCharge", 60, 0, 300, 40, 0, 200 );
+  cmspixvsxmymLowCharge->setTitle( "DUT pixel occupancy;x mod 300 #mum;y mod 200 #mum;clusters" );
+
   // KIT: added for efficiency analysis - occupancy
 
   cmspixvsxm50 = AIDAProcessor::histogramFactory(this)->
@@ -4033,6 +4079,14 @@ void EUTelAnalysisCMSPixel::bookHistos()
 
   // KIT end
 
+  cmsxyHitMap = AIDAProcessor::histogramFactory(this)->
+    createHistogram2D( "cmsxyHitMap", 170, -8.5, 8.5, 170, -8.5, 8.5 );
+  cmsxyHitMap->setTitle( "HitMap for chip;triplet x_{DUT} [mm];triplet y_{DUT} [mm];tracks" );
+
+  cmsxyHitMapLowCharge = AIDAProcessor::histogramFactory(this)->
+    createHistogram2D( "cmsxyHitMapLowCharge", 170, -8.5, 8.5, 170, -8.5, 8.5 );
+  cmsxyHitMapLowCharge->setTitle( "HitMap for chip with low cluster charges;triplet x_{DUT} [mm];triplet y_{DUT} [mm];tracks" );  
+
   cmsqvsx = AIDAProcessor::histogramFactory(this)->
     createProfile1D( "cmsqvsx", 380, -3.8, 3.8, 0, 100 );
   cmsqvsx->setTitle( "DUT q vs x;telescope x at DUT [mm];<q> [ke]" );
@@ -4052,6 +4106,7 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsqvsxmym = AIDAProcessor::histogramFactory(this)->
     createProfile2D( "cmsqvsxmym", 60, 0, 300, 40, 0, 200, 0, 250 );
   cmsqvsxmym->setTitle( "DUT cluster charge map;x_{track} mod 300 #mum;y_{track} mod 200 #mum;<cluster charge> [ke]" );
+
   // KIT: added for efficiency analysis - charge
 
   cmsqvsxm50 = AIDAProcessor::histogramFactory(this)->
