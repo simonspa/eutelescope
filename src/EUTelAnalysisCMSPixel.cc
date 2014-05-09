@@ -1960,6 +1960,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    cmspMoyalHisto->fill( pMoyal );
 	    cmsrmsyvsp->fill( pMoyal, abs(cmsdy)*1E3 ); // resolution vs charge
 
+	    if(lowClusterCharge)
+	      cmspixvsxmymLowCharge->fill( xmod, ymod );
+
 	    if( lq ) {
 
 	      cmsdyvsxm->fill( xmod, cmsdy*1E3 );
@@ -1969,8 +1972,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      cmsdxvsym->fill( ymod, cmsdx*1E3 );
 
 	      cmspixvsxmym->fill( xmod, ymod ); // occupancy map
-	      if(lowClusterCharge)
-		cmspixvsxmymLowCharge->fill( xmod, ymod );
 
 	      // KIT: added for efficiency analysis
 	      dotsize=10;
