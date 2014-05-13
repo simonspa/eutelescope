@@ -381,10 +381,6 @@ void EUTelAnalysisCMSPixel::processRunHeader( LCRunHeader* runHeader) {
   n_uncorrelated_triggers_tlu = 0;
 } // processRunHeader
 
-
-//----------------------------------------------------------------------------
-
-
 //----------------------------------------------------------------------------
 void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
@@ -1045,7 +1041,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     // Add it to the vector of telescope hits:
     hits->push_back(newhit);
 
-  }//loop over hits
+  } // loop over hits
 
   streamlog_out(DEBUG4) << "Event " << event->getEventNumber()
 			<< " contains " << hits->size() << " hits" << std::endl;
@@ -1053,6 +1049,87 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
   // Fill the telescope plane correlation plots:
   TelescopeCorrelationPlots(hits);
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // Tsunami correction
+
+  double eps = 0; // for analog ROCs
+
+  if( _DUT_chip >= 200  )
+    //eps = 0.03; // tsunami correction for psi46digV1
+    eps = 0.6; // [ke] additive
+
+  if( _DUT_chip >= 400  )
+    //eps = 0.06; // tsunami correction for psi46digV2.1
+    eps = 1.2; // [ke] additive
+
+  if( dutPixels->size() > 0 ) {
+
+    for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ ){
+
+      if( c->size == 1 ) continue;
+
+      // look if some other pixel was readout earlier in the same DC:
+
+      for( std::vector<CMSPixel::pixel>::iterator px = c->vpix.begin(); px != c->vpix.end(); px++ ) {
+
+	int icol = px->col;
+	int dcp = icol / 2; // 0..25 double column number
+
+	bool hasPrevious = 0;
+	double qprv = 0;
+
+	for( std::vector<CMSPixel::pixel>::iterator qx = c->vpix.begin(); qx != c->vpix.end(); qx++ ) {
+
+	  if( px == qx ) continue; // the same pixel
+
+	  if( qx->col > px->col ) continue; // qx later than px
+
+	  int dcq = qx->col / 2;
+
+	  if( dcp != dcq ) continue; // want same double column
+
+	  if( qx->col < px->col ) {
+	    hasPrevious = 1;
+	    qprv = qx->vcal;
+	    continue;
+	  }
+
+	  // px and qx are in same column.
+
+	  if( icol%2 == 0 ) { // ascending readout
+	    if( qx->row < px->row ) {
+	      hasPrevious = 1;
+	      qprv = qx->vcal;
+	    }
+	  }
+	  else
+	    if( qx->row > px->row ) {
+	      hasPrevious = 1;
+	      qprv = qx->vcal;
+	    }
+
+	} // qx
+
+	// p is 2nd px in DC readout: apply tsunami correction:
+
+	if( hasPrevious )
+	  // px->vcal -= eps * qprv; // proportional, overwrite!
+	  px->vcal -= eps; // subtract constant, overwrite!
+
+      } // pix
+
+      // sum up corrected pixel charges:
+
+      double q = 0;
+      for( std::vector<CMSPixel::pixel>::iterator px = c->vpix.begin(); px != c->vpix.end(); px++ )
+	q += px->vcal;
+
+      c->charge = q; // overwritten !
+
+    } // DUT clusters
+
+  } // have DUT cust
 
   //----------------------------------------------------------------------------
   // DUT alignment: relative to _planePosition[2]
@@ -5998,6 +6075,7 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
   return clusters;
 }
 
+//------------------------------------------------------------------------------
 bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixels, EUTelAnalysisCMSPixel::calibration cal) {
 
   for( std::vector<CMSPixel::pixel>::iterator pix = pixels->begin(); pix != pixels->end(); pix++) {
