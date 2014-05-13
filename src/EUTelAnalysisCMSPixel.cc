@@ -3744,7 +3744,7 @@ void EUTelAnalysisCMSPixel::bookHistos()
 
   cmstimingcut = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmstimingcut", 140, 0, 700 );
-  cmsnpxHisto->setTitle( "check if timing cut was applied;time[s]" );
+  cmstimingcut->setTitle( "check if timing cut was applied;time[s]" );
   
 
   //FIXME cmsxx and cmsyy need swapped dimensions for ETHh and FPIX:
@@ -6109,6 +6109,8 @@ bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixel
 					 // comparison, Landau peak
  					 // Feb 2014
     if( cal.chip_id == 203) keV = 0.324;
+
+    if( cal.chip_id == 405) keV = 0.753;
     
     // PSI Tanh Calibration (psi46expert vanilla):
     if(strcmp(cal.type.c_str(),"psi_tanh") == 0) {
