@@ -1635,6 +1635,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       if( runNumber == 11289 && eventTime >  400 && eventTime <  420 ) leff = 0;
       if( runNumber == 11289 && eventTime >  540 && eventTime <  560 ) leff = 0;
       
+      if(leff)
+	cmstimingcut->fill(eventTime);
 
       // CMS pixel clusters:
 
@@ -3739,6 +3741,11 @@ void EUTelAnalysisCMSPixel::bookHistos()
   trixydutHisto->setTitle( "triplet at DUT;triplet x_{out} at DUT [mm];triplet y_{up} at DUT [mm];telescope triplets" );
 
   // DUT pixel vs triplets:
+
+  cmstimingcut = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmstimingcut", 140, 0, 700 );
+  cmsnpxHisto->setTitle( "check if timing cut was applied;time[s]" );
+  
 
   //FIXME cmsxx and cmsyy need swapped dimensions for ETHh and FPIX:
   cmsxxHisto = AIDAProcessor::histogramFactory(this)->
