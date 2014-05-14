@@ -1572,6 +1572,36 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
       bool leff = 1;
 
+      if( runNumber == 11191 && eventTime <  180                     ) leff = 0;
+      if( runNumber == 11191 && eventTime >  560                     ) leff = 0;
+
+      if( runNumber == 11193 && eventTime <  220                     ) leff = 0;
+      if( runNumber == 11193 && eventTime >  540                     ) leff = 0;
+
+      if( runNumber == 11194 && eventTime <   80                     ) leff = 0;
+      if( runNumber == 11194 && eventTime >  280                     ) leff = 0;
+
+      if( runNumber == 11195 && eventTime >  520                     ) leff = 0;
+
+      if( runNumber == 11197 && eventTime >  280                     ) leff = 0;
+
+      if( runNumber == 11199 && eventTime >  380                     ) leff = 0;
+
+      if( runNumber == 11200 && eventTime >  160                     ) leff = 0;
+
+      if( runNumber == 11201 && eventTime <  240                     ) leff = 0;
+      if( runNumber == 11201 && eventTime >  520                     ) leff = 0;
+
+      if( runNumber == 11202 && eventTime >  600                     ) leff = 0;
+
+      if( runNumber == 11204 && eventTime <  270                     ) leff = 0;
+      if( runNumber == 11204 && eventTime >  600                     ) leff = 0;
+
+      if( runNumber == 11205 && eventTime <  120                     ) leff = 0;
+      if( runNumber == 11205 && eventTime >  480                     ) leff = 0;
+
+      if( runNumber == 11208 && eventTime >  600                     ) leff = 0;
+
       if( runNumber == 11269 && eventTime >   45 && eventTime <  160 ) leff = 0;
       if( runNumber == 11269 && eventTime >  240                     ) leff = 0;
       
