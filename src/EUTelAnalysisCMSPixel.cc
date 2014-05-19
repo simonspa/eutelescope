@@ -1854,6 +1854,12 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    cmsdyfctHisto->fill( cmsdy*1E3 );
 	    if(lowClusterCharge)
 	      cmsdyfctLowChargeHisto->fill( cmsdy*1E3 );
+	    if(c->size == 1)
+	      cmsdyfctOnePixelHisto->fill( cmsdy*1E3 );
+	    if(c->size == 1 && !lowClusterCharge)
+	      cmsdyfctOnePixelHighChargeHisto->fill( cmsdy*1E3 );
+	    if(c->size == 1 && lowClusterCharge)
+	      cmsdyfctOnePixelLowChargeHisto->fill( cmsdy*1E3 );
 	    if( nrow <= 2 ) cmsdyfcntHisto->fill( cmsdy*1E3 );
 	  }
 
@@ -3892,7 +3898,19 @@ void EUTelAnalysisCMSPixel::bookHistos()
 
   cmsdyfctLowChargeHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfctLowCharge", 500, -500, 500 );
-  cmsdyfctLowChargeHisto->setTitle( "fiducial Pixel - telescope y;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
+  cmsdyfctLowChargeHisto->setTitle( "fiducial Pixel - telescope y;fiducial low charge clusters - triplet #Deltay [#mum];fiducial clusters" );
+
+  cmsdyfctOnePixelHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfctOnePixel", 500, -500, 500 );
+  cmsdyfctOnePixelHisto->setTitle( "fiducial Pixel - telescope y;fiducial one pixel clusters - triplet #Deltay [#mum];fiducial clusters" );
+
+  cmsdyfctOnePixelLowChargeHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfctOnePixelLowCharge", 500, -500, 500 );
+  cmsdyfctOnePixelLowChargeHisto->setTitle( "fiducial Pixel - telescope y;fiducial one pixel, low charge cluster - triplet #Deltay [#mum];fiducial clusters" );
+
+  cmsdyfctOnePixelHighChargeHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfctOnePixelHighCharge", 500, -500, 500 );
+  cmsdyfctOnePixelHighChargeHisto->setTitle( "fiducial Pixel - telescope y;fiducial one pixel high charge cluster - triplet #Deltay [#mum];fiducial clusters" );
 
   cmsdyfcntHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfcnt", 500, -500, 500 );
@@ -6140,7 +6158,9 @@ bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixel
  					 // Feb 2014
     if( cal.chip_id == 203) keV = 0.324;
 
-    if( cal.chip_id == 405) keV = 0.753;
+    if( cal.chip_id == 405) keV = 0.290;
+
+    if( cal.chip_id == 404) keV = 0.250;
     
     // PSI Tanh Calibration (psi46expert vanilla):
     if(strcmp(cal.type.c_str(),"psi_tanh") == 0) {
