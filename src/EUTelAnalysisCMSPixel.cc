@@ -2077,6 +2077,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	    if(lowClusterCharge)
 	      cmspixvsxmymLowCharge->fill( xmod, ymod );
+	    if(c->size == 1)
+	      cmspix1vsxmym->fill( xmod, ymod );
 
 	    if( lq ) {
 
@@ -4154,9 +4156,13 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram2D( "cmspixvsxmym", 60, 0, 300, 40, 0, 200 );
   cmspixvsxmym->setTitle( "DUT pixel occupancy;x mod 300 #mum;y mod 200 #mum;clusters" );
 
+  cmspix1vsxmym = AIDAProcessor::histogramFactory(this)->
+    createHistogram2D( "cmspix1vsxmym", 60, 0, 300, 40, 0, 200 );
+  cmspix1vsxmym->setTitle( "DUT pixel occupancy for one pixel clusters;x mod 300 #mum;y mod 200 #mum;clusters" );
+
   cmspixvsxmymLowCharge = AIDAProcessor::histogramFactory(this)->
     createHistogram2D( "cmspixvsxmymLowCharge", 60, 0, 300, 40, 0, 200 );
-  cmspixvsxmymLowCharge->setTitle( "DUT pixel occupancy;x mod 300 #mum;y mod 200 #mum;clusters" );
+  cmspixvsxmymLowCharge->setTitle( "DUT pixel occupancy for low charge clusters;x mod 300 #mum;y mod 200 #mum;clusters" );
 
   // KIT: added for efficiency analysis - occupancy
 

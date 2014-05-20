@@ -583,6 +583,7 @@ namespace eutelescope {
   AIDA::IProfile1D * cmsdyvsxm, * cmsdxvsxm;
   AIDA::IProfile1D * cmsdyvsym, * cmsdxvsym;
   AIDA::IHistogram2D * cmspixvsxmym;
+  AIDA::IHistogram2D * cmspix1vsxmym;
   AIDA::IHistogram2D * cmspixvsxmymLowCharge;
 
   // KIT: added for efficiency analysis - occupancy
