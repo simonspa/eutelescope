@@ -1571,11 +1571,45 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     if( dutPixels->size() > 0 ) {
 
       bool leff = 1;
+      bool lowEff = 0;
+
+      if( runNumber ==  8603 && eventTime >    0                     ) leff = 0;
+
+      if( runNumber ==  8605 && eventTime >  160                     ) leff = 0;
+
+      if( runNumber ==  8608 && eventTime >  140                     ) leff = 0;
+
+      if( runNumber ==  8609 && eventTime >   60                     ) leff = 0;
+
+      if( runNumber ==  8610 && eventTime >    0                     ) leff = 0;
+
+      if( runNumber ==  8612 && eventTime >    0                     ) leff = 0;
+
+      if( runNumber ==  8613 && eventTime >   60                     ) leff = 0;
+
+      if( runNumber ==  8614 && eventTime >  240                     ) leff = 0;
+      
+      if( runNumber ==  8616 && eventTime >  200                     ) leff = 0;
+
+      if( runNumber ==  8617 && eventTime >  120                     ) leff = 0;
+
+      if( runNumber ==  8618 && eventTime <  100                     ) leff = 0;
+      if( runNumber ==  8618 && eventTime >  200                     ) leff = 0;
+
+      if( runNumber ==  8619 && eventTime >    0                     ) leff = 0;
+
+      if( runNumber ==  8624 && eventTime >  400                     ) leff = 0;
+
+      if( runNumber == 10903 && eventTime <  200                     ) leff = 0;
+      if( runNumber == 10903 && eventTime >  360                     ) leff = 0;
 
       if( runNumber == 11191 && eventTime <  180                     ) leff = 0;
       if( runNumber == 11191 && eventTime >  560                     ) leff = 0;
 
-      if( runNumber == 11193 && eventTime <  220                     ) leff = 0;
+      if( runNumber == 11193 && eventTime <  220                     ){
+	lowEff = 1;
+	leff = 0;
+      }
       if( runNumber == 11193 && eventTime >  540                     ) leff = 0;
 
       if( runNumber == 11194 && eventTime <   80                     ) leff = 0;
@@ -1712,7 +1746,22 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	if( colmax == 51 ) fiducial = 0;
 
 	bool lowClusterCharge = false;
-	if(c->charge < 8)
+
+	if( runNumber == 8604 && c->charge < 11)
+	  lowClusterCharge = true;
+	else if(runNumber == 8605 && c->charge < 11)
+	  lowClusterCharge = true;
+ 	else if(runNumber == 10903 && c->charge < 13)
+	  lowClusterCharge = true;
+	else if(runNumber == 10929 && c->charge < 13)
+	  lowClusterCharge = true;
+	else if(runNumber == 11191 && c->charge < 10)
+	  lowClusterCharge = true;
+	else if(runNumber == 11200 && c->charge < 10)
+	  lowClusterCharge = true;
+	else if(runNumber == 11202 && c->charge < 10)
+	  lowClusterCharge = true;
+	else if(c->charge < 8)
 	  lowClusterCharge = true;
 
 	int ncol = colmax - colmin + 1;
@@ -1825,7 +1874,11 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	}//CMS fiducial
 
 	 // accumulate cuts for y:
-
+	if( lowEff && fiducial && abs( cmsdx ) < 0.15 && abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) {
+	  cmsdyfctLowEffHisto->fill( cmsdy*1E3 );
+	  if(lowClusterCharge)
+	    cmsdyfctLowEffLowChargeHisto->fill( cmsdy*1E3 );
+	}
 	if( leff && fiducial && abs( cmsdx ) < 0.15 ) {
 
 	  if(      nrow == 1 )
@@ -1854,6 +1907,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    cmsdyfctHisto->fill( cmsdy*1E3 );
 	    if(lowClusterCharge)
 	      cmsdyfctLowChargeHisto->fill( cmsdy*1E3 );
+	    if(!lowClusterCharge)
+	      cmsdyfctHighChargeHisto->fill( cmsdy*1E3 );
 	    if(c->size == 1)
 	      cmsdyfctOnePixelHisto->fill( cmsdy*1E3 );
 	    if(c->size == 1 && !lowClusterCharge)
@@ -3901,6 +3956,18 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsdyfctLowChargeHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfctLowCharge", 500, -500, 500 );
   cmsdyfctLowChargeHisto->setTitle( "fiducial Pixel - telescope y;fiducial low charge clusters - triplet #Deltay [#mum];fiducial clusters" );
+
+  cmsdyfctHighChargeHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfctHighCharge", 500, -500, 500 );
+  cmsdyfctHighChargeHisto->setTitle( "fiducial Pixel - telescope y;fiducial low charge clusters - triplet #Deltay [#mum];fiducial clusters" );
+
+  cmsdyfctLowEffHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfctLowEff", 500, -500, 500 );
+  cmsdyfctLowEffHisto->setTitle( "fiducial Pixel - telescope y;fiducial low Eff. clusters - triplet #Deltay [#mum];fiducial clusters" );
+
+  cmsdyfctLowEffLowChargeHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfctLowEffLowCharge", 500, -500, 500 );
+  cmsdyfctLowEffLowChargeHisto->setTitle( "fiducial Pixel - telescope y;fiducial low charge, low Eff. clusters - triplet #Deltay [#mum];fiducial clusters" );
 
   cmsdyfctOnePixelHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfctOnePixel", 500, -500, 500 );
