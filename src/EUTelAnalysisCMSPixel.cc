@@ -1764,6 +1764,15 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	else if(c->charge < 8)
 	  lowClusterCharge = true;
 
+	bool seedPixelLost = false;
+	if(fiducial && abs( cmsdx ) < 0.15 && abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) { //Same
+													  //requirements 
+													  //as for cmsdyfct
+	  if(c->size == 1 && abs( cmsdy ) > 0.04)
+	    seedPixelLost = true;
+	}
+
+
 	int ncol = colmax - colmin + 1;
 	int nrow = rowmax - rowmin + 1;
 
@@ -2054,6 +2063,12 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	    cmsqfHisto->fill( c->charge );
 	    cmsq0fHisto->fill( Q0 );
+	    
+	    if(seedPixelLost)
+	      cmsqfOnePixeldyCutHisto->fill( c->charge );
+	    else
+	      cmsqfNotOnePixeldyCutHisto->fill( c->charge );
+		
 
 	    if( c->size == 1){
 	      cmsqfcl1Histo->fill( c->charge );
@@ -4162,6 +4177,15 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsqfHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsqf", 100, 0, 100 );
   cmsqfHisto->setTitle( "DUT cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
+
+  cmsqfOnePixeldyCutHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsqfOnePixeldyCut", 100, 0, 100 );
+  cmsqfOnePixeldyCutHisto->setTitle( "DUT cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
+  
+  cmsqfNotOnePixeldyCutHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsqfNotOnePixeldyCut", 100, 0, 100 );
+  cmsqfNotOnePixeldyCutHisto->setTitle( "DUT cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
+  
 
   cmsqfcl1Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsqfcl1", 100, 0, 100 );

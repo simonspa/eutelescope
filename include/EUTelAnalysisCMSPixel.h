@@ -570,6 +570,8 @@ namespace eutelescope {
   AIDA::IProfile1D * cmsnrowvst1;
   AIDA::IHistogram1D * cmsetaHisto, *cmsetaevenHisto, * cmsetaoddHisto;
   AIDA::IHistogram1D * cmsqfHisto;
+  AIDA::IHistogram1D * cmsqfOnePixeldyCutHisto;
+  AIDA::IHistogram1D * cmsqfNotOnePixeldyCutHisto;
   AIDA::IHistogram1D * cmsqfcl1Histo;
   AIDA::IHistogram1D * cmsqfcl2Histo;
   AIDA::IHistogram1D * cmsqfrow1Histo;
