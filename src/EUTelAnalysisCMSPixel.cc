@@ -1764,15 +1764,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	else if(c->charge < 8)
 	  lowClusterCharge = true;
 
-	bool seedPixelLost = false;
-	if(fiducial && abs( cmsdx ) < 0.15 && abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) { //Same
-													  //requirements 
-													  //as for cmsdyfct
-	  if(c->size == 1 && abs( cmsdy ) > 0.04)
-	    seedPixelLost = true;
-	}
-
-
+	
 	int ncol = colmax - colmin + 1;
 	int nrow = rowmax - rowmin + 1;
 
@@ -1866,6 +1858,15 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    cmsdy = cmsdy - 1.5E-3;
 	}
 
+	bool seedPixelLost = false;     //Check if the seedPixel was
+					//probably lost
+	if(fiducial && abs( cmsdx ) < 0.15 && abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) { //Same
+													  //requirements 
+													  //as for cmsdyfct
+	  if(c->size == 1 && abs( cmsdy ) > 0.04)
+	    seedPixelLost = true;
+	}
+	
 	if( leff ){
 	  cmsdxHisto->fill( cmsdx*1E3 );
 	  cmsdyHisto->fill( cmsdy*1E3 );
