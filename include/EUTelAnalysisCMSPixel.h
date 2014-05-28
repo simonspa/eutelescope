@@ -548,6 +548,8 @@ namespace eutelescope {
 
   AIDA::IHistogram2D * trixylkHisto;
   AIDA::IHistogram1D * cmstimingcut;
+  AIDA::IHistogram1D * twoClusterDistanceHisto;
+  AIDA::IHistogram1D * twoClusterDistanceLostSeedHisto;
   AIDA::IProfile1D * cmsdxvsx;
   AIDA::IProfile1D * cmsdyvsx;
   AIDA::IProfile1D * cmsdxvsy;
@@ -705,6 +707,11 @@ namespace eutelescope {
 
   AIDA::IProfile2D * rffvsxy;
   AIDA::IProfile1D * rffvsx;
+
+  AIDA::IHistogram1D * nTripClus;
+  AIDA::IHistogram1D * nTripClusLostSeed;
+  AIDA::IHistogram1D * nTripPixels;
+  AIDA::IHistogram1D * nTripPixelsLostSeed;
 
   AIDA::IHistogram1D * ntriHisto;
   AIDA::IProfile1D * lkAvst;

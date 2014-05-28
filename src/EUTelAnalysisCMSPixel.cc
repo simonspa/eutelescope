@@ -1704,6 +1704,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
       // CMS pixel clusters:
 
+      bool trackHasLostSeedPixel = false;
       for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ ){
 
 	if(ETHh || FPIX ) {
@@ -1863,10 +1864,25 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	if(fiducial && abs( cmsdx ) < 0.15 && abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) { //Same
 													  //requirements 
 													  //as for cmsdyfct
-	  if(c->size == 1 && abs( cmsdy ) > 0.04)
+	  if(c->size == 1 && abs( cmsdy ) > 0.04){
 	    seedPixelLost = true;
+	    trackHasLostSeedPixel = true;
+	  }
+
+	}
+
+	
+	//Plot 2 Cluster distance for Tracks with 2 Clusters
+	if(ClustDUT.size() == 2 && c == (ClustDUT.begin()+1) ){
+	  double cmsxFirstClus = ( ClustDUT.begin()->col - 26 ) * pitchcol; // -3.9..3.9 mm
+	  double cmsyFirstClus = ( ClustDUT.begin()->row - 40 ) * pitchrow; // -4..4 mm
+	  double twoClusterDistance = sqrt( fabs(cmsxFirstClus - cmsx) + fabs(cmsyFirstClus - cmsy) );
+	  twoClusterDistanceHisto->fill(twoClusterDistance);
+	  if(trackHasLostSeedPixel)
+	    twoClusterDistanceLostSeedHisto->fill(twoClusterDistance);
 	}
 	
+
 	if( leff ){
 	  cmsdxHisto->fill( cmsdx*1E3 );
 	  cmsdyHisto->fill( cmsdy*1E3 );
@@ -2406,11 +2422,22 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
       } // loop over CMS clusters
 
+      nTripClus->fill(ClustDUT.size());
+      if(trackHasLostSeedPixel)
+	nTripClusLostSeed->fill(ClustDUT.size());
+      int numberOfTripPixels = 0;
+      for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ ){
+	numberOfTripPixels += c->size;
+      }
+      nTripPixels->fill(numberOfTripPixels);
+      if(trackHasLostSeedPixel)
+	nTripPixelsLostSeed->fill(numberOfTripPixels);
+
     }// have some CMS hit
 
   }// iterate over upstream triplets
 
-
+    
   ntriHisto->fill( upstream_triplets->size() );
   lkAvst->fill( (time_now_tlu-time_event0)/fTLU, ntrilk );
 
@@ -3855,6 +3882,13 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmstimingcut", 140, 0, 700 );
   cmstimingcut->setTitle( "check if timing cut was applied;time[s]" );
   
+  twoClusterDistanceHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterDistance", 200, 0, 5 );
+  twoClusterDistanceHisto->setTitle( "Two Cluster Distance;cluster distance [mm];clusters" );
+
+  twoClusterDistanceLostSeedHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterDistanceLostSeed", 200, 0, 5 );
+  twoClusterDistanceLostSeedHisto->setTitle( "Two Cluster Distance Lost Seed;cluster distance [mm];clusters" );
 
   //FIXME cmsxx and cmsyy need swapped dimensions for ETHh and FPIX:
   cmsxxHisto = AIDAProcessor::histogramFactory(this)->
@@ -4704,6 +4738,21 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createProfile1D( "rffvsx", 100, -2, 8, -1, 2 );
   rffvsx->setTitle( "REF efficiency;telescope x [mm];DUT REF efficiency" );
 
+  nTripClus = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "nTripClus", 11, 0, 10 );
+  nTripClus->setTitle( "Clusters per triplet; number of clusters; events" );
+
+  nTripClusLostSeed = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "nTripClusLostSeed", 11, 0, 10 );
+  nTripClusLostSeed->setTitle( "Clusters per triplet for tracks with lost seed Cluster; number of clusters; events" );
+
+  nTripPixels = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "nTripPixels", 11, 0, 10 );
+  nTripPixels->setTitle( "Pixels per triplet; number of Pixels; events" );
+
+  nTripPixelsLostSeed = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "nTripPixelsLostSeed", 11, 0, 10 );
+  nTripPixelsLostSeed->setTitle( "Pixels per triplet for tracks with lost seed Cluster; number of Pixels; events" );
 
   lkAvst = AIDAProcessor::histogramFactory(this)->
     createProfile1D( "lkAvst", 360, 0, 3600, -0.5, 2.5 );
