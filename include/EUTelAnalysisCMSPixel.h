@@ -541,6 +541,8 @@ namespace eutelescope {
   AIDA::IHistogram1D * triydutHisto;
   AIDA::IHistogram2D * trixydutHisto;
 
+  AIDA::IHistogram1D * triddaMindutHisto;
+
   AIDA::IHistogram2D * cmsxxHisto;
   AIDA::IHistogram2D * cmsyyHisto;
 
@@ -548,6 +550,18 @@ namespace eutelescope {
 
   AIDA::IHistogram2D * trixylkHisto;
   AIDA::IHistogram1D * cmstimingcut;
+  AIDA::IHistogram1D * twoClusterDistanceHisto;
+  AIDA::IHistogram1D * twoClusterXDistanceHisto;
+  AIDA::IHistogram1D * twoClusterYDistanceHisto;
+  AIDA::IHistogram1D * twoClusterDistanceLostSeedHisto;
+  AIDA::IHistogram1D * twoClusterXDistanceLostSeedHisto;
+  AIDA::IHistogram1D * twoClusterYDistanceLostSeedHisto;
+  AIDA::IHistogram1D * twoClusterDistanceLinkedTrackHisto;
+  AIDA::IHistogram1D * twoClusterXDistanceLinkedTrackHisto;
+  AIDA::IHistogram1D * twoClusterYDistanceLinkedTrackHisto;
+  AIDA::IHistogram1D * twoClusterDistanceLostSeedLinkedTrackHisto;
+  AIDA::IHistogram1D * twoClusterXDistanceLostSeedLinkedTrackHisto;
+  AIDA::IHistogram1D * twoClusterYDistanceLostSeedLinkedTrackHisto;
   AIDA::IProfile1D * cmsdxvsx;
   AIDA::IProfile1D * cmsdyvsx;
   AIDA::IProfile1D * cmsdxvsy;
@@ -570,6 +584,8 @@ namespace eutelescope {
   AIDA::IProfile1D * cmsnrowvst1;
   AIDA::IHistogram1D * cmsetaHisto, *cmsetaevenHisto, * cmsetaoddHisto;
   AIDA::IHistogram1D * cmsqfHisto;
+  AIDA::IHistogram1D * cmsqfOnePixeldyCutHisto;
+  AIDA::IHistogram1D * cmsqfNotOnePixeldyCutHisto;
   AIDA::IHistogram1D * cmsqfcl1Histo;
   AIDA::IHistogram1D * cmsqfcl2Histo;
   AIDA::IHistogram1D * cmsqfrow1Histo;
@@ -703,6 +719,18 @@ namespace eutelescope {
 
   AIDA::IProfile2D * rffvsxy;
   AIDA::IProfile1D * rffvsx;
+
+  AIDA::IHistogram1D * nTripClus;
+  AIDA::IHistogram1D * nTripClusLostSeed;
+  AIDA::IHistogram1D * nTripPixels;
+  AIDA::IHistogram1D * nTripPixelsLostSeed;
+
+  AIDA::IHistogram1D * nLinkedTripClus;
+
+  AIDA::IHistogram1D * nTripClusLinkedTrack;
+  AIDA::IHistogram1D * nTripClusLostSeedLinkedTrack;
+  AIDA::IHistogram1D * nTripPixelsLinkedTrack;
+  AIDA::IHistogram1D * nTripPixelsLostSeedLinkedTrack;
 
   AIDA::IHistogram1D * ntriHisto;
   AIDA::IProfile1D * lkAvst;

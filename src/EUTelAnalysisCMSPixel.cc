@@ -1398,7 +1398,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     for( std::vector<triplet>::iterator trip = upstream_triplets->begin(); trip != upstream_triplets->end(); trip++ )
       _dutSkipScanner->telescopeTriplet(trip->getdx(1)*1E3, trip->getdy(1)*1E3);
 
-  // Iterate over all found downstream triplets to fill histograms and match them to the REF and DUT:
+  // Iterate over all found upstream triplets to fill histograms and match them to the REF and DUT:
   for( std::vector<triplet>::iterator trip = upstream_triplets->begin(); trip != upstream_triplets->end(); trip++ ) {
 
     // Fill some histograms for the upstream triplets:
@@ -1456,6 +1456,24 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     trixdutHisto->fill( -xA ); // -xA = x_DP = out
     triydutHisto->fill( -yA ); // -yA = y_DP = up
     trixydutHisto->fill( -xA, -yA );
+
+    bool isolatedTrip = true;
+
+    double ddAMin = -1.0;
+    for( std::vector<triplet>::iterator tripIsoCheck = upstream_triplets->begin(); tripIsoCheck != upstream_triplets->end(); tripIsoCheck++ ) {
+      if(trip != tripIsoCheck){
+	double xAIsoCheck = (*tripIsoCheck).getx_at(DUTz);
+	double xyIsoCheck = (*tripIsoCheck).gety_at(DUTz);
+	double ddA = sqrt( fabs(xAIsoCheck - xA)*fabs(xAIsoCheck - xA) + fabs(xyIsoCheck - yA)*fabs(xyIsoCheck - yA) );
+	if(ddAMin < 0 || ddA < ddAMin)
+	  ddAMin = ddA;
+      }
+    }
+    
+
+    triddaMindutHisto->fill(ddAMin);
+    if(ddAMin < 0.3)
+      isolatedTrip = false;
 
     // intersect inclined track with tilted DUT plane:
 
@@ -1704,6 +1722,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
       // CMS pixel clusters:
 
+      bool trackHasLostSeedPixel = false;
+      int nLinkedClusters = 0;
       for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ ){
 
 	if(ETHh || FPIX ) {
@@ -1764,6 +1784,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	else if(c->charge < 8)
 	  lowClusterCharge = true;
 
+	
 	int ncol = colmax - colmin + 1;
 	int nrow = rowmax - rowmin + 1;
 
@@ -1856,6 +1877,22 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  else
 	    cmsdy = cmsdy - 1.5E-3;
 	}
+
+	bool seedPixelLost = false;     //Check if the seedPixel was
+					//probably lost
+	if(fiducial && abs( cmsdx ) < 0.15 && abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) { //Same
+													  //requirements 
+													  //as for cmsdyfct
+	  if(c->size == 1 && abs( cmsdy ) > 0.04){
+	    seedPixelLost = true;
+	    trackHasLostSeedPixel = true;
+	  }
+
+	}
+
+	
+	
+	
 
 	if( leff ){
 	  cmsdxHisto->fill( cmsdx*1E3 );
@@ -1980,8 +2017,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	} // CMS fiducial for x
 
 	// Match CMS cluster and Upstream telescope triplet:
-	if( leff &&  abs( cmsdx ) < 0.3 && abs( cmsdy ) < 0.3 ) {
+	if( leff &&  abs( cmsdx ) < 0.3 && abs( cmsdy ) < 0.3  && isolatedTrip) {
 
+	  nLinkedClusters++;
 	  n_matched_clusters_dut++;
 	  correvt100Histo->fill(event->getEventNumber());
 	  correvt300Histo->fill(event->getEventNumber());
@@ -2054,6 +2092,12 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	    cmsqfHisto->fill( c->charge );
 	    cmsq0fHisto->fill( Q0 );
+	    
+	    if(seedPixelLost)
+	      cmsqfOnePixeldyCutHisto->fill( c->charge );
+	    else
+	      cmsqfNotOnePixeldyCutHisto->fill( c->charge );
+		
 
 	    if( c->size == 1){
 	      cmsqfcl1Histo->fill( c->charge );
@@ -2224,6 +2268,31 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	} // CMS - triplet match
 
+	//Plot 2 Cluster distance for Tracks with 2 Clusters
+	if(ClustDUT.size() == 2 && c == (ClustDUT.begin()+1) ){
+	  double cmsxFirstClus = ( ClustDUT.begin()->col - 26 ) * pitchcol; // -3.9..3.9 mm
+	  double cmsyFirstClus = ( ClustDUT.begin()->row - 40 ) * pitchrow; // -4..4 mm
+	  double twoClusterDistance = sqrt( fabs(cmsxFirstClus - cmsx)*fabs(cmsxFirstClus - cmsx) + fabs(cmsyFirstClus - cmsy)*fabs(cmsyFirstClus - cmsy) );
+	  twoClusterDistanceHisto->fill(twoClusterDistance);
+	  twoClusterXDistanceHisto->fill(fabs(cmsxFirstClus - cmsx));
+	  twoClusterYDistanceHisto->fill(fabs(cmsyFirstClus - cmsy));
+	  if(trackHasLostSeedPixel){
+	    twoClusterDistanceLostSeedHisto->fill(twoClusterDistance);
+	    twoClusterXDistanceLostSeedHisto->fill(fabs(cmsxFirstClus - cmsx));
+	    twoClusterYDistanceLostSeedHisto->fill(fabs(cmsyFirstClus - cmsy));
+	  }
+	  if(nLinkedClusters >= 1){
+	    twoClusterDistanceLinkedTrackHisto->fill(twoClusterDistance);
+	    twoClusterXDistanceLinkedTrackHisto->fill(fabs(cmsxFirstClus - cmsx));
+	    twoClusterYDistanceLinkedTrackHisto->fill(fabs(cmsyFirstClus - cmsy));
+	    if(trackHasLostSeedPixel){
+	      twoClusterDistanceLostSeedLinkedTrackHisto->fill(twoClusterDistance);
+	      twoClusterXDistanceLostSeedLinkedTrackHisto->fill(fabs(cmsxFirstClus - cmsx));
+	      twoClusterYDistanceLostSeedLinkedTrackHisto->fill(fabs(cmsyFirstClus - cmsy));
+	    }
+	  }
+	}
+
 	if( leff && abs( cmsdx ) < 0.5 && abs( cmsdy ) < 0.5 ){ // link to CMS
 	  (*trip).linked_dut = true;
 	  (*trip).cmsdx = cmsdx;
@@ -2390,11 +2459,36 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
       } // loop over CMS clusters
 
+      nLinkedTripClus->fill(nLinkedClusters);
+      nTripClus->fill(ClustDUT.size());
+      if(trackHasLostSeedPixel)
+	nTripClusLostSeed->fill(ClustDUT.size());
+      int numberOfTripPixels = 0;
+      for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ ){
+	numberOfTripPixels += c->size;
+      }
+      nTripPixels->fill(numberOfTripPixels);
+      if(trackHasLostSeedPixel)
+	nTripPixelsLostSeed->fill(numberOfTripPixels);
+
+      if(nLinkedClusters >= 1){
+	nTripClusLinkedTrack->fill(ClustDUT.size());
+	if(trackHasLostSeedPixel)
+	  nTripClusLostSeedLinkedTrack->fill(ClustDUT.size());
+	int numberOfTripPixels = 0;
+	for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ ){
+	  numberOfTripPixels += c->size;
+	}
+	nTripPixelsLinkedTrack->fill(numberOfTripPixels);
+	if(trackHasLostSeedPixel)
+	  nTripPixelsLostSeedLinkedTrack->fill(numberOfTripPixels);
+      }
+
     }// have some CMS hit
 
   }// iterate over upstream triplets
 
-
+    
   ntriHisto->fill( upstream_triplets->size() );
   lkAvst->fill( (time_now_tlu-time_event0)/fTLU, ntrilk );
 
@@ -3833,12 +3927,63 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram2D( "Upstream/trixydut", 240, -12, 12, 120, -6, 6 );
   trixydutHisto->setTitle( "triplet at DUT;triplet x_{out} at DUT [mm];triplet y_{up} at DUT [mm];telescope triplets" );
 
+  triddaMindutHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "triddaMindut", 120, 0, 10 );
+  triddaMindutHisto->setTitle( "minimal triplet distance at DUT;triplet distance at DUT [mm];telescope triplets" );
+
   // DUT pixel vs triplets:
 
   cmstimingcut = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmstimingcut", 140, 0, 700 );
   cmstimingcut->setTitle( "check if timing cut was applied;time[s]" );
   
+  twoClusterDistanceHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterDistance", 200, 0, 5 );
+  twoClusterDistanceHisto->setTitle( "Two Cluster Distance;cluster distance [mm];clusters" );
+
+  twoClusterXDistanceHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterXDistance", 200, 0, 5 );
+  twoClusterXDistanceHisto->setTitle( "Two Cluster X Distance;cluster distance [mm];clusters" );
+
+  twoClusterYDistanceHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterYDistance", 200, 0, 5 );
+  twoClusterYDistanceHisto->setTitle( "Two Cluster Y Distance;cluster distance [mm];clusters" );
+
+  twoClusterDistanceLostSeedHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterDistanceLostSeed", 200, 0, 5 );
+  twoClusterDistanceLostSeedHisto->setTitle( "Two Cluster Distance Lost Seed;cluster distance [mm];clusters" );
+
+  twoClusterXDistanceLostSeedHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterXDistanceLostSeed", 200, 0, 5 );
+  twoClusterXDistanceLostSeedHisto->setTitle( "Two Cluster X Distance Lost Seed;cluster distance [mm];clusters" );
+
+  twoClusterYDistanceLostSeedHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterYDistanceLostSeed", 200, 0, 5 );
+  twoClusterYDistanceLostSeedHisto->setTitle( "Two Cluster Y Distance Lost Seed;cluster distance [mm];clusters" );
+
+  twoClusterDistanceLinkedTrackHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterDistanceLinkedTrack", 200, 0, 5 );
+  twoClusterDistanceLinkedTrackHisto->setTitle( "Two Cluster Distance for linked tracks;cluster distance [mm];clusters" );
+
+  twoClusterXDistanceLinkedTrackHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterXDistanceLinkedTrack", 200, 0, 5 );
+  twoClusterXDistanceLinkedTrackHisto->setTitle( "Two Cluster X  Distance for linked tracks;cluster distance [mm];clusters" );
+
+  twoClusterYDistanceLinkedTrackHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterYDistanceLinkedTrack", 200, 0, 5 );
+  twoClusterYDistanceLinkedTrackHisto->setTitle( "Two Cluster Y Distance for linked tracks;cluster distance [mm];clusters" );
+
+  twoClusterDistanceLostSeedLinkedTrackHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterDistanceLostSeedLinkedTrack", 200, 0, 5 );
+  twoClusterDistanceLostSeedLinkedTrackHisto->setTitle( "Two Cluster Distance Lost Seed for linked tracks;cluster distance [mm];clusters" );
+
+  twoClusterXDistanceLostSeedLinkedTrackHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterXDistanceLostSeedLinkedTrack", 200, 0, 5 );
+  twoClusterXDistanceLostSeedLinkedTrackHisto->setTitle( "Two Cluster X Distance Lost Seed for linked tracks;cluster distance [mm];clusters" );
+
+  twoClusterYDistanceLostSeedLinkedTrackHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "twoClusterYDistanceLostSeedLinkedTrack", 200, 0, 5 );
+  twoClusterYDistanceLostSeedLinkedTrackHisto->setTitle( "Two Cluster Y Distance Lost Seed for linked tracks;cluster distance [mm];clusters" );
 
   //FIXME cmsxx and cmsyy need swapped dimensions for ETHh and FPIX:
   cmsxxHisto = AIDAProcessor::histogramFactory(this)->
@@ -4162,6 +4307,15 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsqfHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsqf", 100, 0, 100 );
   cmsqfHisto->setTitle( "DUT cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
+
+  cmsqfOnePixeldyCutHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsqfOnePixeldyCut", 100, 0, 100 );
+  cmsqfOnePixeldyCutHisto->setTitle( "DUT cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
+  
+  cmsqfNotOnePixeldyCutHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsqfNotOnePixeldyCut", 100, 0, 100 );
+  cmsqfNotOnePixeldyCutHisto->setTitle( "DUT cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
+  
 
   cmsqfcl1Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsqfcl1", 100, 0, 100 );
@@ -4679,6 +4833,41 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createProfile1D( "rffvsx", 100, -2, 8, -1, 2 );
   rffvsx->setTitle( "REF efficiency;telescope x [mm];DUT REF efficiency" );
 
+  nTripClus = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "nTripClus", 11, -0.5, 10.5 );
+  nTripClus->setTitle( "Clusters per triplet; number of clusters; events" );
+
+  nTripClusLostSeed = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "nTripClusLostSeed", 11, -0.5, 10.5 );
+  nTripClusLostSeed->setTitle( "Clusters per triplet for tracks with lost seed Cluster; number of clusters; events" );
+
+  nTripPixels = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "nTripPixels", 11, -0.5, 10.5 );
+  nTripPixels->setTitle( "Pixels per triplet; number of Pixels; events" );
+
+  nTripPixelsLostSeed = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "nTripPixelsLostSeed",11, -0.5, 10.5 );
+  nTripPixelsLostSeed->setTitle( "Pixels per triplet for tracks with lost seed Cluster; number of Pixels; events" );
+
+  nLinkedTripClus = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "nLinkedTripClus", 11, -0.5, 10.5 );
+  nLinkedTripClus->setTitle( "Linked Clusters per triplet; number of clusters; events" );
+
+  nTripClusLinkedTrack = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "nTripClusLinkedTrack", 11, -0.5, 10.5 );
+  nTripClusLinkedTrack->setTitle( "Clusters per triplet for linked Triplets; number of clusters; events" );
+
+  nTripClusLostSeedLinkedTrack = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "nTripClusLostSeedLinkedTrack", 11, -0.5, 10.5 );
+  nTripClusLostSeedLinkedTrack->setTitle( "Clusters per triplet for tracks with lost seed Cluster and linked Triplets; number of clusters; events" );
+
+  nTripPixelsLinkedTrack = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "nTripPixelsLinkedTrack", 11, -0.5, 10.5 );
+  nTripPixelsLinkedTrack->setTitle( "Pixels per triplet for linked Triplets; number of Pixels; events" );
+
+  nTripPixelsLostSeedLinkedTrack = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "nTripPixelsLostSeedLinkedTrack",11, -0.5, 10.5 );
+  nTripPixelsLostSeedLinkedTrack->setTitle( "Pixels per triplet for tracks with lost seed Cluster and linked Triplets; number of Pixels; events" );
 
   lkAvst = AIDAProcessor::histogramFactory(this)->
     createProfile1D( "lkAvst", 360, 0, 3600, -0.5, 2.5 );
