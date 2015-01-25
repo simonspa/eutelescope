@@ -34,6 +34,7 @@ lib/*
 # Ignore emacs backup and autosaves:
 \#*#
 *~
+.#*
 
 # Ignore external package installations
 external/*
