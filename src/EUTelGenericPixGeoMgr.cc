@@ -16,6 +16,7 @@
 #include "FEI4Single.h"
 #include "FEI4Double.h"
 #include "FEI4FourChip.h"
+#include "CMSPixelSingle.h"
 
 //ROOT includes
 #include "TGeoBBox.h"
@@ -124,6 +125,14 @@ void EUTelGenericPixGeoMgr::addPlane(int planeID, std::string geoName, std::stri
 		else if(geoName == "FEI4FourChip.so")
 		{
 			pixgeodescrptr = new FEI4FourChip();
+			streamlog_out( MESSAGE3 ) << "Inserting " << planeID << " into map" << std::endl;
+			_geoDescriptions.insert( std::make_pair(planeID, pixgeodescrptr) );
+			_pixelDescriptions.insert ( std::make_pair(geoName, pixgeodescrptr) );
+		}
+		//CMSPixel Single
+		else if(geoName == "CMSPixelSingle.so")
+		{
+			pixgeodescrptr = new CMSPixelSingle();
 			streamlog_out( MESSAGE3 ) << "Inserting " << planeID << " into map" << std::endl;
 			_geoDescriptions.insert( std::make_pair(planeID, pixgeodescrptr) );
 			_pixelDescriptions.insert ( std::make_pair(geoName, pixgeodescrptr) );
