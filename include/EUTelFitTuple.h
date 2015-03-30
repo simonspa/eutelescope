@@ -198,14 +198,19 @@ namespace eutelescope {
     double * _measuredY;
     double * _measuredZ;
     double * _measuredQ;
+    double * _ClusterSize;
 
     bool   * _isFitted;
     double * _fittedX;
     double * _fittedY;
+    double * _fittedEX;
+    double * _fittedEY;
+    int * _nhits;
 
     int _iDUT;
     double _zDUT;
     double _distMax;
+    double _maxZDistance;
     std::vector<float > _DUTalign;
 
     // Internal processor variables
