@@ -15,11 +15,6 @@
 
 //Geometry implementations
 #include "GEARPixGeoDescr.h"
-#include "Mimosa26GeoDescr.h"
-#include "FEI4Single.h"
-#include "FEI4Double.h"
-#include "FEI4FourChip.h"
-#include "CMSPixelSingle.h"
 
 //ROOT includes
 #include "TGeoBBox.h"
