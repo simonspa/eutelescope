@@ -17,7 +17,8 @@
 #include "EUTELESCOPE.h"
 //#include "EUTelSparseDataImpl.h"
 #include "EUTelBaseSparsePixel.h"
-#include "EUTelSimpleSparsePixel.h"
+#include "EUTelGenericSparsePixel.h"
+#include "EUTelTrackerDataInterfacerImpl.h"
 #include "EUTelExceptions.h"
 #include "EUTelRunHeaderImpl.h"
 #include "EUTelEventImpl.h"
@@ -111,7 +112,7 @@ double DUTaligny = 0;
 double DUTrot = 0;
 
 
-EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputTrackCollection(""), _isFirstEvent(0), _nSkipTelescope(0), _gTLU(0), _nEvtBeg(0), _nRefBeg(0), _eBeam(0), _nRun(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _TEL_run(0), _DUT_run(0), _DUT_data(""), _nSkipDUT(0), _DUT_chip(0), _DUT_gain(""), _DUT_address(""), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_run(0), _REF_data(""), _nSkipRef(0), _REF_chip(0), _REF_gain(""), _REF_address(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _CMS_gain_path(""), _CMS_data_path(""), _DATE_run(""), _gearfile(""), _DUT_board(""), _REF_board(""), _TimingRun(false), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF() {
+EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _nSkipTelescope(0), _gTLU(0), _nEvtBeg(0), _nRefBeg(0), _eBeam(0), _nRun(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _TEL_run(0), _DUT_run(0), _DUT_data(""), _nSkipDUT(0), _DUT_chip(0), _DUT_gain(""), _DUT_address(""), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_run(0), _REF_data(""), _nSkipRef(0), _REF_chip(0), _REF_gain(""), _REF_address(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _CMS_gain_path(""), _CMS_data_path(""), _DATE_run(""), _gearfile(""), _DUT_board(""), _REF_board(""), _TimingRun(false), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF() {
 
   // modify processor description
   _description = "Analysis for CMS PSI46 Pixel Detectors as DUT in AIDA telescopes ";
@@ -127,6 +128,21 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
                            "Name of the input TrackerHit collection of the DUT",
                            _inputCollectionDUT,
                            std::string("duthits") );
+  registerInputCollection( LCIO::TRACKERHIT,
+                           "InputCollectionREF" ,
+                           "Name of the input TrackerHit collection of the REF",
+                           _inputCollectionREF,
+                           std::string("refhits") );
+  registerInputCollection( LCIO::TRACKERDATA,
+                           "InputPixelsDUT" ,
+                           "Name of the input TrackerData (pixels) collection of the DUT",
+                           _inputPixelsDUT,
+                           std::string("dutpixels"));
+  registerInputCollection( LCIO::TRACKERDATA,
+                           "InputPixelsREF" ,
+                           "Name of the input TrackerData (pixels) collection of the REF",
+                           _inputPixelsREF,
+                           std::string("refpixels"));
   registerOutputCollection(LCIO::TRACK,"InputTrackCollectionTelescope",
                            "Name of the input Track collection of the telescope",
                            _inputTrackCollection, std::string( "fittracks"));
@@ -144,9 +160,6 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
   registerOptionalParameter( "nSkipEventTel",
 			     "Skip n Telescope events at begin of file",
 			     _nSkipTelescope, static_cast < int >(0) );
-  registerOptionalParameter( "SkipScanRangeDUT",
-                             "Range for DUT skip scanner",
-			     _nSkipScanRangeDUT, static_cast < int >(0) );
 
   registerProcessorParameter( "gTLU",
                               "TLU clock in GHz",
@@ -314,10 +327,6 @@ void EUTelAnalysisCMSPixel::init() {
   }
 
   // Book histograms:
-
-  if(_nSkipScanRangeDUT != 0)
-    _dutSkipScanner.reset(new CMSSkipScanner);
-
 #if defined(USE_AIDA) || defined(MARLIN_USE_AIDA)
   bookHistos();
 #endif
@@ -487,52 +496,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     }// Gap detection
   }//dt plots
 
-  // Horizontal DUT alignment for FPIX test beam:
-  bool FPIX = 0;
-
-  // ETH and KIT test beam Mar 2013 analog ROCs
-  // Horizontal DUT alignment for ETH test beam:
-  bool ETHh = 0;
-
-  //---------------------------------------------------------------------
-  // Read useful events
-  //---------------------------------------------------------------------
-
-  // Read the DUT event:
-  
-  // FIXME
-  std::vector<CMSPixel::pixel> * dutPixels = new std::vector<CMSPixel::pixel>;
-  // dutPixels = ;
-
-  // Calibrate the pixel hits with the initialized calibration data:
-  if(!CalibratePixels(dutPixels,dut_calibration))
-    throw StopProcessingException(this);
-
-  ClustDUT = GetClusters(dutPixels);
-
-  // Read the REF event:
-
-  // FIXME
-  std::vector<CMSPixel::pixel> * refPixels = new std::vector<CMSPixel::pixel>;
-  // refPixels = ;
-
-  // Calibrate the pixel hits with the initialized calibration data:
-  if(!CalibratePixels(refPixels,ref_calibration))
-    throw StopProcessingException(this);
-
-  ClustREF = GetClusters(refPixels);
-
-  streamlog_out(DEBUG4) << std::setw(6) << std::setiosflags(std::ios::right) << event->getEventNumber() << ". DUT pixels " << dutPixels->size();
-
-  if( dutPixels->size() > 0 ) {
-    streamlog_out(DEBUG3) << ", clusters at";
-    for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ ){
-      streamlog_out(DEBUG3) << "  (" << c->col << ", " << c->row << ")";
-    }
-  }
-  streamlog_out(DEBUG4) << std::endl;
-
-
   // Some more timing histograms:
   if(time_now_tlu > time_event0 ) {
 
@@ -558,15 +521,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 			      << std::endl;
   }
   
-  // Fill some informational plots about the REF and DUT cluster distributions:
-
-  FillClusterStatisticsPlots( ClustDUT, dutPixels->size(), ClustREF, refPixels->size() );
-  if( _dutSkipScanner.get() ) {
-    _dutSkipScanner->newEvent(event->getEventNumber());
-    for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ )
-      _dutSkipScanner->cmsHit(c->col, c->row);
-  }
-
   // Renew the timestamps for the next event:
   time_prev_tlu = time_now_tlu;
   
@@ -605,18 +559,99 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   }
 #endif
 
-  LCCollection* collection;
+  LCCollection *collection, *dutpx, *refpx;
   try {
     collection = event->getCollection( _inputCollectionTelescope );
+    dutpx = event->getCollection( _inputPixelsDUT );
+    refpx = event->getCollection( _inputPixelsREF );
   }
   catch( lcio::DataNotAvailableException& e) {
-    streamlog_out( DEBUG5 ) << "Not able to get collection "
-			    << _inputCollectionTelescope
+    streamlog_out( DEBUG5 ) << "Not able to get collections "
+			    << _inputCollectionTelescope << " "
+			    << _inputPixelsDUT << " "
+			    << _inputPixelsREF
 			    << "\nfrom event " << event->getEventNumber()
 			    << " in run " << runNumber  << std::endl;
 
     return;
   }
+
+
+  // Horizontal DUT alignment for FPIX test beam:
+  bool FPIX = 0;
+
+  // ETH and KIT test beam Mar 2013 analog ROCs
+  // Horizontal DUT alignment for ETH test beam:
+  bool ETHh = 0;
+
+  EUTelGenericSparsePixel* pixel = new EUTelGenericSparsePixel;
+
+  // Read the DUT event:
+  std::vector<CMSPixel::pixel> * dutPixels = new std::vector<CMSPixel::pixel>;
+  TrackerDataImpl* dutData = dynamic_cast<TrackerDataImpl*>(dutpx);
+  std::auto_ptr<EUTelTrackerDataInterfacerImpl<EUTelGenericSparsePixel> > sparseDutData(new EUTelTrackerDataInterfacerImpl<EUTelGenericSparsePixel>(dutData));
+
+  //This for-loop loads all the hits of the given event and detector plane and stores them
+  for(size_t i = 0; i < sparseDutData->size(); ++i ) {
+    // Load the information of the hit pixel into genericPixel
+    sparseDutData->getSparsePixelAt(i, pixel);
+      
+    CMSPixel::pixel px;
+    px.roc = 8;
+    px.col = pixel->getXCoord();
+    px.row = pixel->getYCoord();
+    px.raw = pixel->getSignal();
+
+    //and push this pixel back
+    dutPixels->push_back(px);
+  }
+
+  // Calibrate the pixel hits with the initialized calibration data:
+  if(!CalibratePixels(dutPixels,dut_calibration))
+    throw StopProcessingException(this);
+  ClustDUT = GetClusters(dutPixels);
+
+
+  // Read the REF event:
+  std::vector<CMSPixel::pixel> * refPixels = new std::vector<CMSPixel::pixel>;
+  TrackerDataImpl* refData = dynamic_cast<TrackerDataImpl*>(refpx);
+  std::auto_ptr<EUTelTrackerDataInterfacerImpl<EUTelGenericSparsePixel> > sparseRefData(new EUTelTrackerDataInterfacerImpl<EUTelGenericSparsePixel>(refData));
+
+  //This for-loop loads all the hits of the given event and detector plane and stores them
+  for(size_t i = 0; i < sparseRefData->size(); ++i ) {
+    // Load the information of the hit pixel into genericPixel
+    sparseRefData->getSparsePixelAt(i, pixel);
+      
+    CMSPixel::pixel px;
+    px.roc = 8;
+    px.col = pixel->getXCoord();
+    px.row = pixel->getYCoord();
+    px.raw = pixel->getSignal();
+
+    //and push this pixel back
+    refPixels->push_back(px);
+  }
+
+  // Calibrate the pixel hits with the initialized calibration data:
+  if(!CalibratePixels(refPixels,ref_calibration))
+    throw StopProcessingException(this);
+
+  ClustREF = GetClusters(refPixels);
+
+  streamlog_out(DEBUG4) << std::setw(6) << std::setiosflags(std::ios::right) << event->getEventNumber() << ". DUT pixels " << dutPixels->size();
+
+  if( dutPixels->size() > 0 ) {
+    streamlog_out(DEBUG3) << ", clusters at";
+    for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ ){
+      streamlog_out(DEBUG3) << "  (" << c->col << ", " << c->row << ")";
+    }
+  }
+  streamlog_out(DEBUG4) << std::endl;
+
+
+  // Fill some informational plots about the REF and DUT cluster distributions:
+  FillClusterStatisticsPlots( ClustDUT, dutPixels->size(), ClustREF, refPixels->size() );
+
 
   //----------------------------------------------------------------------------
   // Copy hits to local table
@@ -1028,10 +1063,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   std::vector<triplet> * upstream_triplets = new std::vector<triplet>;
   upstream_triplets = FindTriplets(hits, 0, 1, 2);
 
-  if(_dutSkipScanner.get())
-    for( std::vector<triplet>::iterator trip = upstream_triplets->begin(); trip != upstream_triplets->end(); trip++ )
-      _dutSkipScanner->telescopeTriplet(trip->getdx(1)*1E3, trip->getdy(1)*1E3);
-
   // Iterate over all found upstream triplets to fill histograms and match them to the REF and DUT:
   for( std::vector<triplet>::iterator trip = upstream_triplets->begin(); trip != upstream_triplets->end(); trip++ ) {
 
@@ -1225,130 +1256,11 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       bool leff = 1;
       bool lowEff = 0;
 
-      if( runNumber ==  8603 && eventTime >    0                     ) leff = 0;
-
-      if( runNumber ==  8605 && eventTime >  160                     ) leff = 0;
-
-      if( runNumber ==  8608 && eventTime >  140                     ) leff = 0;
-
-      if( runNumber ==  8609 && eventTime >   60                     ) leff = 0;
-
-      if( runNumber ==  8610 && eventTime >    0                     ) leff = 0;
-
-      if( runNumber ==  8612 && eventTime >    0                     ) leff = 0;
-
-      if( runNumber ==  8613 && eventTime >   60                     ) leff = 0;
-
-      if( runNumber ==  8614 && eventTime >  240                     ) leff = 0;
-      
-      if( runNumber ==  8616 && eventTime >  200                     ) leff = 0;
-
-      if( runNumber ==  8617 && eventTime >  120                     ) leff = 0;
-
-      if( runNumber ==  8618 && eventTime <  100                     ) leff = 0;
-      if( runNumber ==  8618 && eventTime >  200                     ) leff = 0;
-
-      if( runNumber ==  8619 && eventTime >    0                     ) leff = 0;
-
-      if( runNumber ==  8624 && eventTime >  400                     ) leff = 0;
-
-      if( runNumber == 10903 && eventTime <  200                     ) leff = 0;
-      if( runNumber == 10903 && eventTime >  360                     ) leff = 0;
-
-      if( runNumber == 11191 && eventTime <  180                     ) leff = 0;
-      if( runNumber == 11191 && eventTime >  560                     ) leff = 0;
-
       if( runNumber == 11193 && eventTime <  220                     ){
 	lowEff = 1;
 	leff = 0;
       }
-      if( runNumber == 11193 && eventTime >  540                     ) leff = 0;
 
-      if( runNumber == 11194 && eventTime <   80                     ) leff = 0;
-      if( runNumber == 11194 && eventTime >  280                     ) leff = 0;
-
-      if( runNumber == 11195 && eventTime >  520                     ) leff = 0;
-
-      if( runNumber == 11197 && eventTime >  280                     ) leff = 0;
-
-      if( runNumber == 11199 && eventTime >  380                     ) leff = 0;
-
-      if( runNumber == 11200 && eventTime >  160                     ) leff = 0;
-
-      if( runNumber == 11201 && eventTime <  240                     ) leff = 0;
-      if( runNumber == 11201 && eventTime >  520                     ) leff = 0;
-
-      if( runNumber == 11202 && eventTime >  600                     ) leff = 0;
-
-      if( runNumber == 11204 && eventTime <  270                     ) leff = 0;
-      if( runNumber == 11204 && eventTime >  600                     ) leff = 0;
-
-      if( runNumber == 11205 && eventTime <  120                     ) leff = 0;
-      if( runNumber == 11205 && eventTime >  480                     ) leff = 0;
-
-      if( runNumber == 11208 && eventTime >  600                     ) leff = 0;
-
-      if( runNumber == 11269 && eventTime >   45 && eventTime <  160 ) leff = 0;
-      if( runNumber == 11269 && eventTime >  240                     ) leff = 0;
-      
-      if( runNumber == 11271 && eventTime <   10                     ) leff = 0;
-      if( runNumber == 11271 && eventTime >   95 && eventTime <  140 ) leff = 0;
-      if( runNumber == 11271 && eventTime >  195                     ) leff = 0;
-      
-      if( runNumber == 11272 && eventTime <   60                     ) leff = 0;
-      if( runNumber == 11272 && eventTime >  160 && eventTime <  280 ) leff = 0;
-      if( runNumber == 11272 && eventTime >  340                     ) leff = 0;
-      
-      if( runNumber == 11278 && eventTime <   10                     ) leff = 0;
-      if( runNumber == 11278 && eventTime >   40 && eventTime <   90 ) leff = 0;
-      if( runNumber == 11278 && eventTime >  140                     ) leff = 0;
-      
-      if( runNumber == 11279 && eventTime >   60 && eventTime <   90 ) leff = 0;
-      if( runNumber == 11279 && eventTime >  120                     ) leff = 0;
-      
-      if( runNumber == 11280 && eventTime <   20                     ) leff = 0;
-      if( runNumber == 11280 && eventTime >  200 && eventTime <  260 ) leff = 0;
-      if( runNumber == 11280 && eventTime >  420                     ) leff = 0;
-      
-      if( runNumber == 11281 && eventTime <   60                     ) leff = 0;
-      if( runNumber == 11281 && eventTime >  100 && eventTime <  150 ) leff = 0;
-      if( runNumber == 11281 && eventTime >  420                     ) leff = 0;
-      
-      if( runNumber == 11282 && eventTime >   30 && eventTime <  100 ) leff = 0;
-      if( runNumber == 11282 && eventTime >  160 && eventTime <  280 ) leff = 0;
-      if( runNumber == 11282 && eventTime >  360 && eventTime <  420 ) leff = 0;
-      
-      if( runNumber == 11283 && eventTime <   30                     ) leff = 0;
-      if( runNumber == 11283 && eventTime >  110 && eventTime <  220 ) leff = 0;
-      if( runNumber == 11283 && eventTime >  260 && eventTime <  300 ) leff = 0;
-      if( runNumber == 11283 && eventTime >  510                     ) leff = 0;
-      
-      if( runNumber == 11284 && eventTime <   20                     ) leff = 0;
-      if( runNumber == 11284 && eventTime >  150 && eventTime <  200 ) leff = 0;
-      if( runNumber == 11284 && eventTime >  340 && eventTime <  410 ) leff = 0;
-      
-      if( runNumber == 11285 && eventTime <   20                     ) leff = 0;
-      if( runNumber == 11285 && eventTime >  190 && eventTime <  230 ) leff = 0;
-      if( runNumber == 11285 && eventTime >  340 && eventTime <  390 ) leff = 0;
-      if( runNumber == 11285 && eventTime >  420 && eventTime <  450 ) leff = 0;
-      
-      if( runNumber == 11286 && eventTime <   50                     ) leff = 0;
-      if( runNumber == 11286 && eventTime >  260 && eventTime <  280 ) leff = 0;
-      if( runNumber == 11286 && eventTime >  490 && eventTime <  520 ) leff = 0;
-      
-      if( runNumber == 11287 && eventTime <   30                     ) leff = 0;
-      if( runNumber == 11287 && eventTime >  170 && eventTime <  190 ) leff = 0;
-      if( runNumber == 11287 && eventTime >  270 && eventTime <  300 ) leff = 0;
-      if( runNumber == 11287 && eventTime >  450 && eventTime <  530 ) leff = 0;
-      
-      if( runNumber == 11288 && eventTime <   10                     ) leff = 0;
-      if( runNumber == 11288 && eventTime >   90 && eventTime <  110 ) leff = 0;
-      if( runNumber == 11288 && eventTime >  200 && eventTime <  230 ) leff = 0;
-      if( runNumber == 11288 && eventTime >  390 && eventTime <  410 ) leff = 0;
-      if( runNumber == 11288 && eventTime >  500 && eventTime <  530 ) leff = 0;
-      
-      if( runNumber == 11289 && eventTime >  110 && eventTime <  200 ) leff = 0;
-      if( runNumber == 11289 && eventTime >  400 && eventTime <  420 ) leff = 0;
       if( runNumber == 11289 && eventTime >  540 && eventTime <  560 ) leff = 0;
       
       if(leff)
@@ -5370,10 +5282,6 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "correvt4000", 4000, 0, 4000000 );
   correvt4000Histo->setTitle( "Correlated events (with matched DUT cluster);matched events/1000 events;events" );
 
-  // Skip Scanner
-  if(_dutSkipScanner.get())
-    _dutSkipScanner->bookHistos(this);
-
   streamlog_out( DEBUG2 ) << "Histogram booking completed \n\n" << std::endl;
 
 #else
@@ -5419,124 +5327,6 @@ double GetCorrelationFactor(AIDA::IHistogram2D* histo)
 
   const double cov = sumwxy/sumw - sumwx/sumw*sumwy/sumw;
   return cov/rmsX/rmsY;
-}
-
-CMSSkipScanner::CMSSkipScanner(unsigned int range):
-  _range(range), _eventNumber(0) {}
-
-void CMSSkipScanner::bookHistos(marlin::Processor* processor)
-{
-  cmsxxHisto.resize(_range);
-  cmsyyHisto.resize(_range);
-
-  AIDAProcessor::tree(processor)->mkdir("SkipScan");
-
-  for(unsigned int i = 0; i < _range; ++i)
-    {
-      std::stringstream skipNumS;
-      skipNumS << i;
-      std::string skipNum = skipNumS.str();
-
-      // TODO: Find out how to put these into a subdirectory
-      cmsxxHisto[i] = AIDAProcessor::histogramFactory(processor)->
-	createHistogram2D( "SkipScan/cmsxx_skip" + skipNum, 52, -0.5, 51.5, 110, -11, 11 );
-      cmsxxHisto[i]->setTitle( "x correlation (skip " + skipNum + ");CMS cluster col;telescope triplet x [mm];clusters" );
-
-      cmsyyHisto[i] = AIDAProcessor::histogramFactory(processor)->
-	createHistogram2D( "SkipScan/cmsyy_skip" + skipNum, 80, -0.5, 79.5, 55, -5.5, 5.5 );
-      cmsyyHisto[i]->setTitle( "y correlation (skip " + skipNum + ");CMS cluster row;telescope triplet y [mm];clusters" );
-
-      /*		cmssxHisto = AIDAProcessor::histogramFactory(fitter)->
-			createHistogram1D( "skipScan/cmssx", 200, -500, 500 );
-			cmssxHisto->setTitle( "Pixel + Telescope x;cluster + triplet #Sigmax [#mum];clusters" );
-
-			cmsdyHisto = AIDAProcessor::histogramFactory(fitter)->
-			createHistogram1D( "skipScan/cmsdy", 200, -500, 500 );
-			cmsdyHisto->setTitle( "Pixel - telescope y;cluster - triplet #Deltay [#mum];clusters" );*/
-    }
-}
-
-void CMSSkipScanner::newEvent(unsigned int eventNumber)
-{
-  _eventNumber = eventNumber;
-
-  _triplets.push_front(std::vector<TelescopeTriplet>());
-  while(_triplets.size() > _range) _triplets.pop_back();
-  _cmsHits.clear();
-}
-
-void CMSSkipScanner::telescopeTriplet(double xs, double ys)
-{
-  TelescopeTriplet triplet;
-  triplet.xs = xs;
-  triplet.ys = ys;
-  _triplets[0].push_back(triplet);
-
-  // Correlate CMS hits with the new triplet
-  for(unsigned int i = 0; i < _cmsHits.size(); ++i)
-    {
-      cmsxxHisto[0]->fill(_cmsHits[i].first, xs);
-      cmsyyHisto[0]->fill(_cmsHits[i].second, ys);
-    }
-}
-
-void CMSSkipScanner::cmsHit(double cmsCol, double cmsRow)
-{
-  // Some x-check...
-  for(unsigned int i = 0; i < _cmsHits.size(); ++i)
-    if(_cmsHits[i].first == cmsCol && _cmsHits[i].second == cmsRow)
-      throw std::runtime_error("CMSSkipScanner: Double CMS hit!");
-  std::pair<double, double> hit;
-  hit.first = cmsCol;
-  hit.second = cmsRow;
-  _cmsHits.push_back(hit);
-
-  // Correlate this hit with the triplets from the last _range telescope events
-  for(unsigned i = 0; i < _triplets.size(); ++i)
-    {
-      for(unsigned int j = 0; j < _triplets[i].size(); ++j)
-	{
-	  cmsxxHisto[i]->fill(cmsCol, _triplets[i][j].xs);
-	  cmsyyHisto[i]->fill(cmsRow, _triplets[i][j].ys);
-	}
-    }
-}
-
-int CMSSkipScanner::scan() const
-{
-  double maxXX = fabs(GetCorrelationFactor(cmsxxHisto[0])); unsigned int maxXSkip = 0;
-  double maxYY = fabs(GetCorrelationFactor(cmsyyHisto[0])); unsigned int maxYSkip = 0;
-
-  for(unsigned int i = 1; i < _triplets.size(); ++i)
-    {
-      double corrXX = fabs(GetCorrelationFactor(cmsxxHisto[i]));
-      double corrYY = fabs(GetCorrelationFactor(cmsyyHisto[i]));
-
-      if(corrXX > maxXX) { maxXX = corrXX; maxXSkip = i; }
-      if(corrYY > maxYY) { maxYY = corrYY; maxYSkip = i; }
-    }
-
-  if(maxXX > 1.0e-1)
-    std::cout << "Threshold reached in XX: " << maxXX << ", skip " << maxXSkip << std::endl;
-  if(maxYY > 1.0e-1)
-    std::cout << "Threshold reached in YY: " << maxYY << ", skip " << maxYSkip << std::endl;
-
-  // No correlations found
-  if(maxXX < 1.0e-1 && maxYY < 1.0e-1)
-    return -1;
-
-  if(maxXX < 1.0e-1 && maxYY > 1.0e-1)
-    return maxYSkip;
-  if(maxXX > 1.0e-1 && maxYY < 1.0e-1)
-    return maxXSkip;
-
-  if(maxXSkip != maxYSkip)
-    {
-      std::cout << "WARNING: Max correlations differ in X and Y!!" << std::endl;
-      return -1;
-    }
-
-  return maxXSkip;
 }
 
 std::string EUTelAnalysisCMSPixel::ZeroPadNumber(int num, int len)

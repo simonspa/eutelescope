@@ -74,8 +74,6 @@ namespace eutelescope {
   //FIXME should not be needed!
   int hts[6][999]; // 6 planes
 
-  class CMSSkipScanner;
-  
   class EUTelAnalysisCMSPixel : public marlin::Processor {
 
   public:
@@ -358,6 +356,10 @@ namespace eutelescope {
     std::string _inputCollectionTelescope;
 
     std::string _inputCollectionDUT;
+    std::string _inputCollectionREF;
+
+    std::string _inputPixelsDUT;
+    std::string _inputPixelsREF;
 
     std::string _inputTrackCollection;
 
@@ -448,9 +450,6 @@ namespace eutelescope {
     CMSPixel::timing evt_time_ref;
     std::vector <cluster> ClustDUT;
     std::vector <cluster> ClustREF;
-
-    int _nSkipScanRangeDUT;
-    std::auto_ptr<CMSSkipScanner> _dutSkipScanner;
 
 #if defined(USE_AIDA) || defined(MARLIN_USE_AIDA)
     //! AIDA histogram map
@@ -961,37 +960,6 @@ namespace eutelescope {
   AIDA::IHistogram1D * correvt1000Histo;
   AIDA::IHistogram1D * correvt4000Histo;
 #endif
-
-class CMSSkipScanner
-{
-public:
-	CMSSkipScanner(unsigned int range = 200);
-
-	void bookHistos(marlin::Processor* processor);
-
-	void newEvent(unsigned int eventNumber);
-	void telescopeTriplet(double xs, double ys);
-	void cmsHit(double cmsCol, double cmsRow);
-
-	int scan() const;
-private:
-	const unsigned int _range;
-	unsigned int _eventNumber;
-
-	struct TelescopeTriplet {
-		double xs;
-		double ys;
-	};
-
-	std::deque< std::vector<TelescopeTriplet> > _triplets;
-	std::vector<std::pair<double, double> > _cmsHits;
-
-	std::vector<AIDA::IHistogram2D *> cmsxxHisto;
-	std::vector<AIDA::IHistogram2D *> cmsyyHisto;
-
-	/*std::vector<AIDA::IHistogram1D *> cmssxaHisto;
-	std::vector<AIDA::IHistogram1D *> cmsdyaHisto;*/
-};
 
 }
 
