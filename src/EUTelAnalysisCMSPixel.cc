@@ -111,7 +111,7 @@ double DUTaligny = 0;
 double DUTrot = 0;
 
 
-EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputTrackCollection(""), _isFirstEvent(0), _nSkipTelescope(0), _gTLU(0), _nEvtBeg(0), _nRefBeg(0), _eBeam(0), _nRun(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _TEL_run(0), _DUT_run(0), _DUT_data(""), _nSkipDUT(0), _DUT_chip(0), _DUT_gain(""), _DUT_address(""), _DUT_calibration_type(""), _DUT_decoding_flags(0), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_run(0), _REF_data(""), _nSkipRef(0), _REF_chip(0), _REF_gain(""), _REF_address(""), _REF_calibration_type(""), _REF_decoding_flags(0), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _CMS_gain_path(""), _CMS_data_path(""), _DATE_run(""), _gearfile(""), _DUT_board(""), _REF_board(""), _TimingRun(false), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), _dutDecoder(), _refDecoder(), ClustDUT(), ClustREF(), time_now_dut(0), time_now_ref(0), n_uncorrelated_triggers_dut(0), n_uncorrelated_triggers_ref(0), n_uncorrelated_triggers_tlu(0) {
+EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputTrackCollection(""), _isFirstEvent(0), _nSkipTelescope(0), _gTLU(0), _nEvtBeg(0), _nRefBeg(0), _eBeam(0), _nRun(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _TEL_run(0), _DUT_run(0), _DUT_data(""), _nSkipDUT(0), _DUT_chip(0), _DUT_gain(""), _DUT_address(""), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_run(0), _REF_data(""), _nSkipRef(0), _REF_chip(0), _REF_gain(""), _REF_address(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _CMS_gain_path(""), _CMS_data_path(""), _DATE_run(""), _gearfile(""), _DUT_board(""), _REF_board(""), _TimingRun(false), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF() {
 
   // modify processor description
   _description = "Analysis for CMS PSI46 Pixel Detectors as DUT in AIDA telescopes ";
@@ -344,30 +344,6 @@ void EUTelAnalysisCMSPixel::processRunHeader( LCRunHeader* runHeader) {
 
   streamlog_out( MESSAGE0 ) << detectorName << " : " << detectorDescription << std::endl;
 
-
-  // ################### INIT CMS PIXEL DATA STREAMS #######################
-
-  // Setting the CMSPixelDecoder Logging mechanism to report only errors:
-  CMSPixel::Log::ReportingLevel() = CMSPixel::Log::FromString("ERROR");
-
-  std::string dut_file = _CMS_data_path + "/bt05r" + ZeroPadNumber(_DUT_run,6) + "/mtb.bin";
-  std::string ref_file = _CMS_data_path + "/bt05r" + ZeroPadNumber(_REF_run,6) + "/mtb.bin";
-
-  std::string dut_addresslevels = _CMS_gain_path + "/chip" + ZeroPadNumber(_DUT_chip,3) + "/" + _DUT_address;
-  std::string ref_addresslevels = _CMS_gain_path + "/chip" + ZeroPadNumber(_REF_chip,3) + "/" + _REF_address;
-
-  streamlog_out(MESSAGE3) << "DUT chiptype detected: " << static_cast<int>(GetChipTypeFromID(_DUT_chip)) 
-			  << ", loading address levels from " << dut_addresslevels
-			  << std::endl;
-  streamlog_out(MESSAGE3) << "REF chiptype detected: " << static_cast<int>(GetChipTypeFromID(_REF_chip))
-			  << ", loading address levels from " << ref_addresslevels
-			  << std::endl;
-
-  _dutDecoder = new CMSPixel::CMSPixelFileDecoderPSI_ATB(dut_file.c_str(),1,_DUT_decoding_flags,
-							 GetChipTypeFromID(_DUT_chip),dut_addresslevels.c_str());
-  _refDecoder = new CMSPixel::CMSPixelFileDecoderPSI_ATB(ref_file.c_str(),1,_REF_decoding_flags,
-							 GetChipTypeFromID(_REF_chip),ref_addresslevels.c_str());
-
   // DUT calibration:
   if(!InitializeCalibration(_CMS_gain_path + "/chip" + ZeroPadNumber(_DUT_chip,3) + "/" + _DUT_gain,
 			    _DUT_chip, _DUT_calibration_type, dut_calibration))
@@ -378,15 +354,12 @@ void EUTelAnalysisCMSPixel::processRunHeader( LCRunHeader* runHeader) {
 			    _REF_chip, _REF_calibration_type, ref_calibration))
     throw marlin::ParseException("Error in processing REF calibration file.");
 
-  n_uncorrelated_triggers_tlu = 0;
 } // processRunHeader
 
 //----------------------------------------------------------------------------
 void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
   EUTelEventImpl * euEvent = static_cast<EUTelEventImpl*>( event );
-  std::vector<CMSPixel::pixel> * dutPixels = new std::vector<CMSPixel::pixel>;
-  std::vector<CMSPixel::pixel> * refPixels = new std::vector<CMSPixel::pixel>;
 
   if( euEvent->getEventType() == kEORE ) {
     streamlog_out( DEBUG5 ) <<  "EORE found: nothing else to do." << std::endl;
@@ -415,19 +388,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     CMSPixel::Log::ReportingLevel() = CMSPixel::Log::FromString("QUIET");
     
     // skip first DUT events
-    streamlog_out(MESSAGE5) << "Skip first " << _nSkipDUT << " DUT events" << std::endl;
-    for( int iskip = 0; iskip < _nSkipDUT; ++iskip ){
-      if(_dutDecoder->get_event(dutPixels, evt_time_dut) <= DEC_ERROR_NO_MORE_DATA) break;
-    }
-
+    streamlog_out(MESSAGE5) << "Skip first " << _nSkipDUT << " DUT events NOT DONE!" << std::endl;
     // skip first REF events
-    streamlog_out(MESSAGE5) << "Skip first " << _nSkipRef << " REF events" << std::endl;
-    for( int iskip = 0; iskip < _nSkipRef; ++iskip ) {
-      if(_refDecoder->get_event(refPixels, evt_time_ref) <= DEC_ERROR_NO_MORE_DATA) break;
-    }
-
-    // Restore error reporting of the decoders:
-    CMSPixel::Log::ReportingLevel() = CMSPixel::Log::FromString("ERROR");
+    streamlog_out(MESSAGE5) << "Skip first " << _nSkipRef << " REF events NOT DONE!" << std::endl;
 
     // apply all GEAR/alignment offsets to get corrected X,Y,Z
     // position of the sensor center
@@ -496,51 +459,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
   gTLU = _gTLU; // [GHz]
 
-  if( runNumber >  3000 ) gTLU = 0.384666; // [GHz] 2012 TB 21 Apr/May 2012
-  if( runNumber >  3672 ) gTLU = 0.384677; // [GHz] 2012 TB 21 xdb and dig, new TLU box
-  if( runNumber >  5000 ) gTLU = 0.3846775; // [GHz] Sep 2012 TB 21
-  if( runNumber >  5100 ) gTLU = 0.384678; // [GHz] Dec 2012 TB 21
-  if( runNumber >  6120 ) gTLU = 0.3846776; // [GHz] Feb 2013 TB 21
-  if( runNumber >= 7709 ) gTLU = 0.3859129; // [GHz] 22.3.2013 ETH 25ns
-  if( runNumber >= 7965 ) gTLU = 0.3846776; // [GHz] 26.3.2013 KIT 24.9 ns
-  if( runNumber >= 9600 ) gTLU = 0.3846745; // [GHz] 10.6.2013 new TLU  AA002 TLUv0.2c
-  if( runNumber >= 9649 ) gTLU = 0.3846776; // [GHz] 11.6.2013 old TLU
+  // 31.10.2013, 80 MHz, 78*12.6 ns
+  gTLU = 0.384678355; // [GHz]
 
-  if( runNumber >= 11111 && runNumber <= 11132 )
-    gTLU = 0.3840282; // [GHz] internal clock
-
-  if( runNumber >= 11251 && runNumber <= 11264 )
-    gTLU = 0.3840282; // [GHz] internal clock
-
-  if( runNumber == 11347 ) // 80 MHz, 78*12.4 ns
-    gTLU = 0.3840282/0.98549; // [GHz]
-
-  if( runNumber >= 11351 && runNumber <= 11381 ) // 4.10.2013, 80 MHz, 78*12.4 ns
-    gTLU = 0.3840282*1.0017*(1-70/10e6); // [GHz]
-
-  // 7./8.10/2013: chip 202i, 203i
-
-  if( runNumber >= 11415 && runNumber <= 11476 )  // 8.10.2013, 80 MHz, 78*12.6 ns
-    gTLU = 0.384678355; // [GHz]
-
-  if( runNumber >= 11495 && runNumber <= 11600 )  // 10.10.2013, 78 MHz, 76*12.9 ns
-    gTLU = 0.394800638; // [GHz]
-
-  if( runNumber >= 12016 && runNumber <= 12090 )  // 28.10.2013, 78 MHz, 76*12.9 ns
-    gTLU = 0.394800638; // [GHz] FPIX
-
-  if( runNumber >= 12096 && runNumber <= 12211 )  // 31.10.2013, 80 MHz, 78*12.6 ns
-    gTLU = 0.384678355; // [GHz]
-
-  // Timing run: disable skipping!
-  // from dutddtvsdt: gtlu_new = gtlu_old * ( 1 + slope )
-
-  double refTLU = gTLU;
-  if( runNumber >= 8515 ) {
-    refTLU = 0.3840282; // ref uses internal clock!
-  }
-
-  //DP double fTLU = gTLU * 1E9; // [Hz] w.r.t. 40 MHz
   // fTLU = Frequency Trigger Logic Unit; Clock freq of the TLU box in Hz
   // gTLU = gigahertz Frequency Trigger Logic Unit; Freq in GHz
   //fTLU = 375.056 * 1.024 * 1E6; // [Hz] = 384.05734 MHz, from Umlauftakt, see below
@@ -565,66 +486,24 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 			      << std::endl;
     }// Gap detection
   }//dt plots
-  
-  //----------------------------------------------------------------------------
-  // CMS pixel:
 
   // Horizontal DUT alignment for FPIX test beam:
   bool FPIX = 0;
-  if( runNumber >= 5657 && runNumber < 6140 ) FPIX = 1;
 
   // ETH and KIT test beam Mar 2013 analog ROCs
   // Horizontal DUT alignment for ETH test beam:
   bool ETHh = 0;
-  if( runNumber >= 7405 && runNumber <= 8500 ) ETHh = 1; // horizontal
-  if( runNumber >= 9695 && runNumber <= 9933 ) ETHh = 1;
 
-
-  //-----------------------------------------------------------------------
-  // SKIPPING EVENTS
-  //-----------------------------------------------------------------------
-  /*
-  if( n_uncorrelated_triggers_dut > 2 ) { 
-    streamlog_out(MESSAGE5) << "Event " << event->getEventNumber() 
-			    << ": Resync DUT" << std::endl;
-    _dutDecoder->get_event( dutPixels, evt_time_dut);
-    dutnsync++;
-    n_uncorrelated_triggers_dut = 0; // reset
-  }
-
-  if( n_uncorrelated_triggers_ref > 2 ) {
-    streamlog_out(MESSAGE5) << "Event " << event->getEventNumber() 
-			    << ": Resync REF" << std::endl;
-    _refDecoder->get_event(refPixels, evt_time_ref);
-    refnsync++;
-    n_uncorrelated_triggers_ref = 0; // reset
-  }
-  // Daniel : add else ?
-  if( n_uncorrelated_triggers_tlu > 2 ) {
-    streamlog_out(MESSAGE5) << "Event " << event->getEventNumber() 
-			    << ": Resync Telescope" << std::endl;
-    telnsync++;
-    n_uncorrelated_triggers_tlu = 0;
-    throw SkipEventException(this);
-  }
-  */
   //---------------------------------------------------------------------
   // Read useful events
   //---------------------------------------------------------------------
 
   // Read the DUT event:
+  
+  // FIXME
+  std::vector<CMSPixel::pixel> * dutPixels = new std::vector<CMSPixel::pixel>;
+  // dutPixels = ;
 
-  if( n_uncorrelated_triggers_dut < 3 ) { // DP 20.1.2014
-    if(_dutDecoder->get_event(dutPixels, evt_time_dut) <= DEC_ERROR_NO_MORE_DATA)
-      throw StopProcessingException(this);
-    time_now_dut = evt_time_dut.timestamp;
-  }
-  else {
-    streamlog_out(MESSAGE5) << "Event " << event->getEventNumber() 
-			    << ": Resync DUT" << std::endl;
-    dutnsync++;
-    n_uncorrelated_triggers_dut = 0; // reset
-  }
   // Calibrate the pixel hits with the initialized calibration data:
   if(!CalibratePixels(dutPixels,dut_calibration))
     throw StopProcessingException(this);
@@ -632,40 +511,16 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   ClustDUT = GetClusters(dutPixels);
 
   // Read the REF event:
-  if( n_uncorrelated_triggers_ref < 3 ) { // DP 20.1.2014
-    if(_refDecoder->get_event(refPixels, evt_time_ref) <= DEC_ERROR_NO_MORE_DATA)
-      throw StopProcessingException(this);
-    time_now_ref = evt_time_ref.timestamp;
-  }
-  else {
-    streamlog_out(MESSAGE5) << "Event " << event->getEventNumber() 
-			    << ": Resync REF" << std::endl;
-    refnsync++;
-    n_uncorrelated_triggers_ref = 0; // reset
-  }
+
+  // FIXME
+  std::vector<CMSPixel::pixel> * refPixels = new std::vector<CMSPixel::pixel>;
+  // refPixels = ;
+
   // Calibrate the pixel hits with the initialized calibration data:
   if(!CalibratePixels(refPixels,ref_calibration))
     throw StopProcessingException(this);
+
   ClustREF = GetClusters(refPixels);
-
-  // Stop processing if we can't find any correlation:
-  if(!_TimingRun &&  (refnsync > 1000 || dutnsync > 1000)) {
-    streamlog_out(ERROR) << "Too many re-syncs, probably either starting event does not match or relative clock is incorrect (gTLU)." << std::endl;
-    throw StopProcessingException( this ) ;
-  }
-
-  static long dutTimeStamp0 = time_now_dut; // init
-  static long refTimeStamp0 = time_now_ref; // init
-  static long time_prev_dut = time_now_dut; // init
-  static long time_old_dut = time_now_dut; // init
-  static long time_prev_ref = time_now_ref; // init
-  static long time_old_ref = time_now_ref; // init
-
-  static long dutTimeReference = time_now_dut;
-  static long refTimeReference = time_now_ref;
-
-
-  static long prevgapTimeStamp = time_now_tlu; // init
 
   streamlog_out(DEBUG4) << std::setw(6) << std::setiosflags(std::ios::right) << event->getEventNumber() << ". DUT pixels " << dutPixels->size();
 
@@ -677,234 +532,17 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   }
   streamlog_out(DEBUG4) << std::endl;
 
-  // FIXME Not understood: for digital chips seems to be necessary to check the
-  // time gap before the actual event...?!
 
-  long dutdt = time_now_dut - time_prev_dut; // [clocks]
-
-  if( GetChipTypeFromID(_DUT_chip) >= CMSPixel::ROC_PSI46DIG )
-    dutdt = time_prev_dut - time_old_dut;
-
-  long refdt = time_now_ref - time_prev_ref; // [clocks]
-
-  if( GetChipTypeFromID(_REF_chip) >= CMSPixel::ROC_PSI46DIG )
-    refdt = time_prev_ref - time_old_ref;
-
-  long dutrefddt = (dutdt/refTLU - refdt/gTLU) / 0.040; // [clocks]
-  static long prevdutrefddt = dutrefddt;
-
-  // ! Important:
-  // Calculating the timing difference between TLU and DUT/REF for the
-  // given event:
-
-  double reference_tlu = ( time_now_tlu - time_reference ) / gTLU/1E3;
-
-  double dutddtns = ( time_now_tlu - time_prev_tlu ) / gTLU - dutdt / 0.040;
-  /*double dutddtnsX =
-    ( time_now_tlu - time_prev_tlu ) / gTLU -
-    ( time_now_dut - time_prev_dut ) / 0.040;
-  */
-
-  double reference_dut = (time_now_dut - dutTimeReference) / 40;
-
-  // digital chips were different until 16.9.2013
-
-  if( _DUT_chip > 100 && runNumber < 11098 )
-    reference_dut = (time_prev_dut - dutTimeReference) / 40;
-
-  // ref chip:
-
-  double refddtns = ( time_now_tlu - time_prev_tlu )/refTLU - refdt / 0.040; // REF
-
-  double reference_ref = (time_now_ref - refTimeReference) / 40;
-
-  if( _REF_chip > 100 && runNumber < 11098 )
-    reference_ref = (time_prev_ref - refTimeReference) / 40;
-  
-  if( time_now_dut > dutTimeStamp0 && time_now_tlu > time_event0 ) {
-
-    cmsdtHisto->fill( dutdt / 40E0 ); // [us]
-    dutrefddtHisto->fill( dutrefddt ); // [clocks]
+  // Some more timing histograms:
+  if(time_now_tlu > time_event0 ) {
 
     // Time of arrival TLU triggers:
     tlutrigvstusHisto->fill(int((time_now_tlu)/gTLU/1E6 )); // [ms]
 
-    // time between events, TLU - DUT:
-    dutddtnsHisto->fill( dutddtns ); // [ns]
-    refddtnsHisto->fill( refddtns ); // [ns]
-    dutddtusHisto->fill( dutddtns/1E3 ); // [us]. peak at 25 us in run 5348
-    dutddtmsHisto->fill( dutddtns/1E6 ); // [ms]
-    dutddtvst->fill( ( time_now_tlu - time_event0 ) / fTLU, dutddtns );
-    dutddtvsdt->fill( ( time_now_tlu - time_prev_tlu ) / gTLU/1E3, dutddtns );
-
-    if( abs( dutddtns ) < 99 ) {
-      ddtvst->fill( ( time_now_tlu - time_event0 ) / fTLU, dutddtns );
-      ddtvstms->fill( ( time_now_tlu - time_event0 ) / fTLU, dutddtns ); // no trend
-      ddtvsdt->fill( ( time_now_tlu - time_prev_tlu ) / gTLU/1E3, dutddtns );
-    }
-    else {
-      long dtgap = time_now_tlu - prevgapTimeStamp;
-      gapdtHisto->fill( dtgap / fTLU ); // [s]
-      prevgapTimeStamp = time_now_tlu;
-    }
-
-    if( _nSkipDUT == 0 ) {
-      sysrtHisto->fill( ( time_now_tlu - time_event0 ) / fTLU /
-			( time_now_dut - dutTimeStamp0 ) * 40E6 ); // mean = 1.00007
-      sysrdtHisto->fill( ( time_now_tlu - time_prev_tlu) / fTLU /
-			 ( time_now_dut - time_prev_dut ) * 40E6 );
-    }
-    else {
-      sysrtHisto->fill( ( time_now_tlu - time_event0 ) / fTLU /
-			( time_prev_dut - dutTimeStamp0 ) * 40E6 );
-      sysrdtHisto->fill( ( time_now_tlu - time_prev_tlu) / fTLU /
-			 ( time_prev_dut - time_old_dut ) * 40E6 );
-    }
   } // > time_event0
    
-
-  // Renew the timing reference point when having good correlation:
-  if( abs(dutddtns) < 10 && abs(refddtns) < 10 && abs(dutrefddt) < 10 ) {
-    time_reference = time_now_tlu;
-
-    if( _DUT_chip >= 100 ) dutTimeReference = time_prev_dut;
-    else  dutTimeReference = time_now_dut;
-
-    if( _REF_chip >= 100 ) refTimeReference = time_prev_ref;
-    else refTimeReference = time_now_ref;
-
-    streamlog_out(DEBUG5) << "Refreshed reference timing." << std::endl;
-  }
-
-  // Only check for uncorrelated triggers when not in timing mode
-  if( !_TimingRun && !_dutSkipScanner.get() ) {
-
-    // Important step for correlation:
-    // Check the timing differences for DUT, REF and TEL
-    /*DP
-    // Case: DUT timing is off:  abs added DP 15.11.2013
-    if( ( dutddtns  > 99 && abs( reference_tlu - reference_dut ) > 10 ) ||
-	( dutrefddt > 99 && abs( reference_ref - reference_dut ) > 10 ) ) n_uncorrelated_triggers_dut++;
-
-    // Case: REF timing is off:  abs added DP 15.11.2013
-    if( ( refddtns  > 99 && abs( reference_tlu - reference_ref ) > 10 ) ||
-	( dutrefddt > 99 && abs( reference_dut - reference_ref ) > 10 ) ) n_uncorrelated_triggers_ref++;
-
-    // Case: TLU timing is off: abs added DP 15.11.2013
-    if( ( dutddtns > 99 && abs( reference_dut - reference_tlu ) > 10 ) ||
-	( refddtns > 99 && abs( reference_ref - reference_tlu ) > 10 ) ) n_uncorrelated_triggers_tlu++;
-    */
-    //DP version:
-
-    if( abs(dutddtns) > 99 ) n_uncorrelated_triggers_dut++;
-    if( abs(refddtns) > 99 ) n_uncorrelated_triggers_ref++;
-    if( abs(dutddtns) > 99 && abs(refddtns) > 99 ) n_uncorrelated_triggers_tlu++;
-
-    // Reset counter if timing is okay with respect to the others:
-    if( abs(dutddtns) < 99 && abs(dutrefddt) < 99 ) n_uncorrelated_triggers_dut = 0;
-    if( abs(refddtns) < 99 && abs(dutrefddt) < 99 ) n_uncorrelated_triggers_ref = 0;
-    if( abs(dutddtns) < 99 && abs(refddtns)  < 99 ) n_uncorrelated_triggers_tlu = 0;
-
-    // Reset all counters for long gaps between events, clocks
-    // deviate too much:
-    if( ( time_now_tlu - time_prev_tlu ) / fTLU > 0.010 ) { // [s] long gap
-      n_uncorrelated_triggers_dut = 0;
-      n_uncorrelated_triggers_ref = 0;
-      n_uncorrelated_triggers_tlu = 0;
-      streamlog_out(DEBUG5) << "Long Gap detected, resetting trigger count in event " << _nEvt << "." << std::endl;
-    }
-
-    //FIXME this is a rare occasion: mixture of long gap and DUT missed trigger,
-    // Need to think about a solution...
-    if( runNumber == 11059 && event->getEventNumber() == 8152 ) {
-      n_uncorrelated_triggers_tlu = 3;
-      n_uncorrelated_triggers_ref = 3;
-    }
-
-    if(runNumber == 11198 && (event->getEventNumber() == 17882 || event->getEventNumber() == 17884)) {
-      n_uncorrelated_triggers_tlu = 3;
-      n_uncorrelated_triggers_ref = 3;
-    }
-
-    if(runNumber == 11196 && (event->getEventNumber() == 6084 || event->getEventNumber() == 6086 || event->getEventNumber() == 6088)) {
-      n_uncorrelated_triggers_tlu = 3;
-      n_uncorrelated_triggers_ref = 3;
-    }
-
-    if(runNumber == 11196 && (event->getEventNumber() == 154730 )) {
-      n_uncorrelated_triggers_tlu = 3;
-    }
-
-  } // timing check wanted
-
   // Informational message about event number and timing:
-
-  if( streamlog_level(DEBUG5) && 
-      ( n_uncorrelated_triggers_tlu != 0 
-	|| n_uncorrelated_triggers_dut != 0 
-	|| n_uncorrelated_triggers_ref != 0 
-	|| _nEvt < 100000
-	|| _nEvt % 1000 == 0 ) ) {
-
-    streamlog_out( DEBUG5 ) << "Processing event "
-			    << std::setw( 7) << std::setiosflags(std::ios::right)
-			    << event->getEventNumber()
-			    << " in run " << std::setw( 4) << std::setiosflags(std::ios::right)
-			    << runNumber
-			    << ", time " << " = " << std::fixed << std::setprecision(1)
-			    << ( time_now_tlu - time_event0 )/fTLU << " s"
-			    << ", dt = " << int( (time_now_tlu - time_prev_tlu)/gTLU/1E3 ) << " us"
-			    << ", rate "
-			    << (_nEvt+1) / ( time_now_tlu - time_event0 + 0.1 ) * fTLU
-			    << " Hz"
-			    << std::endl;
-
-    streamlog_out( DEBUG5 ) << "       DUT event "
-			    << std::setw( 7) << std::setiosflags(std::ios::right)
-			    << event->getEventNumber()
-			    << " in run " << std::setw( 4) << std::setiosflags(std::ios::right)
-			    << runNumber
-			    << ", time " << " = " << std::fixed << std::setprecision(1)
-			    << ( time_now_dut - dutTimeStamp0 )/fTLU*10 << " s"
-			    << ", dt = " << int(dutdt/40) << " us"
-			    << ", ddt "
-			    << int((time_now_tlu - time_prev_tlu)/gTLU/1E3 - dutdt/40)
-			    << " or "  
-			    << int( (time_now_tlu - time_prev_tlu)/gTLU/1E3 -
-				    (time_now_dut - time_prev_dut)/40 )
-      //<< " us (" << dutddtns << ")"
-			    << std::endl;
-
-    streamlog_out( DEBUG5 ) << "       REF event "
-			    << std::setw( 7) << std::setiosflags(std::ios::right)
-			    << event->getEventNumber()
-			    << " in run " << std::setw( 4) << std::setiosflags(std::ios::right)
-			    << runNumber
-			    << ", time " << " = " << std::fixed << std::setprecision(1)
-			    << ( time_now_ref - refTimeStamp0 )/fTLU*10 << " s"
-			    << ", dt = " << int(refdt/40) << " us"
-			    << ", ddt "
-			    << int((time_now_tlu - time_prev_tlu)/gTLU/1E3 - refdt/40)
-			    << " us"
-			    << " (" << refddtns << ")"
-			    << std::endl;
-
-    streamlog_out( DEBUG5 ) << "   Reference Time tlu "
-			    << std::setw( 7) << std::setiosflags(std::ios::right)
-			    << reference_tlu
-			    << " dut " << std::setw( 4) << std::setiosflags(std::ios::right)
-			    << reference_dut
-			    << " ref " << std::setw( 4) << std::setiosflags(std::ios::right)
-			    << reference_ref  
-			    << ", scalers: "
-			    << " " << n_uncorrelated_triggers_tlu 
-			    << "|" << n_uncorrelated_triggers_dut
-			    << "|" << n_uncorrelated_triggers_ref
-			    << " dutrefddt " << dutrefddt
-			    << std::endl;
-     
-  }
-  else if( _nEvt < 20 || _nEvt % 1000 == 0 ) {
+  if( _nEvt < 20 || _nEvt % 1000 == 0 ) {
 
     streamlog_out( MESSAGE2 ) << "Processing event "
 			      << std::setw( 7) << std::setiosflags(std::ios::right)
@@ -930,10 +568,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   }
 
   // Renew the timestamps for the next event:
-  time_old_dut = time_prev_dut;
-  time_old_ref = time_prev_ref;
-  time_prev_dut = time_now_dut;
-  time_prev_ref = time_now_ref;
   time_prev_tlu = time_now_tlu;
   
   // Increase event count
@@ -2160,7 +1794,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    if( ymod >= 175-cutsize && ymod <= 175+cutsize ) cmsqvsym175->fill( xmod, c->charge );
 	    // KIT end
 
-	    cmsqvsddt->fill( dutddtns, c->charge ); // cluster charge vs phase
+	    //cmsqvsddt->fill( dutddtns, c->charge ); // cluster charge vs phase
 	    cmsqvst1->fill( (time_now_tlu-time_event0)/fTLU, c->charge ); // cluster charge vs time
 	    cmsqvst2->fill( (time_now_tlu-time_event0)/fTLU, c->charge ); // cluster charge vs time
 	    cmsqvst3->fill( (time_now_tlu-time_event0)/fTLU, c->charge ); // cluster charge vs time
@@ -2223,7 +1857,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 		cmsrmsyvsym6->fill( ymd6, abs(cmsdy)*1E3 ); //resolution within pixel
 	      }
 	      cmsrmsyvst->fill( (time_now_tlu-time_event0)/fTLU, abs(cmsdy)*1E3 ); //resolution vs time
-	      cmsrmsyvsddt->fill( dutddtns, abs(cmsdy)*1E3 ); // flat
+	      //cmsrmsyvsddt->fill( dutddtns, abs(cmsdy)*1E3 ); // flat
 
 	      if( nrow <= 2 ) {
 		cmsdyvseta->fill( eta, cmsdy*1E3 );
@@ -3078,7 +2712,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	eff3600->fill( (time_now_tlu-time_event0)/fTLU, nm );
 
 	if( leff ) { 
-        effvsddt->fill( dutddtns, nm );
+	  //effvsddt->fill( dutddtns, nm );
 	    effvsxmym->fill( xmod, ymod, nm ); // CMS DUT efficiency profile
 	    
 	    // KIT: added for efficiency analysis
@@ -3100,8 +2734,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    if( ymod >= 175-cutsize && ymod <= 175+cutsize ) effvsym175->fill( xmod, nm );
 	    // KIT end
 	  }
-	if( prevdutrefddt == 0 && dutrefddt == 0 )
-	  effd600->fill( (time_now_tlu-time_event0)/fTLU, nm );
+	//if( prevdutrefddt == 0 && dutrefddt == 0 )
+	//effd600->fill( (time_now_tlu-time_event0)/fTLU, nm );
 	if( downstream_triplets->size() < 3 ) effn600->fill( (time_now_tlu-time_event0)/fTLU, nm );
 	if( downstream_triplets->size() < 2 ) effm600->fill( (time_now_tlu-time_event0)/fTLU, nm );
 
@@ -3181,8 +2815,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
   nsixHisto->fill( telescope_tracks->size() );
 
-  prevdutrefddt = dutrefddt;
-
+  //prevdutrefddt = dutrefddt;
   // Clear memory
   delete telescope_tracks;
   delete downstream_triplets;
@@ -3210,16 +2843,16 @@ void EUTelAnalysisCMSPixel::end(){
     << std::endl << "DUT Data Decoding Statistics:" << std::endl
     << "---------------------------------------------------------------------------------------------------------"
     << std::endl;
-  streamlog_out(MESSAGE5) << _dutDecoder->statistics.get() << std::endl;
-  delete _dutDecoder;
+  //streamlog_out(MESSAGE5) << _dutDecoder->statistics.get() << std::endl;
+  //delete _dutDecoder;
 
   streamlog_out(MESSAGE5)
     << "---------------------------------------------------------------------------------------------------------" 
     << std::endl << "REF Data Decoding Statistics:" << std::endl
     << "---------------------------------------------------------------------------------------------------------"
     << std::endl;
-  streamlog_out(MESSAGE5) << _refDecoder->statistics.get() << std::endl;
-  delete _refDecoder;
+  //streamlog_out(MESSAGE5) << _refDecoder->statistics.get() << std::endl;
+  //delete _refDecoder;
 
 
   streamlog_out(MESSAGE5)

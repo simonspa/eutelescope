@@ -444,18 +444,10 @@ namespace eutelescope {
     double * _planeResolution;
 
     // Reading in CMS clusters:
-    CMSPixel::CMSPixelFileDecoder * _dutDecoder;
-    CMSPixel::CMSPixelFileDecoder * _refDecoder;
     CMSPixel::timing evt_time_dut;
     CMSPixel::timing evt_time_ref;
     std::vector <cluster> ClustDUT;
     std::vector <cluster> ClustREF;
-    long time_now_dut;
-    long time_now_ref;
-
-    int n_uncorrelated_triggers_dut; // for DUT
-    int n_uncorrelated_triggers_ref; // for REF
-    int n_uncorrelated_triggers_tlu; // for TLU
 
     int _nSkipScanRangeDUT;
     std::auto_ptr<CMSSkipScanner> _dutSkipScanner;
