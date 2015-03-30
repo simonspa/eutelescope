@@ -1,5 +1,3 @@
-// Version: $Id$
-#ifdef USE_GEAR
 // eutelescope includes ".h"
 #include "EUTelPreAlignment.h"
 #include "EUTelRunHeaderImpl.h"
@@ -62,19 +60,15 @@ EUTelPreAlign::EUTelPreAlign(): Processor("EUTelPreAlign")
 {
   _description = "Apply alignment constants to hit collection";
 
-  registerInputCollection (LCIO::TRACKERHIT, "InputHitCollectionName", "The name of the input hit collection", 
-				_inputHitCollectionName, std::string("hit"));
+  registerInputCollection (LCIO::TRACKERHIT, "InputHitCollectionName", "The name of the input hit collection", _inputHitCollectionName, std::string("hit"));
 
   registerOptionalParameter ("FixedPlane", "SensorID of fixed plane", _fixedID, 0);
 
-  registerOptionalParameter("AlignmentConstantLCIOFile","Name of LCIO db file where alignment constantds will be stored", 
-			    _alignmentConstantLCIOFile, std::string("alignment.slcio") );
+  registerOptionalParameter("AlignmentConstantLCIOFile","Name of LCIO db file where alignment constantds will be stored", _alignmentConstantLCIOFile, std::string("alignment.slcio") );
 
-  registerOptionalParameter("HotPixelCollectionName", "This is the name of the hot pixel collection that clusters should be checked against (optional). ",
-			    _hotPixelCollectionName, std::string(""));
+  registerOptionalParameter("HotPixelCollectionName", "This is the name of the hot pixel collection that clusters should be checked against (optional).", _hotPixelCollectionName, std::string(""));
 
-  registerProcessorParameter ("Events", "How many events should be used for an approximation to the X,Y shifts (pre-alignment)? (default=50000)",
-                            _events, 50000 );
+  registerProcessorParameter ("Events", "How many events should be used for an approximation to the X,Y shifts (pre-alignment)? (default=50000)", _events, 50000 );
  
   registerOptionalParameter("ResidualsXMin","Minimal values of the hit residuals in the X direction for a correlation band. Note: these numbers are ordered according to the z position of the sensors and NOT according to the sensor id.",_residualsXMin, std::vector<float > (6, -10.) );
 
@@ -84,13 +78,20 @@ EUTelPreAlign::EUTelPreAlign(): Processor("EUTelPreAlign")
 
   registerOptionalParameter("ResidualsYMax","Maximal values of the hit residuals in the Y direction for a correlation band. Note: these numbers are ordered according to the z position of the sensors and NOT according to the sensor id.",_residualsYMax, std::vector<float > (6,  10.) );
 
-  registerOptionalParameter ("MinNumberOfCorrelatedHits",
-			     "If there are more then this number of correlated hits (planes->track candidate) (default=5)",
+  registerOptionalParameter ("MinNumberOfCorrelatedHits", "If there are more then this number of correlated hits (planes->track candidate) (default=5)",
 			     _minNumberOfCorrelatedHits, static_cast <int> (5) );
 
-  registerOptionalParameter("HistogramFilling","Switch on or off the histogram filling",_fillHistos, static_cast< bool > ( true ) );
+  registerOptionalParameter("HistogramFilling", "Switch on or off the histogram filling", _fillHistos, bool(true) );
+  
+  registerOptionalParameter("DumpGEAR", "Dump alignment into GEAR file instead of prealignment database", _dumpGEAR, bool(false) );
+  
+  registerOptionalParameter("NewGEARSuffix", "Suffix for the new GEAR file, set to empty string (this is not default!) to overwrite old GEAR file", _GEARFileSuffix, std::string("_pre") );
 
-  registerOptionalParameter("ExcludedPlanes", "The list of sensor IDs that shall be excluded.",_ExcludedPlanes, std::vector<int> () );
+  registerOptionalParameter("ExcludedPlanes", "The list of sensor IDs that shall be excluded.", _ExcludedPlanes, std::vector<int>() );
+
+  registerOptionalParameter("ExcludedPlanesXCoord", "The list of sensor IDs for which the X coordinate shall be excluded.", _ExcludedPlanesXCoord, std::vector<int>() );
+
+  registerOptionalParameter("ExcludedPlanesYCoord", "The list of sensor IDs for which the Y coordinate  shall be excluded.", _ExcludedPlanesYCoord, std::vector<int>() );
 
 }
 
@@ -98,7 +99,6 @@ EUTelPreAlign::EUTelPreAlign(): Processor("EUTelPreAlign")
 void EUTelPreAlign::init () {
 
   // this method is called only once even when the rewind is active
-
   printParameters ();
 
   // set to zero the run and event counters
@@ -263,113 +263,113 @@ void  EUTelPreAlign::FillHotPixelMap(LCEvent *event)
     }
 }
 
-void EUTelPreAlign::processEvent (LCEvent * event) {
+void EUTelPreAlign::processEvent(LCEvent* event)
+{
+		if( isFirstEvent()) FillHotPixelMap(event);
 
-  if(  isFirstEvent() )
-    {
-      FillHotPixelMap(event);
-    }
+		++_iEvt;
 
-  ++_iEvt;
+		if(_iEvt > _events) return;
 
-  if(_iEvt > _events) return;
+		EUTelEventImpl* evt = static_cast<EUTelEventImpl*> (event);
 
-  EUTelEventImpl * evt = static_cast<EUTelEventImpl*> (event);
-  
-  if(  evt->getEventType() == kEORE ) {
-    streamlog_out ( DEBUG4 ) << "EORE found: nothing else to do." << endl;
-    return;
-  } else if(  evt->getEventType() == kUNKNOWN ) {
-    streamlog_out ( WARNING2 ) << "Event number " << evt->getEventNumber() << " in run " << evt->getRunNumber()
-                               << " is of unknown type. Continue considering it as a normal Data Event." << endl;
-  }
+		if(  evt->getEventType() == kEORE ) {
+				streamlog_out ( DEBUG4 ) << "EORE found: nothing else to do." << endl;
+				return;
+		} else if(  evt->getEventType() == kUNKNOWN ) {
+				streamlog_out ( WARNING2 ) << "Event number " << evt->getEventNumber() << " in run " << evt->getRunNumber()
+						<< " is of unknown type. Continue considering it as a normal Data Event." << endl;
+		}
 
-  try {
-    LCCollectionVec * inputCollectionVec = dynamic_cast < LCCollectionVec * > (evt->getCollection(_inputHitCollectionName));
-    UTIL::CellIDDecoder<TrackerHitImpl> hitDecoder ( EUTELESCOPE::HITENCODING );
-    
-    std::vector<float> residX;
-    std::vector<float> residY;
-    std::vector<PreAligner*> prealign;
+		try
+		{
+				LCCollectionVec * inputCollectionVec = dynamic_cast < LCCollectionVec * > (evt->getCollection(_inputHitCollectionName));
+				UTIL::CellIDDecoder<TrackerHitImpl> hitDecoder ( EUTELESCOPE::HITENCODING );
 
-    //Loop over hits in fixed plane:
+				std::vector<float> residX;
+				std::vector<float> residY;
+				std::vector<PreAligner*> prealign;
 
-    for( size_t ref = 0; ref < inputCollectionVec->size(); ref++ )  {
+				//Loop over hits in fixed plane:
+				for( size_t ref = 0; ref < inputCollectionVec->size(); ref++ )
+				{
 
-      TrackerHitImpl * refHit = dynamic_cast< TrackerHitImpl * >  ( inputCollectionVec->getElementAt( ref ) ) ;
-      const double * refPos = refHit->getPosition();
+						TrackerHitImpl* refHit = dynamic_cast<TrackerHitImpl*>( inputCollectionVec->getElementAt(ref) );
+						const double* refPos = refHit->getPosition();
 
-      int sensorID = hitDecoder(refHit)["sensorID"];
+						int sensorID = hitDecoder(refHit)["sensorID"];
 
-      // identify fixed plane
-      if( sensorID != _fixedID ) continue;
+						// identify fixed plane
+						if( sensorID != _fixedID ) continue;
 
-      residX.clear();
-      residY.clear();
-      prealign.clear();
+						residX.clear();
+						residY.clear();
+						prealign.clear();
 
-      for( size_t iHit = 0; iHit < inputCollectionVec->size(); iHit++) {
+						for( size_t iHit = 0; iHit < inputCollectionVec->size(); iHit++)
+						{
 
-	TrackerHitImpl * hit = dynamic_cast< TrackerHitImpl * >  ( inputCollectionVec->getElementAt( iHit ) ) ;
-        if( hitContainsHotPixels(hit) ) continue;
-        
-        const double * pos = hit->getPosition();
-        int iHitID = hitDecoder(hit)["sensorID"]; 
+								TrackerHitImpl* hit = dynamic_cast<TrackerHitImpl*>( inputCollectionVec->getElementAt(iHit) );
+								//Hits with a hot pixel are ignored
+								if( hitContainsHotPixels(hit) ) continue;
 
-        if( iHitID == _fixedID ) continue;
-        bool gotIt(false);
+								const double * pos = hit->getPosition();
+								int iHitID = hitDecoder(hit)["sensorID"]; 
 
-	for(size_t ii = 0; ii < _preAligners.size(); ii++)
-	  {
+								if( iHitID == _fixedID ) continue;
+								bool gotIt(false);
 
-	    PreAligner& pa = _preAligners.at(ii);
+								for(size_t ii = 0; ii < _preAligners.size(); ii++)
+								{
 
-	    if( pa.getIden() != iHitID  ) { continue; }
+										PreAligner& pa = _preAligners.at(ii);
 
-	    gotIt = true;
+										if( pa.getIden() != iHitID  ) { continue; }
 
-	    double correlationX =  refPos[0] - pos[0] ;
-	    double correlationY =  refPos[1] - pos[1] ;
+										gotIt = true;
 
-	    int idZ = _sensorIDtoZOrderMap[ iHitID ];
+										double correlationX =  refPos[0] - pos[0] ;
+										double correlationY =  refPos[1] - pos[1] ;
 
-	    if( 
-	       (_residualsXMin[idZ] < correlationX ) && ( correlationX < _residualsXMax[idZ]) &&
-	       (_residualsYMin[idZ] < correlationY ) && ( correlationY < _residualsYMax[idZ]) 
-		) {
-	      residX.push_back( correlationX );
-	      residY.push_back( correlationY );
-	      prealign.push_back(&pa);
-	    }
-	    break;
-	  }
-	if( not gotIt ) 
-	  {
-	    streamlog_out ( ERROR5 ) << "Mismatched hit at " << pos[2] << endl;
-	  }
-      }
+										int idZ = _sensorIDtoZOrderMap[ iHitID ];
 
-      if( prealign.size() > static_cast< unsigned int >(_minNumberOfCorrelatedHits) && residX.size() == residY.size() ) {
-	for( unsigned int ii = 0 ;ii < prealign.size(); ii++ ) {
+										if( 
+														(_residualsXMin[idZ] < correlationX ) && ( correlationX < _residualsXMax[idZ]) &&
+														(_residualsYMin[idZ] < correlationY ) && ( correlationY < _residualsYMax[idZ]) 
+										  ) {
+												residX.push_back( correlationX );
+												residY.push_back( correlationY );
+												prealign.push_back(&pa);
+										}
+										break;
+								}
+								if( not gotIt ) 
+								{
+										streamlog_out ( ERROR5 ) << "Mismatched hit at " << pos[2] << endl;
+								}
+						}
 
-	  prealign[ii]->addPoint( residX[ii], residY[ii] );
+						if( prealign.size() > static_cast< unsigned int >(_minNumberOfCorrelatedHits) && residX.size() == residY.size() ) {
+								for( unsigned int ii = 0 ;ii < prealign.size(); ii++ ) {
+
+										prealign[ii]->addPoint( residX[ii], residY[ii] );
 
 #if defined(USE_AIDA) || defined(MARLIN_USE_AIDA)
-	  if( _fillHistos ) {
-	    ( dynamic_cast<AIDA::IHistogram1D*> (_hitXCorr[ prealign[ii]->getIden() ] ) )->fill( residX[ii] );
-	    ( dynamic_cast<AIDA::IHistogram1D*> (_hitYCorr[ prealign[ii]->getIden() ] ) )->fill( residY[ii] );
-	  }
+										if( _fillHistos ) {
+												( dynamic_cast<AIDA::IHistogram1D*> (_hitXCorr[ prealign[ii]->getIden() ] ) )->fill( residX[ii] );
+												( dynamic_cast<AIDA::IHistogram1D*> (_hitYCorr[ prealign[ii]->getIden() ] ) )->fill( residY[ii] );
+										}
 #endif
-	}
-      }
-    }
-  }
-  catch( DataNotAvailableException& e) { 
-    streamlog_out  ( WARNING2 ) <<  "No input collection " << _inputHitCollectionName << " found on event " << event->getEventNumber()
-                                << " in run " << event->getRunNumber() << endl;
-  }
+								}
+						}
+				}
+		}
+		catch( DataNotAvailableException& e) { 
+				streamlog_out  ( WARNING2 ) <<  "No input collection " << _inputHitCollectionName << " found on event " << event->getEventNumber()
+						<< " in run " << event->getRunNumber() << endl;
+		}
 
-  if( isFirstEvent() ) _isFirstEvent = false;
+		if( isFirstEvent() ) _isFirstEvent = false;
 
 }
 
@@ -461,96 +461,111 @@ bool EUTelPreAlign::hitContainsHotPixels( TrackerHitImpl   * hit)
   return 0;
 }
       
-void EUTelPreAlign::end() {
-  LCWriter * lcWriter = LCFactory::getInstance()->createLCWriter();
-  try {
-    lcWriter->open( _alignmentConstantLCIOFile, LCIO::WRITE_NEW    );
-  } catch ( IOException& e ) {
-    streamlog_out ( ERROR4 ) << e.what() << endl;
-    exit(-1);
-  }
+void EUTelPreAlign::end()
+{
+		LCCollectionVec * constantsCollection = new LCCollectionVec( LCIO::LCGENERICOBJECT );
 
-  streamlog_out ( MESSAGE5 ) << "Writing to " << _alignmentConstantLCIOFile << endl;
-
-  LCRunHeaderImpl * lcHeader  = new LCRunHeaderImpl;
-  lcHeader->setRunNumber( 0 );
-  lcWriter->writeRunHeader(lcHeader);
-  delete lcHeader;
-  LCEventImpl * event = new LCEventImpl;
-  event->setRunNumber( 0 );
-  event->setEventNumber( 0 );
-  LCTime * now = new LCTime;
-  event->setTimeStamp( now->timeStamp() );
-  delete now;
-
-  LCCollectionVec * constantsCollection = new LCCollectionVec( LCIO::LCGENERICOBJECT );
-
-
-  for(size_t ii=0; ii<_sensorIDVec.size(); ii++)
-    {
-      bool ifound = false;
-      for(size_t jj=0; jj< _preAligners.size(); jj++)
-	{
-	  int sensorID = _preAligners.at(jj).getIden();
-	  if( _sensorIDVec[ii] == sensorID ) { ifound = true; break; }
-	}
-      if( ifound == false)
-	{
-	  EUTelAlignmentConstant* constant = new EUTelAlignmentConstant();
-	  constant->setXOffset( 0.0 );
-	  constant->setYOffset( 0.0 );
-	  constant->setSensorID( _sensorIDVec[ii] );
-	  constantsCollection->push_back( constant );
-	  streamlog_out ( MESSAGE5 ) << (*constant) << endl;
-	  continue; 
-	}
-    }
+		for(size_t ii=0; ii<_sensorIDVec.size(); ii++)
+		{
+				bool ifound = false;
+				for(size_t jj=0; jj< _preAligners.size(); jj++)
+				{
+						int sensorID = _preAligners.at(jj).getIden();
+						if( _sensorIDVec[ii] == sensorID ) { ifound = true; break; }
+				}
+				if( ifound == false)
+				{
+						EUTelAlignmentConstant* constant = new EUTelAlignmentConstant();
+						constant->setXOffset( 0.0 );
+						constant->setYOffset( 0.0 );
+						constant->setSensorID( _sensorIDVec[ii] );
+						constantsCollection->push_back( constant );
+						streamlog_out ( MESSAGE5 ) << (*constant) << endl;
+						continue; 
+				}
+		}
 
 
-  for(size_t ii = 0 ; ii < _preAligners.size(); ii++){
-	int sensorID = _preAligners.at(ii).getIden();
-	std::vector<int>::iterator it = find(_ExcludedPlanes.begin(),_ExcludedPlanes.end(),sensorID);
-	EUTelAlignmentConstant* constant = new EUTelAlignmentConstant();
-	if(it == _ExcludedPlanes.end()){
-	    if( abs( _preAligners.at(ii).getPeakX() ) < 1000. )
-	      constant->setXOffset( -1.0 * _preAligners.at(ii).getPeakX() );
-	    else
-	      constant->setXOffset( 0.0                            );
-	 
-	    if( abs( _preAligners.at(ii).getPeakY() ) < 1000. )
-	      constant->setYOffset( -1.0 * _preAligners.at(ii).getPeakY() );
-	    else
-	      constant->setYOffset( 0.0                            );
-	}else{
-	    constant->setXOffset(0.0); constant->setYOffset(0.0);
-	}
-	constant->setSensorID( sensorID );
-	constantsCollection->push_back( constant );
+		for(size_t ii = 0 ; ii < _preAligners.size(); ii++){
+				int sensorID = _preAligners.at(ii).getIden();
+				std::vector<int>::iterator it = find(_ExcludedPlanes.begin(),_ExcludedPlanes.end(),sensorID);
+				std::vector<int>::iterator itXCoord = find(_ExcludedPlanesXCoord.begin(),_ExcludedPlanesXCoord.end(),sensorID);
+				std::vector<int>::iterator itYCoord = find(_ExcludedPlanesYCoord.begin(),_ExcludedPlanesYCoord.end(),sensorID);
 
-    //Also update the EUTelGeometry descr.
-    double updatedXOff = geo::gGeometry().siPlaneXPosition(sensorID) + _preAligners.at(ii).getPeakX();
-    double updatedYOff = geo::gGeometry().siPlaneYPosition(sensorID) + _preAligners.at(ii).getPeakY();
-    
-    geo::gGeometry().setPlaneXPosition(sensorID, updatedXOff);
-    geo::gGeometry().setPlaneYPosition(sensorID, updatedYOff);
+				EUTelAlignmentConstant* constant = new EUTelAlignmentConstant();
 
-	streamlog_out ( MESSAGE5 ) << (*constant) << endl;
-  }
+				if(it == _ExcludedPlanes.end())
+				{
+						if( itXCoord == _ExcludedPlanesXCoord.end() && abs( _preAligners.at(ii).getPeakX() ) < 1000 )
+								constant->setXOffset( -1.0* _preAligners.at(ii).getPeakX() );
+						else
+								constant->setXOffset( 0.0 );
+
+						if(  itYCoord == _ExcludedPlanesYCoord.end() && abs( _preAligners.at(ii).getPeakY() ) < 1000. )
+								constant->setYOffset( -1.0 * _preAligners.at(ii).getPeakY() );
+						else
+								constant->setYOffset( 0.0 );
+				}
+				else
+				{
+						constant->setXOffset(0.0);
+						constant->setYOffset(0.0);
+				}
+
+				constant->setSensorID( sensorID );
+				constantsCollection->push_back( constant );
+
+				//Also update the EUTelGeometry descr.
+				double updatedXOff = geo::gGeometry().siPlaneXPosition(sensorID) + _preAligners.at(ii).getPeakX();
+				double updatedYOff = geo::gGeometry().siPlaneYPosition(sensorID) + _preAligners.at(ii).getPeakY();
+
+				geo::gGeometry().setPlaneXPosition(sensorID, updatedXOff);
+				geo::gGeometry().setPlaneYPosition(sensorID, updatedYOff);
+
+				streamlog_out ( MESSAGE5 ) << (*constant) << endl;
+		}
+
+		//if we dont dump into the new gear file, we write out the old database
+		if(!_dumpGEAR)
+		{
+				LCWriter* lcWriter = LCFactory::getInstance()->createLCWriter();
+				try {
+						lcWriter->open( _alignmentConstantLCIOFile, LCIO::WRITE_NEW    );
+				} catch ( IOException& e ) {
+						streamlog_out ( ERROR4 ) << e.what() << endl;
+						exit(-1);
+				}
+
+				streamlog_out ( MESSAGE5 ) << "Writing to " << _alignmentConstantLCIOFile << endl;
+
+				LCRunHeaderImpl * lcHeader  = new LCRunHeaderImpl;
+				lcHeader->setRunNumber( 0 );
+				lcWriter->writeRunHeader(lcHeader);
+				delete lcHeader;
+				LCEventImpl * event = new LCEventImpl;
+				event->setRunNumber( 0 );
+				event->setEventNumber( 0 );
+				LCTime * now = new LCTime;
+				event->setTimeStamp( now->timeStamp() );
+				delete now;
 
 
-  streamlog_out( DEBUG5 ) << " adding Collection " << "alignment " << endl;
- 
-  event->addCollection( constantsCollection, "alignment" );
-  lcWriter->writeEvent( event );
-  delete event;
-  lcWriter->close();
+				streamlog_out( DEBUG5 ) << " adding Collection " << "alignment " << endl;
 
+				event->addCollection( constantsCollection, "alignment" );
+				lcWriter->writeEvent( event );
+				delete event;
+				lcWriter->close();
+		}
+		else
+		{
+				//Write updated GEAR file
+				marlin::StringParameters* MarlinStringParams = marlin::Global::parameters;
+				std::string outputFilename = (MarlinStringParams->getStringVal("GearXMLFile")).substr(0, (MarlinStringParams->getStringVal("GearXMLFile")).size()-4);
+				streamlog_out(MESSAGE5) << "Writing updated GEAR file with filename: " << outputFilename+"_pre.xml" << std::endl;
+				geo::gGeometry().writeGEARFile(outputFilename+_GEARFileSuffix+".xml");
 
-  //Write updated GEAR file ("oldname_pre.xml")
-  marlin::StringParameters* MarlinStringParams = marlin::Global::parameters;
-  std::string outputFilename = (MarlinStringParams->getStringVal("GearXMLFile")).substr(0, (MarlinStringParams->getStringVal("GearXMLFile")).size()-4);
-  streamlog_out(MESSAGE5) << "Writing updated GEAR file with filename: " << outputFilename+"_pre.xml" << std::endl;
-  geo::gGeometry().writeGEARFile(outputFilename+"_pre.xml");
-
+				//in case we don't write out the collection, we need to delete ourself as we don't pass the collection to LCIO
+				delete constantsCollection;
+		}
 }
-#endif

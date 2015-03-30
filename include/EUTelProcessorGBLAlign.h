@@ -32,14 +32,9 @@
 #include "EUTelTrack.h"
 #include "EUTelState.h"
 
-
-using namespace lcio;
-using namespace marlin;
-using namespace std;
-
 namespace eutelescope {
 
- class  EUTelProcessorGBLAlign : public Processor {
+ class  EUTelProcessorGBLAlign : public marlin::Processor {
 
     private:
         DISALLOW_COPY_AND_ASSIGN(EUTelProcessorGBLAlign)     // prevent users from making (default) copies of processors
@@ -65,8 +60,6 @@ namespace eutelescope {
         /** Called for every event - the working horse.
          */
         virtual void processEvent(LCEvent * evt);
-
-        virtual void check(LCEvent * evt);
 
         /** Called after data processing for clean up. **/
 	
@@ -101,10 +94,10 @@ namespace eutelescope {
         EUTelGBLFitter *_trackFitter;
 
         /** Input TrackerHit collection name */
-        string _trackCandidatesInputCollectionName;
+        std::string _trackCandidatesInputCollectionName;
 
         /** Output Tracks collection name */
-        string _tracksOutputCollectionName;
+        std::string _tracksOutputCollectionName;
 
         /** Allows user-added commands in the pede steering file */
 				lcio::StringVec _pedeSteerAddCmds;
@@ -144,12 +137,11 @@ namespace eutelescope {
         /** y Resolution of planes in PlaneIds */
         FloatVec _SteeringyResolutions;
 
-				FloatVec _excludePlanes;
+	IntVec _excludePlanes;
 };
 
     /** A global instance of the processor */
     EUTelProcessorGBLAlign gEUTelProcessorGBLAlign;
-
 }
 
 #endif	/* EUTELPROCESSORMILLEALIGN_H */

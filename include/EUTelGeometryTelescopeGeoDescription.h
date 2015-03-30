@@ -9,9 +9,6 @@
 #include <map>
 #include <string>
 
-// LCIO includes
-#include "LCIOSTLTypes.h"
-
 // MARLIN
 #include "marlin/Global.h"
 
@@ -290,10 +287,10 @@ class EUTelGeometryTelescopeGeoDescription
 	double siPlaneYPitch(int sensorID){ return _planeSetup.at(sensorID).yPitch; };
 
 	/** Sensor X side size in pixels */
-	double siPlaneXNpixels(int sensorID){ return _planeSetup.at(sensorID).xPixelNo; };
+	int siPlaneXNpixels(int sensorID){ return _planeSetup.at(sensorID).xPixelNo; };
 
 	/** Sensor Y side size in pixels */
-	double siPlaneYNpixels(int sensorID){ return _planeSetup.at(sensorID).yPixelNo; };
+	int siPlaneYNpixels(int sensorID){ return _planeSetup.at(sensorID).yPixelNo; };
 
 	/** Sensor X side size in pixels */
 	double siPlaneXResolution(int sensorID){ return _planeSetup.at(sensorID).xRes; };
@@ -314,7 +311,7 @@ class EUTelGeometryTelescopeGeoDescription
 
 	TVector3 siPlaneYAxis( int );
 
-	void initialisePlanesToExcluded(FloatVec planeIDs );
+	void initialisePlanesToExcluded(IntVec planeIDs );
 
 	/** Map from sensor ID to number along Z */
 	const std::map<int, int>& sensorZOrdertoIDs() const { return _sensorZOrderToIDMap; };
@@ -333,7 +330,7 @@ class EUTelGeometryTelescopeGeoDescription
 	int sensorZOrderToID( int ) const;
 
 	/** Vector of all sensor IDs */
-	const EVENT::IntVec& sensorIDsVec() const { return _sensorIDVec; };
+	const std::vector<int>& sensorIDsVec() const { return _sensorIDVec; };
 
 	Eigen::Vector3d getRotationAnglesFromMatrix( Eigen::Matrix3d rotMat );
 
@@ -371,31 +368,20 @@ class EUTelGeometryTelescopeGeoDescription
 
 	void local2Master( int, const double[], double[] );
 
-	void local2masterHit(IMPL::TrackerHitImpl* hit_input, IMPL::TrackerHitImpl* hit_output, LCCollection* hitCollectionOutput);
-
-	void master2localHit(IMPL::TrackerHitImpl* hit_input, IMPL::TrackerHitImpl* hit_output, LCCollection* hitCollectionOutput);
-
-	void master2Local( const double[], double[] );
-
-	void master2Localtwo(int, const double[], double[] );
+	void master2Local(int, const double[], double[] );
 
 	void local2MasterVec( int, const double[], double[] );
 
 	void master2LocalVec( int, const double[], double[] );
 
-	int findIntersectionWithCertainID( float x0, float y0, float z0, float px, float py, float pz, float beamQ, int nextPlaneID, float outputPosition[],TVector3& outputMomentum, float& arcLength );
+	bool findIntersectionWithCertainID(	float x0, float y0, float z0, 
+						float px, float py, float pz, 
+						float beamQ, int nextPlaneID, float outputPosition[],
+						TVector3& outputMomentum, float& arcLength, int& newNextPlaneID );
 
 	TVector3 getXYZMomentumfromArcLength(TVector3 momentum, TVector3 globalPositionStart, float charge, float  arcLength );
 
 	float getInitialDisplacementToFirstPlane() const { return _initialDisplacement; };
-
-	TVector3 getXYZfromArcLength( TVector3 pos,TVector3 pVec , float _beamQ, double s) const;
-
-	TMatrixD getPropagationJacobianCurvilinear(float ds, float qbyp, TVector3 t1, TVector3 t2);
-
-	TMatrixD getLocalToCurvilinearTransformMatrix(TVector3 globalMomentum, int  planeID, float charge);
-
-	TMatrix getPropagationJacobianF( float x0, float y0, float z0, float px, float py, float pz, float _beamQ, float dz );
 
 	const TGeoHMatrix* getHMatrix( const double globalPos[] );
 

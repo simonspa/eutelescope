@@ -1,31 +1,28 @@
 //This class contains all the pattern recognition functions. These are used within EUTelProcessorPatternRecogntion. They use basic input about the particles flight. So the particle charge, the magnetic field strength and beam energy. This combined with seeds states on the first plane (Can be others but the first by default) determined what set of hits come from a single track. 
 #include "EUTelPatternRecognition.h"
+#include "EUTelNav.h"
 namespace eutelescope {
-    
-	EUTelPatternRecognition::EUTelPatternRecognition() :  
-	_totalNumberOfHits(0),
-	_totalNumberOfSharedHits(0),
-	_firstExecution(true),
-	_numberOfTracksTotal(0),
-	_numberOfTracksAfterHitCut(0),
-	_numberOfTracksAfterPruneCut(0),
-	_allowedMissingHits(0),
-	_AllowedSharedHitsOnTrackCandidate(0),
-	_beamE(-1.),
-	_beamQ(-1.)
-	{}
 
-	EUTelPatternRecognition::~EUTelPatternRecognition() { 
-	}
- 
-std::vector<EUTelTrack>& EUTelPatternRecognition::getTracks(){
+EUTelPatternRecognition::EUTelPatternRecognition():  
+_totalNumberOfHits(0),
+_totalNumberOfSharedHits(0),
+_firstExecution(true),
+_numberOfTracksTotal(0),
+_numberOfTracksAfterHitCut(0),
+_numberOfTracksAfterPruneCut(0),
+_allowedMissingHits(0),
+_AllowedSharedHitsOnTrackCandidate(0),
+_beamE(-1.),
+_beamQ(-1.)
+{}
+
+EUTelPatternRecognition::~EUTelPatternRecognition() { 
+}
+
+std::vector<EUTelTrack>& EUTelPatternRecognition::getTracks()
+{
 	return	_finalTracks; 
 }
-void EUTelPatternRecognition::clearEveryRun(){
-	int _totalNumberOfHits=0;
-	int _totalNumberOfSharedHits=0;
-}
-
 
 void EUTelPatternRecognition::testTrackCandidates(){
 	for(size_t i=0; i < _tracks.size(); ++i){
@@ -48,71 +45,96 @@ void EUTelPatternRecognition::testTrackCandidates(){
 		}
 	}
 }
+
 //This is the work horse of the class. Using seeds it propagates the track forward using equations of motion. This can be with or without magnetic field.
-void EUTelPatternRecognition::propagateForwardFromSeedState( EUTelState& stateInput, EUTelTrack & track    ){
-	EUTelState *state = &stateInput;//Make it a pointer so we can change this to newState after.
-	streamlog_out ( DEBUG1 ) << "EUTelPatternRecognition::propagateForwardFromSeedState-----BEGIN "<< endl;
+void EUTelPatternRecognition::propagateForwardFromSeedState(EUTelState& stateInput, EUTelTrack& track)
+{
+	EUTelState* state = &stateInput;//Make it a pointer so we can change this to newState after.
+	
 	//TO DO: To delete this in smart way. 
 	EUTelState *firstState = new EUTelState(stateInput);//Need to create an initial state that will not be deleted outside this scope  
 	streamlog_out(DEBUG2) << "This is the memory location of the state: "<< firstState << std::endl;
 	track.addTrack(static_cast<EVENT::Track*>(firstState));//Note we do not have to create new since this object State is saved in class member scope
 	//Here we loop through all the planes not excluded. We begin at the seed which might not be the first. Then we stop before the last plane, since we do not want to propagate anymore
 	bool firstLoop =true;//TO DO:: This works but is very stupid. Must fix
-	for(int i = geo::gGeometry().sensorIDToZOrderWithoutExcludedPlanes().at(state->getLocation()); i < (geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().size()-1); ++i){
+	for(size_t i = geo::gGeometry().sensorIDToZOrderWithoutExcludedPlanes().at(state->getLocation()); i < (geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().size()-1); ++i){
 	
 		float globalIntersection[3];
 		TVector3 momentumAtIntersection;
 		float arcLength;
-		int newSensorID = state->findIntersectionWithCertainID(geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().at(i+1), globalIntersection, momentumAtIntersection, arcLength);
-		if(arcLength <= 0 ){ 
-			throw(lcio::Exception( "The arc length is less than or equal to zero. ")); 
+		int newSensorID = 0;
+		
+		bool foundNextIntersection = state->findIntersectionWithCertainID(	geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().at(i+1), 
+											globalIntersection, momentumAtIntersection, arcLength, newSensorID);
+
+		if(!foundNextIntersection)
+		{
+			streamlog_out(DEBUG5) 	<< "INTERSECTION NOT FOUND! Intersection point on infinite plane: " 
+						<<  globalIntersection[0] << ", " <<globalIntersection[1] << ", " << globalIntersection[2] << std::endl
+						<< "Momentum on next plane: " 
+						<<  momentumAtIntersection[0] << ", " << momentumAtIntersection[1] << ", " << momentumAtIntersection[2] << std::endl
+						<< "From ID: " << geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().at(i) << " to " 
+						<<  geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().at(i+1) << std::endl
+						<< "This is for event number: " << getEventNumber() << std::endl;
+			//So if there is no intersection look on the next plane.
+			//Important since two planes could be at the same z position
+			continue;
 		}
-		if(firstLoop){
+
+		streamlog_out(DEBUG5) 	<< "INTERSECTION FOUND! From ID: " << geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().at(i)
+					<< " to " << geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().at(i+1) << std::endl
+					<< "Intersection point on infinite plane: " 
+					<<  globalIntersection[0] << ", " << globalIntersection[1] << ", " << globalIntersection[2] << std::endl
+					<< "Momentum on next plane: " 
+					<<  momentumAtIntersection[0]<< ", "<<momentumAtIntersection[1] << ", " << momentumAtIntersection[2] << std::endl;
+
+		if(firstLoop)
+		{
 			firstState->setArcLengthToNextState(arcLength); 
 			firstLoop =false;
-		}else{
+		}
+		else
+		{
 			state->setArcLengthToNextState(arcLength);
 		}
-		//cout<<"HERE1: "<<state->getPosition()[0]<<","<<state->getPosition()[1]<<","<<state->getPosition()[2]<<","<<state->getLocation()<<endl;
-		int sensorIntersection = geo::gGeometry( ).getSensorID(globalIntersection);
-		if(newSensorID < 0 or sensorIntersection < 0 ){
-			streamlog_out ( DEBUG5 ) << "INTERSECTION NOT FOUND! Intersection point on infinite plane: " <<  globalIntersection[0]<<" , "<<globalIntersection[1] <<" , "<<globalIntersection[2]<<std::endl;
-			streamlog_out ( DEBUG5 ) << "Momentum on next plane: " <<  momentumAtIntersection[0]<<" , "<<momentumAtIntersection[1] <<" , "<<momentumAtIntersection[2]<<std::endl;
-			streamlog_out(DEBUG5) <<" From ID= " <<  geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().at(i)<< " to " <<  geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().at(i+1)  <<std::endl;
-			streamlog_out(DEBUG5)<<"Was there intersection on plane: "<<newSensorID<<" Was there intersection in sensitive area: "<< sensorIntersection <<std::endl;
-			streamlog_out(DEBUG5) << "No intersection found moving on plane. Move to next plane and look again."<<std::endl; 
-			streamlog_out(DEBUG5)<<"This is for event number " <<getEventNumber()<<std::endl;
-			continue;//So if there is no intersection look on the next plane. Important since two planes could be at the same z position
-		}
-		streamlog_out(DEBUG5) <<"INTERSECTION FOUND! From ID= " <<  geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().at(i)<< " to " <<  geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().at(i+1)  <<std::endl;
-		streamlog_out ( DEBUG5 ) << "Intersection point on infinite plane: " <<  globalIntersection[0]<<" , "<<globalIntersection[1] <<" , "<<globalIntersection[2]<<std::endl;
-		streamlog_out ( DEBUG5 ) << "Momentum on next plane: " <<  momentumAtIntersection[0]<<" , "<<momentumAtIntersection[1] <<" , "<<momentumAtIntersection[2]<<std::endl;
-
+		
 		//So we have intersection lets create a new state
-		EUTelState *newState = new EUTelState();//Need to create this since we save the pointer and we would be out of scope when we leave this function. Destroying this object. 
+		EUTelState* newState = new EUTelState();//Need to create this since we save the pointer and we would be out of scope when we leave this function. Destroying this object. 
 		newState->setDimensionSize(_planeDimensions[newSensorID]);//We set this since we need this information for later processors
 		newState->setBeamCharge(_beamQ);
 		newState->setLocation(newSensorID);
 		newState->setPositionGlobal(globalIntersection);
 		newState->setLocalXZAndYZIntersectionAndCurvatureUsingGlobalMomentum(momentumAtIntersection);
-		if(_mapHitsVecPerPlane[geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().at(i+1)].size() == 0){
-			streamlog_out(DEBUG5) << "There are no hits on the plane with this state. Add state to track as it is and move on ";
+
+		if(_mapHitsVecPerPlane[geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().at(i+1)].empty()){
+			streamlog_out(DEBUG5) << "There are no hits on the plane with this state. Add state to track as it is and move on." << std::endl;
 			track.addTrack(static_cast<EVENT::Track*>(newState));//Need to return this to LCIO object. Loss functionality but retain information 
 			state = newState;
 			continue;
 		}
 		EVENT::TrackerHit* closestHit = const_cast< EVENT::TrackerHit* > ( findClosestHit( *newState )); //This will look for the closest hit but not if it is within the excepted range		
 		double distance;
-		if(newState->getDimensionSize() == 2){
-			distance = sqrt(computeResidual( *newState, closestHit ).Norm2Sqr());//This distance could be 2D or 1D depending on if you have a strip or pixel sensor. Norm2Sqr does not square toot for some reason.
-		}else if(newState->getDimensionSize() == 1){
-			distance = computeResidual( *newState, closestHit )[0];//If strip sensor then use only displacement along strips. Which should be x axis.
-		}else{
+		if(newState->getDimensionSize() == 2)
+		{
+			//This distance could be 2D or 1D depending on if you have a strip or pixel sensor. 
+			//Norm2Sqr does not square root for some reason.
+			distance = sqrt(computeResidual( *newState, closestHit ).Norm2Sqr());
+		}
+		else if(newState->getDimensionSize() == 1)
+		{
+			//If strip sensor then use only displacement along strips, which should be x axis.
+			distance = computeResidual( *newState, closestHit )[0];
+		}
+		else
+		{
 			throw(lcio::Exception( "The closest hit is not on a pixel or strip sensor. Since the dimensionality if less than 1 or greater than 2."));
 		}
-		const double DCA = getXYPredictionPrecision( *newState ); //This does nothing but return a number specified by user. In the future this should use convariance matrix information TO DO: FIX
-		streamlog_out ( DEBUG1 ) <<"At plane: "<<newState->getLocation() << ". Distance between state and hit: "<< distance <<" Must be less than: "<<DCA<< endl;
-		streamlog_out(DEBUG0) <<"Closest hit position: " << closestHit->getPosition()[0]<<" "<< closestHit->getPosition()[1]<<"  "<< closestHit->getPosition()[2]<<endl;
+
+		const double DCA = getXYPredictionPrecision(*newState);
+
+		streamlog_out ( DEBUG1 ) <<"At plane: "<<newState->getLocation() << ". Distance between state and hit: "<< distance <<" Must be less than: "<<DCA<< std::endl;
+		streamlog_out(DEBUG0) <<"Closest hit position: " << closestHit->getPosition()[0]<<" "<< closestHit->getPosition()[1]<<"  "<< closestHit->getPosition()[2]<<std::endl;
+
 		if ( distance > DCA ) {
 			streamlog_out ( DEBUG1 ) << "Closest hit is outside of search window." << std::endl;
 			track.addTrack(static_cast<EVENT::Track*>(newState));//Need to return this to LCIO object. Loss functionality but retain information 
@@ -122,31 +144,27 @@ void EUTelPatternRecognition::propagateForwardFromSeedState( EUTelState& stateIn
 		if(closestHit == NULL){
 			throw(lcio::Exception( "The closest hit you are trying to add is NULL. This can not be correct"));
 		}
-		streamlog_out ( DEBUG1 ) << "Found a hit with memory address: " << closestHit<<" and ID of " <<closestHit->id() <<" At a Distance: "<< distance<<" from state." << endl;
+
+		streamlog_out ( DEBUG1 ) << "Found a hit with memory address: " << closestHit<<" and ID of " <<closestHit->id() <<" At a Distance: "<< distance<<" from state." << std::endl;
 		newState->addHit(closestHit);
 		_totalNumberOfHits++;//This is used for test of the processor later.   
 		streamlog_out(DEBUG2) << "This is the memory location of the state: "<< newState << std::endl;
 
 		track.addTrack(static_cast<EVENT::Track*>(newState));//Need to return this to LCIO object. Loss functionality but retain information 
 		track.print();
-		streamlog_out ( DEBUG1 ) << "The number of hits on the track now is "<< track.getNumberOfHitsOnTrack()<< endl;
-		//cout<<"HERE3: "<<newState->getPosition()[0]<<","<<newState->getPosition()[1]<<","<<newState->getPosition()[2]<<","<<newState->getLocation()<<endl;
-		//cout<<"HERE5: "<<state->getPosition()[0]<<","<<state->getPosition()[1]<<","<<state->getPosition()[2]<<","<<state->getLocation()<<endl;
+		streamlog_out ( DEBUG1 ) << "The number of hits on the track now is "<< track.getNumberOfHitsOnTrack()<< std::endl;
 		state = newState;
-		//cout<<"HERE4: "<<state->getPosition()[0]<<","<<state->getPosition()[1]<<","<<state->getPosition()[2]<<","<<state->getLocation()<<endl;
-		streamlog_out ( DEBUG1 ) << "End of loop "<< endl;
-
+		streamlog_out ( DEBUG1 ) << "End of loop "<< std::endl;
 	}
-	streamlog_out ( DEBUG1 ) << "EUTelPatternRecognition::propagateForwardFromSeedState-----END "<< endl;
+}
 
-}	
 void EUTelPatternRecognition::printTrackCandidates(){
-	streamlog_out ( DEBUG1 ) << "EUTelKalmanFilter::printTrackCandidates----BEGIN "<< endl;
-	for(int i = 0; i < _tracks.size();++i){
+	streamlog_out ( DEBUG1 ) << "EUTelKalmanFilter::printTrackCandidates----BEGIN "<< std::endl;
+	for(size_t i = 0; i < _tracks.size();++i){
 		streamlog_out(DEBUG5)<<"Track number "<<i<<" Out of " <<_tracks.size()<<std::endl; 
 		_tracks.at(i).print();
 	}
-	streamlog_out ( DEBUG1 ) << "EUTelKalmanFilter::printTrackCandidates----END "<< endl;
+	streamlog_out ( DEBUG1 ) << "EUTelKalmanFilter::printTrackCandidates----END "<< std::endl;
 }
 void EUTelPatternRecognition::clearFinalTracks(){
 	if(!_finalTracks.empty()){
@@ -204,53 +222,62 @@ void EUTelPatternRecognition::findTrackCandidatesWithSameHitsAndRemove(){
 		std::vector<EUTelState> iStates = _tracksAfterEnoughHitsCut.at(i).getStates();
 		//Now loop through all tracks one ahead of the original track itTrk. This is done since we want to compare all the track to each other to if they have similar hits     
 		for(size_t j =i+1; j < _tracksAfterEnoughHitsCut.size();++j){ //LOOP over all track again.
-	//		cout<<"Increase track to: "<<j <<endl;
+	//		cout<<"Increase track to: "<<j <<std::endl;
 			int hitscount=0;
 			std::vector<EUTelState> jStates = _tracksAfterEnoughHitsCut[j].getStates();
-			for(size_t i=0;i<iStates.size();i++){
-		//		cout<<"I top states "<< i<<endl;
-			
-				EVENT::TrackerHit* ihit;
-				if(!iStates[i].getTrackerHits().empty()){//Need since we could have tracks that have a state but no hits here.
-					ihit = iStates[i].getTrackerHits()[0];
-				}else{
-					continue;
-				}
-				int ic = ihit->id();
-				for(size_t j=0;j<jStates.size();j++){
-		//		cout<<"I bottom states "<< j<<endl;
-
-					EVENT::TrackerHit* jhit;
-					if(!jStates[j].getTrackerHits().empty()){//Need since we could have tracks that have a state but no hits here.
-						jhit = jStates[j].getTrackerHits()[0];
-					}else{
-						continue;
+			for(size_t k=0;k<iStates.size();k++)
+			{
+					EVENT::TrackerHit* ihit;
+					//Need since we could have tracks that have a state but no hits here.
+					if(!iStates[k].getTrackerHits().empty())
+					{
+							ihit = iStates[k].getTrackerHits()[0];
 					}
-					int jc = jhit->id();
-					if(ic == jc ){
-				//		cout<<"This is ic and jc " <<ic<<","<<jc<<endl;
-						_totalNumberOfSharedHits++;
-						hitscount++; 
-						streamlog_out(MESSAGE1) <<  "Hit number on track you are comparing all other to :" << i << ". Hit ID: " << ic << ". Hit number of comparison: " << j << ". Hit ID of this comparison : " << jc << ". Number of common hits: " << hitscount << std::endl; 
+					else
+					{
+							continue;
 					}
-				}
+					int ic = ihit->id();
+					
+					for(size_t l=0;l<jStates.size();l++)
+					{
+							EVENT::TrackerHit* jhit;
+							//Need since we could have tracks that have a state but no hits here.
+							if(!jStates[l].getTrackerHits().empty())
+							{
+									jhit = jStates[l].getTrackerHits()[0];
+							}
+							else
+							{
+									continue;
+							}
+							int jc = jhit->id();
+							if(ic == jc )
+							{
+									_totalNumberOfSharedHits++;
+									hitscount++; 
+									streamlog_out(MESSAGE1) <<  "Hit number on track you are comparing all other to: " << i << ". Hit ID: " 
+															<< ic << ". Hit number of comparison: " << j << ". Hit ID of this comparison : " << jc 
+															<< ". Number of common hits: " << hitscount << std::endl; 
+							}
+					}
 
 			} 
 			//If for any track we are comparing to the number of similar hits is to high then we move to the next track and do not add this track to the new list of tracks
-	//		cout<<"Number of hits: " <<hitscount<<" allowed: " <<_AllowedSharedHitsOnTrackCandidate<<endl;
+	//		cout<<"Number of hits: " <<hitscount<<" allowed: " <<_AllowedSharedHitsOnTrackCandidate<<std::endl;
 			if(hitscount > _AllowedSharedHitsOnTrackCandidate) {   
 				streamlog_out(DEBUG1)<<"Tracks has too many similar hits remove "<<std::endl;
 				break;
 			}
 			if(j == (_tracksAfterEnoughHitsCut.size()-1)){//If we have loop through all and not breaked then track must be good.
-	//			cout<<"Enter the addition of track"<<endl;
+	//			cout<<"Enter the addition of track"<<std::endl;
 				_finalTracks.push_back(_tracksAfterEnoughHitsCut[i]);
 				streamlog_out(DEBUG1)<<"Track made prune tracks cut"<<std::endl;
 			}
 		}
 		//We need to add the last track here since the inner loop j+1 will never be entered. We always add the last track since if it has similar hits to past tracks then those tracks have been removed.
 		if(i == (_tracksAfterEnoughHitsCut.size()-1)){//If we have loop through all and not breaked then track must be good.
-//		cout<<"Enter the last addition of track"<<endl;
+//		cout<<"Enter the last addition of track"<<std::endl;
 		_finalTracks.push_back(_tracksAfterEnoughHitsCut[i]);
 	//	streamlog_out(DEBUG1)<<"Track made prune tracks cut"<<std::endl;
 		}
@@ -318,8 +345,6 @@ void EUTelPatternRecognition::initialiseSeeds() {
 			}
 			state.setLocation(_createSeedsFromPlanes[iplane]);//This stores the location as a float in Z0 since no location for track LCIO. This is preferable to problems with storing hits.  
 			state.setPositionLocal(posLocal); //This will automatically take cartesian coordinate system and save it to reference point. //This is different from most LCIO applications since each track will have own reference point. 		
-			float xzDirection;
-			float yzDirection;
 			state.setBeamCharge(_beamQ);//this is set for each state. to do: is there a more efficient way of doing this since we only need this stored once?
 			TVector3 momentum = computeInitialMomentumGlobal(); 
 			state.setLocalXZAndYZIntersectionAndCurvatureUsingGlobalMomentum(momentum); 
@@ -337,7 +362,7 @@ TVector3 EUTelPatternRecognition::computeInitialMomentumGlobal(){
 	TVector3 position(0,0,0);//The position we start from does not matter since the magnetic field is homogeneous.
 	TVector3 momentum(0,0,_beamE);//Assume the beam starts in a straight line
 	float arcLength= geo::gGeometry().getInitialDisplacementToFirstPlane();
-	TVector3 momentumEnd = geo::gGeometry().getXYZMomentumfromArcLength(momentum, position, _beamQ, arcLength);
+	TVector3 momentumEnd = EUTelNav::getXYZMomentumfromArcLength(momentum, position, _beamQ, arcLength);
 	streamlog_out(DEBUG2) << "Momentum on the first sensor: px,py,pz "<<momentumEnd[0] <<","<<momentumEnd[1]<<","<<momentumEnd[2]<<","<<"At an arc length of "<<arcLength<<std::endl;
 	return momentumEnd;
 }
@@ -369,9 +394,9 @@ void EUTelPatternRecognition::findTrackCandidates() {
 		for(size_t j = 0 ; j < statesVec.size() ; ++j){
 			EUTelTrack track;
 			propagateForwardFromSeedState(statesVec[j], track);
-			streamlog_out ( DEBUG1 ) << "Before adding track to vector "<< endl;
+			streamlog_out ( DEBUG1 ) << "Before adding track to vector "<< std::endl;
 			_tracks.push_back(track);//Here we create a long list of possible tracks
-			streamlog_out ( DEBUG1 ) << "After adding track to vector "<< endl;
+			streamlog_out ( DEBUG1 ) << "After adding track to vector "<< std::endl;
 
 
 		}
@@ -399,8 +424,8 @@ void EUTelPatternRecognition::findTracksWithEnoughHits(){
 	for(size_t i = 0 ; i<_tracks.size(); ++i){
 		EUTelTrack& track = _tracks[i];
 		streamlog_out ( DEBUG2 ) << "Number of hits on the track: " <<track.getNumberOfHitsOnTrack()<<" Number needed: " <<  geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().size() - _allowedMissingHits << std::endl;
-		if(track.getNumberOfHitsOnTrack()>= geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().size() - _allowedMissingHits){
-			streamlog_out(DEBUG5) << "There are enough hits. So attach this track makes the cut!"<<endl;
+		if(track.getNumberOfHitsOnTrack() >= (int)geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().size() - _allowedMissingHits){
+			streamlog_out(DEBUG5) << "There are enough hits. So attach this track makes the cut!"<<std::endl;
 			_tracksAfterEnoughHitsCut.push_back(track);
 		}
 	}
@@ -434,7 +459,6 @@ void EUTelPatternRecognition::setHitsVecPerPlane(){
 //Note loop through all planes. Even the excluded. This is easier since you don't have to change this input each time then.
 //TO DO: sensors z position as used here only works if there is sufficient difference between planes. In the order of 1mm in gear file. This is too large.
 void EUTelPatternRecognition::setPlaneDimensionsVec(EVENT::IntVec planeDimensions){
-	streamlog_out(DEBUG0) <<"EUTelPatternRecognition::setPlaneDimensionsVec()----------------------------BEGIN" <<std::endl;
 	if(planeDimensions.size() != geo::gGeometry().sensorZOrdertoIDs().size()){
 		streamlog_out(ERROR) << "The size of planesDimensions input is: "<< planeDimensions.size()<<" The size of sensorZOrdertoIDs is: " << geo::gGeometry().sensorZOrdertoIDs().size()<< std::endl;
 		throw(lcio::Exception( "The input dimension vector not the same as the number of planes!"));
@@ -449,12 +473,10 @@ void EUTelPatternRecognition::setPlaneDimensionsVec(EVENT::IntVec planeDimension
 			throw(lcio::Exception( "You are trying to map the same sensor ID to two different plane dimensions. There is something wrong with you gear file input. Make sure there is some distance between your planes in the gear file!"));
 		}
 	}//END of loop over planes
-	streamlog_out(DEBUG0) <<"EUTelPatternRecognition::setPlaneDimensionsVec()----------------------------END" <<std::endl;
 }	    
 
 
 void EUTelPatternRecognition::testHitsVecPerPlane(){
-	streamlog_out(DEBUG4) <<"EUTelPatternRecognition::testHitsVecPerPlane----------------------------BEGIN" <<std::endl;
 	if(_mapHitsVecPerPlane.size() !=  geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().size()){
 		streamlog_out(ERROR0) <<"The size of the planes with hits " << _mapHitsVecPerPlane.size() <<"  Sensors from Geometry with no excluded planes: "<<  geo::gGeometry().sensorZOrderToIDWithoutExcludedPlanes().size()<<std::endl;
 		throw(lcio::Exception("The number of planes that could contain hits and the number of planes is different. Problem could be the gear file has to planes at the same z position.")); 	
@@ -466,13 +488,11 @@ void EUTelPatternRecognition::testHitsVecPerPlane(){
 			streamlog_out(DEBUG0) << "One plane has no hits at all. Is this correct?" << std::endl;
 		}
 	}
-	streamlog_out(DEBUG4) <<"EUTelPatternRecognition::testHitsVecPerPlane----------------------------END" <<std::endl;
-
 }
+
 //This function makes sure that the input for the dimension size is correct.
 //NOTE:This input is alway for ALL planes and not just no excluded ones. This means we don't have to change this if we want to exclude planes. 
 void EUTelPatternRecognition::testPlaneDimensions(){
-	streamlog_out(DEBUG4) <<"EUTelPatternRecognition::testPlaneDimensions----------------------------BEGIN" <<std::endl;
 	if(_planeDimensions.size() != geo::gGeometry().sensorZOrdertoIDs().size()){
 		streamlog_out(ERROR5) << "The size of _planesDimensions is: "<< _planeDimensions.size()<<" The size of sensorZOrdertoIDs is: " << geo::gGeometry().sensorZOrdertoIDs().size()<< std::endl;
 		throw(lcio::Exception( "The output dimension vector is not the same size as the number of planes. Could be something to do with the gear file. Make sure you have some distances between you planes!"));
@@ -482,7 +502,6 @@ void EUTelPatternRecognition::testPlaneDimensions(){
 			throw(lcio::Exception( "The number of dimension for one of your planes is greater than 2 or less than 0. If this is not a mistake collect you nobel prize now!"));
 		}
 	}
-	streamlog_out(DEBUG4) <<"EUTelPatternRecognition::testPlaneDimensions----------------------------END" <<std::endl;
 }
 
     /** Find the hit closest to the intersection of a track with given sensor
@@ -491,13 +510,15 @@ void EUTelPatternRecognition::testPlaneDimensions(){
      * @return hit closest to the intersection of the track with the sensor plane
      * 
 	 */
-const EVENT::TrackerHit* EUTelPatternRecognition::findClosestHit(EUTelState & state ) {
-	streamlog_out(DEBUG2) << "EUTelPatternRecognition::findClosestHit()" << std::endl;
+const EVENT::TrackerHit* EUTelPatternRecognition::findClosestHit(EUTelState& state)
+{
 	EVENT::TrackerHitVec& hitInPlane = _mapHitsVecPerPlane[state.getLocation()];
 	double maxDistance = std::numeric_limits<double>::max();
 	EVENT::TrackerHitVec::const_iterator itClosestHit;
 	EVENT::TrackerHitVec::const_iterator itHit;
+
 	streamlog_out(DEBUG0) << "N hits in plane " << state.getLocation() << ": " << hitInPlane.size() << std::endl;
+
 	for ( itHit = hitInPlane.begin(); itHit != hitInPlane.end(); ++itHit ) {
 		double distance;
 		if(state.getDimensionSize() == 2){
@@ -514,18 +535,16 @@ const EVENT::TrackerHit* EUTelPatternRecognition::findClosestHit(EUTelState & st
 		}
 	}
 	streamlog_out(DEBUG0) << "Minimal distance^2 between hit and track intersection: " << maxDistance << std::endl;
-	streamlog_out(DEBUG2) << "----------------------EUTelPatternRecognition::findClosestHit()------------------------" << std::endl;
 
 	return *itClosestHit;
 }
+
+//TODO: Need proper error analysis to calculate this rather than providing an answer.  
 //This is not very useful at the moment since the covariant matrix for the hit is guess work at the moment.   
-double EUTelPatternRecognition::getXYPredictionPrecision(EUTelState& ts ) const {
-	streamlog_out(DEBUG2) << "EUTelPatternRecognition::getXYPredictionPrecision()---BEGIN" << std::endl;
-	// TO DO: Need proper error analysis to calculate this rather than providing an answer.  
-	double xyPrec = getWindowSize();   //sqrt( Ckkm1[0][0]*Ckkm1[0][0] + Ckkm1[1][1]*Ckkm1[1][1] );
-	streamlog_out(DEBUG0) << "Minimal combined UV resolution : " << xyPrec << std::endl;
-	streamlog_out(DEBUG2) << "----------------------EUTelPatternRecognition::getXYPredictionPrecision()------------------------END" << std::endl;
-	return xyPrec;
+double EUTelPatternRecognition::getXYPredictionPrecision(EUTelState& /*ts*/) const 
+{
+	//sqrt( Ckkm1[0][0]*Ckkm1[0][0] + Ckkm1[1][1]*Ckkm1[1][1] );
+	return getWindowSize();   
 }
 
         
@@ -535,31 +554,37 @@ double EUTelPatternRecognition::getXYPredictionPrecision(EUTelState& ts ) const 
 * @param hit hit
 * @return 
 */
-TVectorD EUTelPatternRecognition::computeResidual(EUTelState& state , const EVENT::TrackerHit* hit ) const {
-	streamlog_out( DEBUG2 ) << "EUTelPatternRecognition::computeResidual()---BEGIN" << std::endl;
+TVectorD EUTelPatternRecognition::computeResidual(EUTelState& state, const EVENT::TrackerHit* hit) const
+{
 	const double* hitPosition = hit->getPosition();//In local coordinates
 
-	streamlog_out( DEBUG3 ) << "Hit (id=" << hit->id() << ") local(u,v) coordinates of hit: (" << hitPosition[0] << "," << hitPosition[1] <<","<<hitPosition[2] << ")" << std::endl;
-
 	double localPosition [3];
-	localPosition[0]=state.getPosition()[0];	localPosition[1]=state.getPosition()[1];	localPosition[2]=state.getPosition()[2];
-	streamlog_out( DEBUG3 ) << "	Prediction for hit (id=" << hit->id() << ") local(u,v) coordinates of state: ("  << localPosition[0] << "," << localPosition[1] <<","<<localPosition[2] << ")" << std::endl;
+	localPosition[0] = state.getPosition()[0];
+	localPosition[1] = state.getPosition()[1];
+	localPosition[2] = state.getPosition()[2];
+
+	streamlog_out(DEBUG3)	<< "Hit (id=" << hit->id() << ") local(u,v) coordinates of hit: (" 
+				<< hitPosition[0] << ", " << hitPosition[1] << ", " << hitPosition[2] << ")" << std::endl
+				<< "Prediction for hit (id=" << hit->id() << ") local(u,v) coordinates of state: ("  
+				<< localPosition[0] << ", " << localPosition[1] << ", " <<localPosition[2] << ")" << std::endl;
 
 	TVectorD residual(2);
-	residual[0] = 0 ; residual[1] = 0;
-	streamlog_out( DEBUG2 ) << "The size of this state dimension: "<< _planeDimensions.at(state.getLocation())<< std::endl;
+	residual[0] = 0; 
+	residual[1] = 0;
+	
+	streamlog_out(DEBUG2) << "The size of this state dimension: "<< _planeDimensions.at(state.getLocation())<< std::endl;
+	
 	//This loop is used in case we have a strip sensor. So we should use only 1 dimension of information
-	for(int i=0; i<_planeDimensions.at(state.getLocation());++i){
+	for(int i=0; i<_planeDimensions.at(state.getLocation()); ++i)
+	{
 		residual[i] = hitPosition[i] - localPosition[i];
 	}	
 	
-	if ( streamlog_level(DEBUG2) ){
-			streamlog_out( DEBUG2 ) << "	Residual vector residual: (" <<residual[0] <<","<<residual[1]<<")"<< std::endl;
+	if (streamlog_level(DEBUG2))
+	{
+			streamlog_out(DEBUG2) << "Residual vector residual: (" << residual[0] << ", " << residual[1] << ")" << std::endl;
 			residual.Print();
 	}
-	
-	streamlog_out( DEBUG2 ) << "----------------------------------EUTelPatternRecognition::computeResidual()------------------------------------END" << std::endl;
-	
 	return residual;
 }
 
@@ -575,15 +600,20 @@ void EUTelPatternRecognition::findHitsOrderVec(LCCollection* lcCollection,EVENT:
 	} // end loop over all hits in lcCollection
 
 }
-void EUTelPatternRecognition::printHits(){
+
+void EUTelPatternRecognition::printHits()
+{
 	streamlog_out(MESSAGE0) << "EUTelPatternRecognition::prinitHit: BEGIN ==============" << std::endl;
 	EVENT::TrackerHitVec::const_iterator itHit;
-	for ( itHit = _allHitsVec.begin() ; itHit != _allHitsVec.end(); ++itHit ) {
+	for(itHit = _allHitsVec.begin(); itHit != _allHitsVec.end(); ++itHit )
+	{
 		const double* uvpos = (*itHit)->getPosition();
 		const int sensorID = Utility::getSensorIDfromHit( static_cast<IMPL::TrackerHitImpl*> (*itHit) );
-		streamlog_out(MESSAGE0) << "Hit (id=" << setw(3) << sensorID << ") local(u,v) coordinates: ("<< setw(7) << setprecision(4) << uvpos[0] << "," << setw(7) << setprecision(4) << uvpos[1] << ")" << std::endl;
+		streamlog_out(MESSAGE0)	<< "Hit (id=" << std::setw(3) << sensorID << ") local(u,v) coordinates: (" 
+					<< std::setw(7) << std::setprecision(4) << uvpos[0] << ", " << std::setw(7) 
+					<< std::setprecision(4) << uvpos[1] << ")" << std::endl;
 	}
-streamlog_out(MESSAGE0) << "EUTelPatternRecognition::printHits: END ==============" << std::endl;
+	streamlog_out(MESSAGE0) << "EUTelPatternRecognition::printHits: END ==============" << std::endl;
 }
-    
+
 } // namespace eutelescope

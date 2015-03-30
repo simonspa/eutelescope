@@ -25,19 +25,12 @@
 #include <AIDA/IProfile2D.h>
 #endif // MARLIN_USE_AIDA
 
-
-
-using namespace lcio;
-using namespace marlin;
-using namespace std;
-
-
 namespace eutelescope {
 
-	class  EUTelProcessorTrackAnalysis : public Processor {
+	class  EUTelProcessorTrackAnalysis : public marlin::Processor {
 
   	private:
-  	DISALLOW_COPY_AND_ASSIGN(EUTelProcessorTrackAnalysis)      // prevent users from making (default) copies of processors
+  	DISALLOW_COPY_AND_ASSIGN(EUTelProcessorTrackAnalysis)
         
     public:
 
@@ -52,13 +45,8 @@ namespace eutelescope {
     */
     virtual void init();
 
-    /** Called for every run.*/
-    virtual void processRunHeader(LCRunHeader* run);
-
     /** Called for every event - the working horse.*/
     virtual void processEvent(LCEvent * evt);
-
-    virtual void check(LCEvent * evt);
 
    	/** Called after data processing for clean up. **/
 		virtual void end();
@@ -67,11 +55,15 @@ namespace eutelescope {
 		std::string _trackInputCollectionName;
 		EUTelTrackAnalysis* _analysis;
 		IntVec _sensorIDs;
-		map< int,  AIDA::IProfile2D* > _mapFromSensorIDToHistogramX;
-		map< int,  AIDA::IProfile2D* > _mapFromSensorIDToHistogramY;
-		map< int,   AIDA::IHistogram1D *> _mapFromSensorIDToKinkXZ;
-		map< int,  AIDA::IHistogram1D * > _mapFromSensorIDToKinkYZ;
-
+		std::map< int,  AIDA::IProfile2D* > _mapFromSensorIDToHistogramX;
+		std::map< int,  AIDA::IProfile2D* > _mapFromSensorIDToHistogramY;
+		std::map< int,  AIDA::IProfile2D* > _mapFromSensorIDToPValueHisto;
+		std::map< int,   AIDA::IHistogram1D *> _mapFromSensorIDToKinkXZ;
+		std::map< int,  AIDA::IHistogram1D * > _mapFromSensorIDToKinkYZ;
+		std::map< int,  AIDA::IProfile1D* > _mapFromSensorIDToPValuesVsIncidenceXZ;
+		std::map< int,  AIDA::IProfile1D* > _mapFromSensorIDToPValuesVsIncidenceYZ;
+		AIDA::IHistogram1D * _beamEnergy;
+		AIDA::IProfile1D *_pValueVsBeamEnergy;
 	};
 
     EUTelProcessorTrackAnalysis gEUTelProcessorTrackAnalysis;

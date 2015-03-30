@@ -14,11 +14,6 @@
 #include "IMPL/TrackImpl.h"
 #include "EUTelGeometryTelescopeGeoDescription.h"
 
-
-using namespace lcio;
-using namespace marlin;
-using namespace std;
-
 namespace eutelescope {
 
 	class  EUTelState : public IMPL::TrackImpl{
@@ -43,7 +38,7 @@ namespace eutelescope {
 			TMatrixD getProjectionMatrix() const;
 			TVector3 getIncidenceUnitMomentumVectorInLocalFrame();
 			TMatrixDSym getScatteringVarianceInLocalFrame();
-			TMatrixDSym getScatteringVarianceInLocalFrame(float percentageRadiationLength);
+			TMatrixDSym getScatteringVarianceInLocalFrame(float variance);
 			TVectorD getKinks();
 			//setters
 			void setDimensionSize(int dimension);
@@ -62,7 +57,7 @@ namespace eutelescope {
 			//initialise
 			void initialiseCurvature();
 			//find
-			int findIntersectionWithCertainID(int nextsensorID, float intersectionPoint[],TVector3 & momentumAtIntersection, float & arcLength );
+			bool findIntersectionWithCertainID(int nextsensorID, float intersectionPoint[], TVector3& momentumAtIntersection, float& arcLength, int& newNextPlaneID );
 			//compute
 			TVector3 computeCartesianMomentum() const ;
 			TMatrix computePropagationJacobianFromLocalStateToNextLocalState(TVector3 positionEnd, TVector3 momentumEnd, float arcLength,float nextPlaneID);
