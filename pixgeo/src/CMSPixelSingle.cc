@@ -92,6 +92,11 @@ namespace eutelescope {
     //TODO: parse the path to a pixel number!
     std::pair<int, int>  CMSPixelSingle::getPixIndex(char const*){return std::make_pair(0,0); }
 
+    EUTelGenericPixGeoDescr* maker() {
+      CMSPixelSingle* mPixGeoDescr = new CMSPixelSingle();
+      return dynamic_cast<EUTelGenericPixGeoDescr*>(mPixGeoDescr);
+    }
+
   } //namespace geo
 } //namespace eutelescope
 
