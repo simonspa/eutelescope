@@ -1,0 +1,6 @@
+RunNumber,Date,GearFile,BeamEnergy,dut_run,dut_chip,dut_flags,dut_board,dut_gain,dut_gain_type,ref_run,ref_chip,ref_flags,ref_board,ref_gain,ref_gain_type,dut_align_x,dut_align_y,dut_pos_z,dut_tilt,dut_turn,dut_rot,ref_align_x,ref_align_y,ref_pos_z,ref_rot,nskipdut,nskipref,nskiptel
+# Warning: no blank before dut_gain,ref_gain,,,,,,,,,,,,,,,,,,,,,,,,,,,
+# Warning: don't start with tilt = 0 or turn = 0 oe rot = 0: MillePede won't work (sin(0) = 0),,,,,,,,,,,,,,,,,,,,,,,,,,,,
+# Warning: don't start with pos_z = 0: GBL crash when planes overlap,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+# 2015 beams:
+14323,2015-01,gear_desy2015_01_datura_CMSPixel.xml,5.6,0,500,0,DTB_WS6K9F,gainweib.dat,desy_weibull,0,404,0,DTB_WS6C22,gainweib.dat,desy_weibull,0.1,0.511024,78,0,0,0.0018529991,1.60000002,-0.5,40,0,0,0,0
