@@ -509,6 +509,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   }
 
 
+  // DUT chip is hanging (0,0) in upper right corner looking downstream:
+  bool hanging = 1;
+
   // Horizontal DUT alignment for FPIX test beam:
   bool FPIX = 0;
 
@@ -542,8 +545,15 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       
     CMSPixel::pixel px;
     px.roc = 8;
-    px.col = pixel->getXCoord();
-    px.row = pixel->getYCoord();
+
+    if(hanging) {
+      px.col = 52 - pixel->getXCoord();
+      px.row = 80 - pixel->getYCoord();
+    }
+    else {
+      px.col = pixel->getXCoord();
+      px.row = pixel->getYCoord();
+    }
     px.raw = pixel->getSignal();
 
     //and push this pixel back
