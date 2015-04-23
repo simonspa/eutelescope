@@ -566,7 +566,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     refpx = event->getCollection( _inputPixelsREF );
   }
   catch( lcio::DataNotAvailableException& e) {
-    streamlog_out( DEBUG5 ) << "Not able to get collections "
+    streamlog_out( DEBUG1 ) << "Not able to get collections "
 			    << _inputCollectionTelescope << " "
 			    << _inputPixelsDUT << " "
 			    << _inputPixelsREF
@@ -588,13 +588,25 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
   // Read the DUT event:
   std::vector<CMSPixel::pixel> * dutPixels = new std::vector<CMSPixel::pixel>;
-  TrackerDataImpl* dutData = dynamic_cast<TrackerDataImpl*>(dutpx);
-  std::auto_ptr<EUTelTrackerDataInterfacerImpl<EUTelGenericSparsePixel> > sparseDutData(new EUTelTrackerDataInterfacerImpl<EUTelGenericSparsePixel>(dutData));
+  LCCollectionVec * dutCollectionVec  = dynamic_cast < LCCollectionVec * > (dutpx);
+  CellIDDecoder<TrackerDataImpl> cellDecoder( dutCollectionVec );
+
+  // Only one DUT plane!
+  if(dutCollectionVec->size() != 1) { throw StopProcessingException(this); }
+
+  TrackerDataImpl * dutData = dynamic_cast< TrackerDataImpl * > ( dutCollectionVec->getElementAt(0) );
+  SparsePixelType   type   = static_cast<SparsePixelType> ( static_cast<int> (cellDecoder( dutData )["sparsePixelType"]) );
+
+  unsigned int sensorID = static_cast<unsigned int > ( cellDecoder( dutData )["sensorID"] );
+  streamlog_out ( DEBUG5 ) << "evt " << event->getEventNumber() << " SensorID " << sensorID << endl;
+
+  auto_ptr<EUTelTrackerDataInterfacerImpl<EUTelGenericSparsePixel> > pixelDUTData( new EUTelTrackerDataInterfacerImpl<EUTelGenericSparsePixel>( dutData ));
+  streamlog_out ( DEBUG5 ) << "Processing data on detector " << sensorID << ", " << pixelDUTData->size() << " pixels " << endl;
 
   //This for-loop loads all the hits of the given event and detector plane and stores them
-  for(size_t i = 0; i < sparseDutData->size(); ++i ) {
+  for(size_t i = 0; i < pixelDUTData->size(); ++i ) {
     // Load the information of the hit pixel into genericPixel
-    sparseDutData->getSparsePixelAt(i, pixel);
+    pixelDUTData->getSparsePixelAt(i, pixel);
       
     CMSPixel::pixel px;
     px.roc = 8;
@@ -605,6 +617,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     //and push this pixel back
     dutPixels->push_back(px);
   }
+  //streamlog_out( WARNING ) << "Evt " << event->getEventNumber() << ": " << dutPixels->size() << " on DUT";
 
   // Calibrate the pixel hits with the initialized calibration data:
   if(!CalibratePixels(dutPixels,dut_calibration))
@@ -614,13 +627,25 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
   // Read the REF event:
   std::vector<CMSPixel::pixel> * refPixels = new std::vector<CMSPixel::pixel>;
-  TrackerDataImpl* refData = dynamic_cast<TrackerDataImpl*>(refpx);
-  std::auto_ptr<EUTelTrackerDataInterfacerImpl<EUTelGenericSparsePixel> > sparseRefData(new EUTelTrackerDataInterfacerImpl<EUTelGenericSparsePixel>(refData));
+  LCCollectionVec * refCollectionVec  = dynamic_cast < LCCollectionVec * > (refpx);
+  CellIDDecoder<TrackerDataImpl> cellDecoderRef( refCollectionVec );
+
+  // Only one REF plane!
+  if(refCollectionVec->size() != 1) { throw StopProcessingException(this); }
+
+  TrackerDataImpl * refData = dynamic_cast< TrackerDataImpl * > ( refCollectionVec->getElementAt(0) );
+  SparsePixelType   reftype   = static_cast<SparsePixelType> ( static_cast<int> (cellDecoderRef( refData )["sparsePixelType"]) );
+
+  unsigned int sensorIDref = static_cast<unsigned int > ( cellDecoder( refData )["sensorID"] );
+  streamlog_out ( DEBUG5 ) << "evt " << event->getEventNumber() << " SensorID " << sensorIDref << endl;
+
+  auto_ptr<EUTelTrackerDataInterfacerImpl<EUTelGenericSparsePixel> > pixelREFData( new EUTelTrackerDataInterfacerImpl<EUTelGenericSparsePixel>( refData ));
+  streamlog_out ( DEBUG5 ) << "Processing data on detector " << sensorIDref << ", " << pixelREFData->size() << " pixels " << endl;
 
   //This for-loop loads all the hits of the given event and detector plane and stores them
-  for(size_t i = 0; i < sparseRefData->size(); ++i ) {
+  for(size_t i = 0; i < pixelREFData->size(); ++i ) {
     // Load the information of the hit pixel into genericPixel
-    sparseRefData->getSparsePixelAt(i, pixel);
+    pixelREFData->getSparsePixelAt(i, pixel);
       
     CMSPixel::pixel px;
     px.roc = 8;
@@ -631,6 +656,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     //and push this pixel back
     refPixels->push_back(px);
   }
+  //streamlog_out( WARNING ) << "Evt " << event->getEventNumber() << ": " << refPixels->size() << " on REF";
 
   // Calibrate the pixel hits with the initialized calibration data:
   if(!CalibratePixels(refPixels,ref_calibration))
