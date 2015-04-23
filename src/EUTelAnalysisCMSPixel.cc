@@ -112,7 +112,7 @@ double DUTaligny = 0;
 double DUTrot = 0;
 
 
-EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _nSkipTelescope(0), _gTLU(0), _nEvtBeg(0), _nRefBeg(0), _eBeam(0), _nRun(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _TEL_run(0), _DUT_run(0), _DUT_data(""), _nSkipDUT(0), _DUT_chip(0), _DUT_gain(""), _DUT_address(""), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_run(0), _REF_data(""), _nSkipRef(0), _REF_chip(0), _REF_gain(""), _REF_address(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _CMS_gain_path(""), _CMS_data_path(""), _DATE_run(""), _gearfile(""), _DUT_board(""), _REF_board(""), _TimingRun(false), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF() {
+EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _CMS_gain_path(""), _DATE_run(""), _gearfile(""), _DUT_board(""), _REF_board(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF() {
 
   // modify processor description
   _description = "Analysis for CMS PSI46 Pixel Detectors as DUT in AIDA telescopes ";
@@ -151,34 +151,10 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
                               "Beam energy [GeV]",
 			      _eBeam, static_cast < double >( 4.0));
 
-  registerOptionalParameter( "nSkipEventDUT",
-			     "Skip n CMS DUT events at begin of file",
-			     _nSkipDUT, static_cast < int >(0) );
-  registerOptionalParameter( "nSkipEventREF",
-			     "Skip n CMS REF events at begin of file",
-			     _nSkipRef, static_cast < int >(0) );
-  registerOptionalParameter( "nSkipEventTel",
-			     "Skip n Telescope events at begin of file",
-			     _nSkipTelescope, static_cast < int >(0) );
-
-  registerProcessorParameter( "gTLU",
-                              "TLU clock in GHz",
-			      _gTLU, static_cast < double >(0.3846776));
-
-  registerProcessorParameter("CMS_data_path",
-                             "Path to the native CMS data files",
-                             _CMS_data_path, std::string("/dev/null"));
   registerProcessorParameter("CMS_gain_path",
                              "Path to the CMS gain calibration files",
                              _CMS_gain_path, std::string("/dev/null"));
 
-
-  registerProcessorParameter("DUT_run",
-                             "Runnumber of the DUT associated with this telescope run",
-                             _DUT_run, static_cast< int > (0) );
-  registerProcessorParameter("REF_run",
-                             "Runnumber of the REF associated with this telescope run",
-                             _REF_run, static_cast< int > (0) );
 
   registerProcessorParameter("DUT_chip",
                              "Serial number of the DUT used in this run",
@@ -186,9 +162,6 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
   registerProcessorParameter("DUT_gain",
                              "CMS DUT gain file to be used",
                              _DUT_gain, std::string("/dev/null"));
-  registerProcessorParameter("DUT_address",
-                             "CMS DUT address levels file to be used",
-                             _DUT_address, std::string("/dev/null"));
   registerProcessorParameter("DUT_calibration",
                              "Choose DUT calibration type (psi_tanh, desy_tanh, desy_weibull)",
                              _DUT_calibration_type, std::string("desy_weibull"));
@@ -202,9 +175,6 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
   registerProcessorParameter("REF_gain",
                              "CMS REF gain file to be used",
                              _REF_gain, std::string("/dev/null"));
-  registerProcessorParameter("REF_address",
-                             "CMS REF address levels file to be used",
-                             _REF_address, std::string("/dev/null"));
   registerProcessorParameter("REF_calibration",
                              "Choose REF calibration type (psi_tanh, desy_tanh, desy_weibull)",
                              _REF_calibration_type, std::string("desy_weibull"));
@@ -259,11 +229,6 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
   registerOptionalParameter( "gearfile",
 			     "Again, the gear fiel of the used telescope configuration",
 			     _gearfile, std::string("none") );
-  
-  registerOptionalParameter( "TimingRun",
-			     "Switch on and off timing run mode. This will enable or disable trigger syncronization and can be used to determine TLU clock frequencies",
-			     _TimingRun, static_cast<bool>(false) );
-  
 }
 
 
@@ -272,7 +237,6 @@ void EUTelAnalysisCMSPixel::init() {
   // usually a good idea to
   printParameters();
 
-  _nRun = 0;
   _nEvt = 0;
 
   _isFirstEvent = true;
@@ -340,13 +304,12 @@ void EUTelAnalysisCMSPixel::processRunHeader( LCRunHeader* runHeader) {
   std::auto_ptr<EUTelRunHeaderImpl> eutelHeader( new EUTelRunHeaderImpl( runHeader ) );
   eutelHeader->addProcessor( type() );
 
-  _nRun++;
-
   // Decode and print out Run Header information - just a check
 
-  streamlog_out( MESSAGE2 )  << "Processing run header " << _nRun
+  _nRun = runHeader->getRunNumber();
+
+  streamlog_out( MESSAGE2 )  << "Processing run header"
                              << ", run nr " << runHeader->getRunNumber() << std::endl;
-  _TEL_run = runHeader->getRunNumber();
 
   const std::string detectorName = runHeader->getDetectorName();
   const std::string detectorDescription = runHeader->getDescription();
@@ -377,29 +340,12 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
   int runNumber = event->getRunNumber();
 
-  //----------------------------------------------------------------------------
-  // skip first Telescope events
-  if(_nEvt < _nSkipTelescope) {
-    if(_nEvt == 0) streamlog_out(MESSAGE5) << "Skip first " << _nSkipTelescope << " Telescope events" << std::endl;
-    _nEvt++;
-    throw SkipEventException(this);
-  }
-  //----------------------------------------------------------------------------
-
   if( _isFirstEvent ) {
 
     // Initialize the timing calculations:
     time_event0 = event->getTimeStamp();
     time_event1 = time_event0;
     time_reference = time_event0;
-
-    // Temporarily mute CMS Pixel decoder, we don't want to hear anything for skipped events:
-    CMSPixel::Log::ReportingLevel() = CMSPixel::Log::FromString("QUIET");
-    
-    // skip first DUT events
-    streamlog_out(MESSAGE5) << "Skip first " << _nSkipDUT << " DUT events NOT DONE!" << std::endl;
-    // skip first REF events
-    streamlog_out(MESSAGE5) << "Skip first " << _nSkipRef << " REF events NOT DONE!" << std::endl;
 
     // apply all GEAR/alignment offsets to get corrected X,Y,Z
     // position of the sensor center
@@ -465,8 +411,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   // dutddt: TLU/CMS = 1.00007
   // => TLU/1.00007 = CMS
   // dutddtns: <TLU/1.00007344 - CMS> = 0
-
-  gTLU = _gTLU; // [GHz]
 
   // 31.10.2013, 80 MHz, 78*12.6 ns
   gTLU = 0.384678355; // [GHz]
@@ -2759,7 +2703,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   delete downstream_triplets;
   delete upstream_triplets;
   delete hits;
-
 }
 
 
@@ -2872,17 +2815,15 @@ void EUTelAnalysisCMSPixel::end(){
   streamlog_out(MESSAGE5) 
     << std::endl
     << "runlistPreAlign: "
-    << _TEL_run
+    << _nRun
     << "," << _DATE_run
     << "," << _gearfile
     << "," <<_eBeam
-    << "," << _DUT_run
     << "," << _DUT_chip
     << "," << _DUT_decoding_flags
     << "," << _DUT_board
     << "," << _DUT_gain
     << "," << _DUT_calibration_type
-    << "," << _REF_run
     << "," << _REF_chip
     << "," << _REF_decoding_flags
     << "," << _REF_board
@@ -2898,16 +2839,13 @@ void EUTelAnalysisCMSPixel::end(){
     << "," << REFy
     << "," << _REFz
     << "," << _REFrot
-    << "," << _nSkipDUT
-    << "," << _nSkipRef
-    << "," << _nSkipTelescope
     << std::endl;
   streamlog_out(MESSAGE5) << std::endl;
 
 
   ofstream prealignrunfile;
   prealignrunfile.open("prelines-for-runlist.txt",ios::app);
-  prealignrunfile << _TEL_run << "," << _DATE_run << "," << _gearfile << "," <<_eBeam << "," << _DUT_run << "," << _DUT_chip << "," << _DUT_decoding_flags << "," << _DUT_board << "," << _DUT_gain  << "," << _DUT_calibration_type << "," << _REF_run << "," << _REF_chip << "," << _REF_decoding_flags << "," << _REF_board << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTx << "," << DUTy << "," << DUTz - _planePosition[2] << "," << tilt << "," << turn << "," << DUTrot << "," << REFx << "," << REFy << "," << _REFz << "," << _REFrot << "," << _nSkipDUT << "," << _nSkipRef << "," << _nSkipTelescope << endl;
+  prealignrunfile << _nRun << "," << _DATE_run << "," << _gearfile << "," <<_eBeam << "," << _DUT_chip << "," << _DUT_decoding_flags << "," << _DUT_board << "," << _DUT_gain  << "," << _DUT_calibration_type << "," << _REF_chip << "," << _REF_decoding_flags << "," << _REF_board << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTx << "," << DUTy << "," << DUTz - _planePosition[2] << "," << tilt << "," << turn << "," << DUTrot << "," << REFx << "," << REFy << "," << _REFz << "," << _REFrot << endl;
   prealignrunfile.close();
 
   // Clean memory:
@@ -3071,17 +3009,15 @@ void EUTelAnalysisCMSPixel::end(){
 	    << std::endl
 	    << "for runlist.csv:" << std::endl
 	    << "runlistFullAlign: "
-	    << _TEL_run
+	    << _nRun
 	    << "," << _DATE_run
 	    << "," << _gearfile
 	    << "," << _eBeam
-	    << "," << _DUT_run
 	    << "," << _DUT_chip
 	    << "," << _DUT_decoding_flags
 	    << "," << _DUT_board
 	    << "," << _DUT_gain
 	    << "," << _DUT_calibration_type
-	    << "," << _REF_run
 	    << "," << _REF_chip
 	    << "," << _REF_decoding_flags
 	    << "," << _REF_board
@@ -3097,14 +3033,11 @@ void EUTelAnalysisCMSPixel::end(){
 	    << "," << _REFaligny
 	    << "," << _REFz
 	    << "," << _REFrot
-	    << "," << _nSkipDUT
-	    << "," << _nSkipRef
-	    << "," << _nSkipTelescope
 	    << std::endl;
 
 	  ofstream runfile;
 	  runfile.open("lines-for-runlist.txt",ios::app);
-	  runfile << _TEL_run << "," << _DATE_run << "," << _gearfile << "," << _eBeam << "," << _DUT_run << "," << _DUT_chip << "," << _DUT_decoding_flags << "," << _DUT_board << "," << _DUT_gain << "," << _DUT_calibration_type << "," << _REF_run << "," << _REF_chip << "," << _REF_decoding_flags << "," << _REF_board << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTalignx-alpar[1] << "," << DUTaligny-alpar[2] << "," << DUTz-alpar[6] - _planePosition[2] << "," << tilt-alpar[4]*180/3.141592654 << "," << turn-alpar[5]*180/3.141592654 << "," << DUTrot-alpar[3] << "," << _REFalignx << "," << _REFaligny << "," << _REFz << "," << _REFrot << "," << _nSkipDUT << "," << _nSkipRef << "," << _nSkipTelescope << endl;
+	  runfile << _nRun << "," << _DATE_run << "," << _gearfile << "," << _eBeam << "," << _DUT_chip << "," << _DUT_decoding_flags << "," << _DUT_board << "," << _DUT_gain << "," << _DUT_calibration_type << "," << _REF_chip << "," << _REF_decoding_flags << "," << _REF_board << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTalignx-alpar[1] << "," << DUTaligny-alpar[2] << "," << DUTz-alpar[6] - _planePosition[2] << "," << tilt-alpar[4]*180/3.141592654 << "," << turn-alpar[5]*180/3.141592654 << "," << DUTrot-alpar[3] << "," << _REFalignx << "," << _REFaligny << "," << _REFz << "," << _REFrot << "," << endl;
 	  runfile.close();
 
 	} // ldut

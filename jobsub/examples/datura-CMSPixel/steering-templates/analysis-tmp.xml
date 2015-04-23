@@ -183,8 +183,6 @@
 
 
 
-
-
  <processor name="MyEUTelAnalysisCMSPixel" type="EUTelAnalysisCMSPixel">
  <!--Analysis for CMS PSI46 Pixel Detectors as DUT in AIDA telescopes -->
   <!--Name of the input TrackerHit collection of the DUT-->
@@ -198,11 +196,7 @@
   <!--Name of the input Track collection of the telescope-->
   <parameter name="InputTrackCollectionTelescope" type="string" lcioOutType="Track"> fittracks </parameter>
   <!--Path to the native CMS data files-->
-  <parameter name="CMS_data_path" type="string" value=""/>
-  <!--Path to the CMS gain calibration files-->
   <parameter name="CMS_gain_path" type="string" value="calibrations"/>
-  <!--CMS DUT address levels file to be used-->
-  <parameter name="DUT_address" type="string" value="addressParameters.dat"/>
   <!--DUT alignment in x-->
   <parameter name="DUT_align_x" type="double" value="@dut_align_x@"/>
   <!--DUT alignment in y-->
@@ -221,16 +215,12 @@
   <parameter name="DUT_pos_z" type="double" value="@dut_pos_z@"/>
   <!--DUT rotation in xy-->
   <parameter name="DUT_rot" type="double" value="@dut_rot@"/>
-  <!--Runnumber of the DUT associated with this telescope run-->
-  <parameter name="DUT_run" type="int" value="@dut_run@"/>
   <!--DUT tilt angle-->
   <parameter name="DUT_tilt" type="double" value="@dut_tilt@"/>
   <!--DUT turn angle-->
   <parameter name="DUT_turn" type="double" value="@dut_turn@"/>
   <!--Beam energy [GeV]-->
   <parameter name="Ebeam" type="double" value="@beamenergy@"/>
-  <!--CMS REF address levels file to be used-->
-  <parameter name="REF_address" type="string" value="addressParameters.dat"/>
   <!--REF alignment in x-->
   <parameter name="REF_align_x" type="double" value="@ref_align_x@"/>
   <!--REF alignment in y-->
@@ -249,25 +239,13 @@
   <parameter name="REF_pos_z" type="double" value="@ref_pos_z@"/>
   <!--REF rotation in xy-->
   <parameter name="REF_rot" type="double" value="@ref_rot@"/>
-  <!--Runnumber of the REF associated with this telescope run-->
-  <parameter name="REF_run" type="int" value="@ref_run@"/>
 
-  <!--Switch on and off timing run mode. This will enable or disable trigger syncronization and can be used to determine TLU clock frequencies-->
-  <parameter name="TimingRun" type="bool" value="0"/>
   <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
   <parameter name="Verbosity" type="string" value="@Verbosity@"/>
   <!--Date when the test beam was taken-->
   <parameter name="date" type="string" value="@date@"/>
-  <!--TLU clock in GHz-->
-  <parameter name="gTLU" type="double" value="0.384678"/>
   <!--Again, the gear file of the used telescope configuration-->
   <parameter name="gearfile" type="string" value="@GearFile@"/>
-  <!--Skip n CMS DUT events at begin of file-->
-  <parameter name="nSkipEventDUT" type="int" value="@nSkipDUT@"/>
-  <!--Skip n CMS REF events at begin of file-->
-  <parameter name="nSkipEventREF" type="int" value="@nSkipREF@"/>
-  <!--Skip n Telescope events at begin of file-->
-  <parameter name="nSkipEventTel" type="int" value="@nSkipTEL@"/>
 </processor>
 
  <processor name="EUTelUtilityPrintEventNumber" type="EUTelUtilityPrintEventNumber">

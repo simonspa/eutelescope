@@ -365,10 +365,6 @@ namespace eutelescope {
 
     //Analysis parameters
     bool _isFirstEvent;
-    int _nSkipTelescope; //Skip first telescope events
-    double _gTLU;
-    bool _nEvtBeg;
-    bool _nRefBeg;
     double _eBeam;
     int _nRun;
     int _nEvt;
@@ -388,15 +384,9 @@ namespace eutelescope {
     double fTLU; // [Hz]
     double gTLU; // [GHz]
 
-    int _TEL_run;
-
     //! DUT specific variables and parameters
-    int _DUT_run;
-    std::string _DUT_data;
-    int _nSkipDUT; //Skip first n CMS DUT events
     int _DUT_chip;
     std::string _DUT_gain;
-    std::string _DUT_address;
     std::string _DUT_calibration_type;
     int _DUT_decoding_flags;
 
@@ -409,12 +399,8 @@ namespace eutelescope {
     double _DUTturn; // from cmsdxvsx  flat
 
     //! Timing REF specific variables and parameters
-    int _REF_run;
-    std::string _REF_data;
-    int _nSkipRef; //Skip first CMS REF events
     int _REF_chip;
     std::string _REF_gain;
-    std::string _REF_address;
     std::string _REF_calibration_type;
     int _REF_decoding_flags;
 
@@ -425,7 +411,6 @@ namespace eutelescope {
     double _REFrot; //from refdyvsx
 
     std::string _CMS_gain_path;
-    std::string _CMS_data_path;
 
     // Other variables only to print out the full runlist.csv line at
     // the end:
@@ -434,9 +419,6 @@ namespace eutelescope {
     std::string _DUT_board;
     std::string _REF_board;
     
-    // Bool switch for timing runs. This will enable or disable trigger syncronization and can be used to determine TLU clock frequencies
-    bool _TimingRun;
-
     // Partly outdated GEAR readings:
     int * _planeSort;
     int * _planeID;
