@@ -200,7 +200,7 @@
   <!--Path to the native CMS data files-->
   <parameter name="CMS_data_path" type="string" value=""/>
   <!--Path to the CMS gain calibration files-->
-  <parameter name="CMS_gain_path" type="string" value="/tmp"/>
+  <parameter name="CMS_gain_path" type="string" value="calibrations"/>
   <!--CMS DUT address levels file to be used-->
   <parameter name="DUT_address" type="string" value="addressParameters.dat"/>
   <!--DUT alignment in x-->

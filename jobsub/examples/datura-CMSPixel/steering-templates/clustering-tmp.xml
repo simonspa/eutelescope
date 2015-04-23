@@ -8,8 +8,8 @@
     <processor name="AIDA"/>
     <processor name="LoadHotPixelDB"/>
     <processor name="ClusteringMimosa"/>
-    <processor name="ClusteringCMSPixelDUT"/>
-    <processor name="ClusteringCMSPixelREF"/>
+    <!--processor name="ClusteringCMSPixelDUT"/-->
+    <!--processor name="ClusteringCMSPixelREF"/-->
     <processor name="NoisyClusterMaskerM26"/>
     <processor name="NoisyClusterRemoverM26"/>
     <processor name="Save"/>
