@@ -91,9 +91,6 @@ using namespace marlin;
 using namespace eutelescope;
 
 
-int dutnsync = 0;
-int refnsync = 0;
-int telnsync = 0;
 int n_clusters_dut = 0;
 int n_clusters_ref = 0;
 int n_matched_clusters_dut = 0;
@@ -165,9 +162,6 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
   registerProcessorParameter("DUT_calibration",
                              "Choose DUT calibration type (psi_tanh, desy_tanh, desy_weibull)",
                              _DUT_calibration_type, std::string("desy_weibull"));
-  registerProcessorParameter("DUT_decoding_flags",
-                             "Specify flags DUT for data decoding (give summarized int value)",
-                             _DUT_decoding_flags, static_cast<int>(0));
 
   registerProcessorParameter("REF_chip",
                              "Serial number of the REF used in this run",
@@ -178,9 +172,6 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
   registerProcessorParameter("REF_calibration",
                              "Choose REF calibration type (psi_tanh, desy_tanh, desy_weibull)",
                              _REF_calibration_type, std::string("desy_weibull"));
-  registerProcessorParameter("REF_decoding_flags",
-                             "Specify flags REF for data decoding (give summarized int value)",
-                             _REF_decoding_flags, static_cast<int>(0));
 
   // Alignment stuff:
 
@@ -408,9 +399,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
   // TLU time stamp: count 384 MHz clock (384 = 48*8)
   // CMS timestamp: count 40 MHz clock, take as reference (HP pulser)
-  // dutddt: TLU/CMS = 1.00007
-  // => TLU/1.00007 = CMS
-  // dutddtns: <TLU/1.00007344 - CMS> = 0
 
   // 31.10.2013, 80 MHz, 78*12.6 ns
   gTLU = 0.384678355; // [GHz]
@@ -1676,7 +1664,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    if( ymod >= 175-cutsize && ymod <= 175+cutsize ) cmsqvsym175->fill( xmod, c->charge );
 	    // KIT end
 
-	    //cmsqvsddt->fill( dutddtns, c->charge ); // cluster charge vs phase
 	    cmsqvst1->fill( (time_now_tlu-time_event0)/fTLU, c->charge ); // cluster charge vs time
 	    cmsqvst2->fill( (time_now_tlu-time_event0)/fTLU, c->charge ); // cluster charge vs time
 	    cmsqvst3->fill( (time_now_tlu-time_event0)/fTLU, c->charge ); // cluster charge vs time
@@ -1739,7 +1726,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 		cmsrmsyvsym6->fill( ymd6, abs(cmsdy)*1E3 ); //resolution within pixel
 	      }
 	      cmsrmsyvst->fill( (time_now_tlu-time_event0)/fTLU, abs(cmsdy)*1E3 ); //resolution vs time
-	      //cmsrmsyvsddt->fill( dutddtns, abs(cmsdy)*1E3 ); // flat
 
 	      if( nrow <= 2 ) {
 		cmsdyvseta->fill( eta, cmsdy*1E3 );
@@ -2594,7 +2580,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	eff3600->fill( (time_now_tlu-time_event0)/fTLU, nm );
 
 	if( leff ) { 
-	  //effvsddt->fill( dutddtns, nm );
 	    effvsxmym->fill( xmod, ymod, nm ); // CMS DUT efficiency profile
 	    
 	    // KIT: added for efficiency analysis
@@ -2720,33 +2705,13 @@ void EUTelAnalysisCMSPixel::end(){
   CMSPixel::Log::ReportingLevel() = CMSPixel::Log::FromString("QUIET");
 
   streamlog_out(MESSAGE5)
-    << "---------------------------------------------------------------------------------------------------------" 
-    << std::endl << "DUT Data Decoding Statistics:" << std::endl
-    << "---------------------------------------------------------------------------------------------------------"
-    << std::endl;
-  //streamlog_out(MESSAGE5) << _dutDecoder->statistics.get() << std::endl;
-  //delete _dutDecoder;
-
-  streamlog_out(MESSAGE5)
-    << "---------------------------------------------------------------------------------------------------------" 
-    << std::endl << "REF Data Decoding Statistics:" << std::endl
-    << "---------------------------------------------------------------------------------------------------------"
-    << std::endl;
-  //streamlog_out(MESSAGE5) << _refDecoder->statistics.get() << std::endl;
-  //delete _refDecoder;
-
-
-  streamlog_out(MESSAGE5)
     << "---------------------------------------------------------------------------------------------------------" << std::endl
     << std::endl
     << "Processed events:    "
     << std::setw(10) << std::setiosflags(std::ios::right)
     << _nEvt << std::resetiosflags(std::ios::right) << std::endl
-    << "TEL re-syncs " << telnsync << std::endl << std::endl
-    << "DUT re-syncs " << dutnsync << std::endl
     << "DUT clusters " << n_clusters_dut << std::endl
     << "DUT matches  " << n_matched_clusters_dut << " (" << ((double)n_matched_clusters_dut/n_clusters_dut)*100 << "%)" << std::endl << std::endl
-    << "REF re-syncs " << refnsync << std::endl
     << "REF clusters " << n_clusters_ref << std::endl
     << "REF matches  " << n_matched_clusters_ref << " (" << ((double)n_matched_clusters_ref/n_clusters_ref)*100 << "%)" << std::endl
     << std::endl;
@@ -2820,12 +2785,10 @@ void EUTelAnalysisCMSPixel::end(){
     << "," << _gearfile
     << "," <<_eBeam
     << "," << _DUT_chip
-    << "," << _DUT_decoding_flags
     << "," << _DUT_board
     << "," << _DUT_gain
     << "," << _DUT_calibration_type
     << "," << _REF_chip
-    << "," << _REF_decoding_flags
     << "," << _REF_board
     << "," << _REF_gain
     << "," << _REF_calibration_type
@@ -2845,7 +2808,7 @@ void EUTelAnalysisCMSPixel::end(){
 
   ofstream prealignrunfile;
   prealignrunfile.open("prelines-for-runlist.txt",ios::app);
-  prealignrunfile << _nRun << "," << _DATE_run << "," << _gearfile << "," <<_eBeam << "," << _DUT_chip << "," << _DUT_decoding_flags << "," << _DUT_board << "," << _DUT_gain  << "," << _DUT_calibration_type << "," << _REF_chip << "," << _REF_decoding_flags << "," << _REF_board << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTx << "," << DUTy << "," << DUTz - _planePosition[2] << "," << tilt << "," << turn << "," << DUTrot << "," << REFx << "," << REFy << "," << _REFz << "," << _REFrot << endl;
+  prealignrunfile << _nRun << "," << _DATE_run << "," << _gearfile << "," <<_eBeam << "," << _DUT_chip << "," << _DUT_board << "," << _DUT_gain  << "," << _DUT_calibration_type << "," << _REF_chip << "," << _REF_board << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTx << "," << DUTy << "," << DUTz - _planePosition[2] << "," << tilt << "," << turn << "," << DUTrot << "," << REFx << "," << REFy << "," << _REFz << "," << _REFrot << endl;
   prealignrunfile.close();
 
   // Clean memory:
@@ -3014,12 +2977,10 @@ void EUTelAnalysisCMSPixel::end(){
 	    << "," << _gearfile
 	    << "," << _eBeam
 	    << "," << _DUT_chip
-	    << "," << _DUT_decoding_flags
 	    << "," << _DUT_board
 	    << "," << _DUT_gain
 	    << "," << _DUT_calibration_type
 	    << "," << _REF_chip
-	    << "," << _REF_decoding_flags
 	    << "," << _REF_board
 	    << "," << _REF_gain
 	    << "," << _REF_calibration_type
@@ -3037,7 +2998,7 @@ void EUTelAnalysisCMSPixel::end(){
 
 	  ofstream runfile;
 	  runfile.open("lines-for-runlist.txt",ios::app);
-	  runfile << _nRun << "," << _DATE_run << "," << _gearfile << "," << _eBeam << "," << _DUT_chip << "," << _DUT_decoding_flags << "," << _DUT_board << "," << _DUT_gain << "," << _DUT_calibration_type << "," << _REF_chip << "," << _REF_decoding_flags << "," << _REF_board << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTalignx-alpar[1] << "," << DUTaligny-alpar[2] << "," << DUTz-alpar[6] - _planePosition[2] << "," << tilt-alpar[4]*180/3.141592654 << "," << turn-alpar[5]*180/3.141592654 << "," << DUTrot-alpar[3] << "," << _REFalignx << "," << _REFaligny << "," << _REFz << "," << _REFrot << "," << endl;
+	  runfile << _nRun << "," << _DATE_run << "," << _gearfile << "," << _eBeam << "," << _DUT_chip << "," << _DUT_board << "," << _DUT_gain << "," << _DUT_calibration_type << "," << _REF_chip << "," << _REF_board << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTalignx-alpar[1] << "," << DUTaligny-alpar[2] << "," << DUTz-alpar[6] - _planePosition[2] << "," << tilt-alpar[4]*180/3.141592654 << "," << turn-alpar[5]*180/3.141592654 << "," << DUTrot-alpar[3] << "," << _REFalignx << "," << _REFaligny << "," << _REFz << "," << _REFrot << "," << endl;
 	  runfile.close();
 
 	} // ldut
@@ -5182,29 +5143,9 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "Timing/sysrdt", 200, 0.999, 1.001 );
   sysrdtHisto->setTitle( "TLU time / DUT time;time between events ratio;events" );
 
-  dutddtnsHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "Timing/dutddtns", 100, -100, 100 );
-  dutddtnsHisto->setTitle( "TLU - DUT time;TLU - DUT #delta#Deltat [ns];events" );
-
   refddtnsHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "Timing/refddtns", 100, -100, 100 );
   refddtnsHisto->setTitle( "TLU - REF time;TLU - REF #delta#Deltat [ns];events" );
-
-  dutddtusHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "Timing/dutddtus", 100, -100, 100 );
-  dutddtusHisto->setTitle( "TLU - DUT time;TLU - DUT #delta#Deltat [us];events" );
-
-  dutddtmsHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "Timing/dutddtms", 200, -1, 1 );
-  dutddtmsHisto->setTitle( "TLU - DUT time;TLU - DUT #delta#Deltat [ms];events" );
-
-  dutddtvst = AIDAProcessor::histogramFactory(this)->
-    createProfile1D( "Timing/dutddtvst", 100, 0, 1000, -1E9, 1E9 );
-  dutddtvst->setTitle( "TLU - DUT time;time [s];<#delta#Deltat> [ns]" );
-
-  dutddtvsdt = AIDAProcessor::histogramFactory(this)->
-    createProfile1D( "Timing/dutddtvsdt", 100, 0, 10000, -1E9, 1E9 );
-  dutddtvsdt->setTitle( "TLU - DUT time;time between events [us];<#delta#Deltat> [ns]" );
 
   ddtvst = AIDAProcessor::histogramFactory(this)->
     createProfile1D( "Timing/ddtvst", 3000, 0, 300, -99, 99 );

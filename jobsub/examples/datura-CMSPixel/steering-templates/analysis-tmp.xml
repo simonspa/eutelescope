@@ -17,9 +17,9 @@
 
    <execute>
     <processor name="AIDA"/>
-    <processor name="LoadPreAlignment"/>
+    <!--processor name="LoadPreAlignment"/-->
     <!--processor name="LoadAlignment"/-->
-    <processor name="ApplyPreAlignment"/>
+    <!--processor name="ApplyPreAlignment"/-->
     <!--processor name="ApplyAlignment"/-->
     <processor name="MyEUTelAnalysisCMSPixel"/>
     <processor name="EUTelUtilityPrintEventNumber"/>
@@ -188,7 +188,7 @@
   <!--Name of the input TrackerHit collection of the DUT-->
   <parameter name="InputCollectionDUT" type="string" lcioInType="TrackerHit"> duthits </parameter>
   <!--Name of the input TrackerHit collection of the telescope-->
-  <parameter name="InputCollectionTelescope" type="string" lcioInType="TrackerHit"> prealignedhits </parameter>
+  <parameter name="InputCollectionTelescope" type="string" lcioInType="TrackerHit"> hit </parameter>
   <!--Name of the input TrackerData (pixels) collection of the DUT-->
   <parameter name="InputPixelsDUT" type="string" lcioInType="TrackerData">CMSPixelDUT</parameter>
   <!--Name of the input TrackerData (pixels) collection of the REF-->
@@ -207,8 +207,6 @@
   <parameter name="DUT_calibration" type="string" value="@dut_gain_type@"/>
   <!--Serial number of the DUT used in this run-->
   <parameter name="DUT_chip" type="int" value="@dut_chip@"/>
-  <!--Specify flags DUT for data decoding (give summarized int value)-->
-  <parameter name="DUT_decoding_flags" type="int" value="@dut_flags@"/>
   <!--CMS DUT gain file to be used-->
   <parameter name="DUT_gain" type="string" value="@dut_gain@"/>
   <!--DUT position z in mm after the telescope plane-->
@@ -231,8 +229,6 @@
   <parameter name="REF_calibration" type="string" value="@ref_gain_type@"/>
   <!--Serial number of the REF used in this run-->
   <parameter name="REF_chip" type="int" value="@ref_chip@"/>
-  <!--Specify flags REF for data decoding (give summarized int value)-->
-  <parameter name="REF_decoding_flags" type="int" value="@ref_flags@"/>
   <!--CMS REF gain file to be used-->
   <parameter name="REF_gain" type="string" value="@ref_gain@"/>
   <!--REF position z in mm after the last telescope plane-->

@@ -388,7 +388,6 @@ namespace eutelescope {
     int _DUT_chip;
     std::string _DUT_gain;
     std::string _DUT_calibration_type;
-    int _DUT_decoding_flags;
 
     calibration dut_calibration;
     double _DUTalignx; //from cmsdxa
@@ -402,7 +401,6 @@ namespace eutelescope {
     int _REF_chip;
     std::string _REF_gain;
     std::string _REF_calibration_type;
-    int _REF_decoding_flags;
 
     calibration ref_calibration;
     double _REFalignx; // [mm] refsxa
