@@ -17,10 +17,10 @@
 
    <execute>
     <processor name="AIDA"/>
-    <!--processor name="LoadPreAlignment"/-->
-    <!--processor name="LoadAlignment"/-->
-    <!--processor name="ApplyPreAlignment"/-->
-    <!--processor name="ApplyAlignment"/-->
+    <processor name="LoadPreAlignment"/>
+    <processor name="LoadAlignment"/>
+    <processor name="ApplyPreAlignment"/>
+    <processor name="ApplyAlignment"/>
     <processor name="MyEUTelAnalysisCMSPixel"/>
     <processor name="EUTelUtilityPrintEventNumber"/>
    </execute>
@@ -188,7 +188,7 @@
   <!--Name of the input TrackerHit collection of the DUT-->
   <parameter name="InputCollectionDUT" type="string" lcioInType="TrackerHit"> duthits </parameter>
   <!--Name of the input TrackerHit collection of the telescope-->
-  <parameter name="InputCollectionTelescope" type="string" lcioInType="TrackerHit"> hit </parameter>
+  <parameter name="InputCollectionTelescope" type="string" lcioInType="TrackerHit"> alignedhits </parameter>
   <!--Name of the input TrackerData (pixels) collection of the DUT-->
   <parameter name="InputPixelsDUT" type="string" lcioInType="TrackerData">CMSPixelDUT</parameter>
   <!--Name of the input TrackerData (pixels) collection of the REF-->
