@@ -342,6 +342,10 @@ EUTelMilleGBL::EUTelMilleGBL(): Processor("EUTelMilleGBL") {
   registerOptionalParameter("AlignmentConstantCollectionName", "This is the name of the alignment collection to be saved into the slcio file",
                             _alignmentConstantCollectionName, static_cast< string > ( "alignment" ));
 
+  registerOptionalParameter( "triCut", "Upstream triplet residual cut [um]", _triCut, 300.0 );
+  registerOptionalParameter( "driCut", "Downstream triplet residual cut [um]", _driCut, 400.0 );
+  registerOptionalParameter( "sixCut", "Upstream-Downstream Track matching cut [um]", _sixCut, 600.0 );
+  
   registerOptionalParameter("ResidualsXMin","Minimal values of the hit residuals in the X direction for a track. Note: these numbers are ordered according to the z position of the sensors and NOT according to the sensor id.",_residualsXMin,MinimalResidualsX);
 
   registerOptionalParameter("ResidualsYMin","Minimal values of the hit residuals in the Y direction for a track. Note: these numbers are ordered according to the z position of the sensors and NOT according to the sensor id.",_residualsYMin,MinimalResidualsY);
@@ -942,9 +946,6 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 
   if( i0*i1*i2*i3*i4*i5 >= 0 ) { // not excluded
 
-    double triCut = 300; // [um]
-    double driCut = 400; // [um]
-    double sixCut = 600; // [um]
 
     int ntri = 0;
     double xmA[99];
@@ -982,10 +983,10 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 	  double dx = _hitsArray[i1][j1].measuredX - xs;
 	  double dy = _hitsArray[i1][j1].measuredY - ys;
 
-	  if( abs(dy) < triCut ) tridxHist->fill( dx );
-	  if( abs(dx) < triCut ) tridyHist->fill( dy );
+	  if( abs(dy) < _triCut ) tridxHist->fill( dx );
+	  if( abs(dx) < _triCut ) tridyHist->fill( dy );
 
-	  if( abs(dx) < triCut  && abs(dy) < triCut ) {
+	  if( abs(dx) < _triCut  && abs(dy) < _triCut ) {
 
 	    if( ntri < 99 ) {
 	      xmA[ntri] = avx;
@@ -1047,10 +1048,10 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 	  double dx = _hitsArray[i4][j4].measuredX - xs;
 	  double dy = _hitsArray[i4][j4].measuredY - ys;
 
-	  if( abs(dy) < triCut ) dridxHist->fill( dx );
-	  if( abs(dx) < triCut ) dridyHist->fill( dy );
+	  if( abs(dy) < _triCut ) dridxHist->fill( dx );
+	  if( abs(dx) < _triCut ) dridyHist->fill( dy );
 
-	  if( abs(dx) < triCut  && abs(dy) < triCut ) {
+	  if( abs(dx) < _triCut  && abs(dy) < _triCut ) {
 
 	    if( ndri < 99 ) {
 	      xmB[ndri] = avx;
@@ -1099,10 +1100,10 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 	double dx = xB - xA; // matching residual
 	double dy = yB - yA;
 
-	if( abs(dy) < sixCut ) sixdxHist->fill( dx );
-	if( abs(dx) < sixCut ) sixdyHist->fill( dy );
+	if( abs(dy) < _sixCut ) sixdxHist->fill( dx );
+	if( abs(dx) < _sixCut ) sixdyHist->fill( dy );
 
-	if( abs(dx) < sixCut  && abs(dy) < sixCut ) { // triplet-driplet match
+	if( abs(dx) < _sixCut  && abs(dy) < _sixCut ) { // triplet-driplet match
 
 	  nm++;
 

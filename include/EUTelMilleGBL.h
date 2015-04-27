@@ -387,6 +387,9 @@ namespace eutelescope {
     //set by the user.
 
     double _eBeam; // DP
+    double _triCut;
+    double _driCut;
+    double _sixCut;
 
     int _maxTrackCandidates;
     int _maxTrackCandidatesTotal;
