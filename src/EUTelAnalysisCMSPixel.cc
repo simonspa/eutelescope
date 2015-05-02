@@ -5775,9 +5775,10 @@ bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixel
       Ared = (*pix).raw - cal.fitParameter[4][col][row]; // p4 is asymptotic maximum
       if(Ared > 0) { Ared = -0.1; } // avoid overflow
 
-      ma9 = cal.fitParameter[3][col][row]; // p3 is negative
+      ma9 = cal.fitParameter[3][col][row]; // ma9 must be negative,
+      if(ma9 > 0) ma9 = -ma9;             // if not, change sign
 
-      (*pix).vcal = cal.fitParameter[1][col][row] * ( std::pow( -std::log( Ared / ma9 ), 1/cal.fitParameter[2][col][row] ) - cal.fitParameter[0][col][row] ) * keV;
+      (*pix).vcal = cal.fitParameter[1][col][row] * ( std::pow( -std::log( Ared / ma9 ), 1./cal.fitParameter[2][col][row] ) - cal.fitParameter[0][col][row] ) * keV;
       // q = ( (-ln((A-p4)/p3))^1/p2 - p0 )*p1
 
     }
