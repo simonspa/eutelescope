@@ -3008,7 +3008,7 @@ void EUTelAnalysisCMSPixel::end(){
 
 	  ofstream runfile;
 	  runfile.open("lines-for-runlist.txt",ios::app);
-	  runfile << _nRun << "," << _DATE_run << "," << _gearfile << "," << _eBeam << "," << _DUT_chip << "," << _DUT_board << "," << _DUT_gain << "," << _DUT_calibration_type << "," << _REF_chip << "," << _REF_board << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTalignx-alpar[1] << "," << DUTaligny-alpar[2] << "," << DUTz-alpar[6] - _planePosition[2] << "," << tilt-alpar[4]*180/3.141592654 << "," << turn-alpar[5]*180/3.141592654 << "," << DUTrot-alpar[3] << "," << _REFalignx << "," << _REFaligny << "," << _REFz << "," << _REFrot << "," << endl;
+	  runfile << _nRun << "," << _DATE_run << "," << _gearfile << "," << _eBeam << "," << _DUT_chip << "," << _DUT_board << "," << _DUT_gain << "," << _DUT_calibration_type << "," << _REF_chip << "," << _REF_board << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTalignx-alpar[1] << "," << DUTaligny-alpar[2] << "," << DUTz-alpar[6] - _planePosition[2] << "," << tilt-alpar[4]*180/3.141592654 << "," << turn-alpar[5]*180/3.141592654 << "," << DUTrot-alpar[3] << "," << _REFalignx << "," << _REFaligny << "," << _REFz << "," << _REFrot << endl;
 	  runfile.close();
 
 	} // ldut
