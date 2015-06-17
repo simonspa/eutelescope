@@ -460,7 +460,7 @@ void EUTelCorrelator::processEvent (LCEvent * event) {
       LCCollectionVec* inputHitCollection = static_cast<LCCollectionVec*>( event->getCollection(_inputHitCollectionName) );
       UTIL::CellIDDecoder<TrackerHitImpl> hitDecoder ( EUTELESCOPE::HITENCODING );
 
-      streamlog_out  ( MESSAGE2 ) << "inputHitCollection " << _inputHitCollectionName.c_str() << endl;
+      streamlog_out  ( DEBUG2 ) << "inputHitCollection " << _inputHitCollectionName.c_str() << endl;
 
 
       for ( size_t iExt = 0 ; iExt < inputHitCollection->size(); ++iExt ) {
@@ -496,7 +496,7 @@ void EUTelCorrelator::processEvent (LCEvent * event) {
 
         iplane.push_back( externalSensorID);
 
-        streamlog_out  ( MESSAGE2 ) << "eplane:"  << externalSensorID << " loc: "  << etrackPointLocal[0]  << " "<< etrackPointLocal[1]  << " "
+        streamlog_out  ( DEBUG2 ) << "eplane:"  << externalSensorID << " loc: "  << etrackPointLocal[0]  << " "<< etrackPointLocal[1]  << " "
                                                                       << " glo: "  << etrackPointGlobal[0] << " "<< etrackPointGlobal[1] << " " << endl;
 
         for ( size_t iInt = 0; iInt < inputHitCollection->size(); ++iInt ) 
@@ -538,7 +538,7 @@ void EUTelCorrelator::processEvent (LCEvent * event) {
         trackY.push_back(itrackPointGlobal[1]);
         iplane.push_back(internalSensorID);
 
-        streamlog_out  ( MESSAGE2 ) << "iplane:"  << internalSensorID << " loc: "  << itrackPointLocal[0]  << " "<< itrackPointLocal[1]  << " "
+        streamlog_out  ( DEBUG2 ) << "iplane:"  << internalSensorID << " loc: "  << itrackPointLocal[0]  << " "<< itrackPointLocal[1]  << " "
                                                                       << " glo: "  << itrackPointGlobal[0] << " "<< itrackPointGlobal[1] << " " << endl;
 
                }
