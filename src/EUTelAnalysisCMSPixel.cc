@@ -5780,7 +5780,20 @@ bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixel
 
       (*pix).vcal = cal.fitParameter[1][col][row] * ( std::pow( -std::log( Ared / ma9 ), 1./cal.fitParameter[2][col][row] ) - cal.fitParameter[0][col][row] ) * keV;
       // q = ( (-ln((A-p4)/p3))^1/p2 - p0 )*p1
+    }
+    // Decorrelated Weibull with inverted sign:
+    else if(strcmp(cal.type.c_str(),"desy_weibull_decorr_pos") == 0){
 
+      // phroc2ps decorrelated: a = p4 - p3*exp(-t^p2), t = p0 + x/p1
+
+      Ared = (*pix).raw - cal.fitParameter[4][col][row]; // p4 is asymptotic maximum
+      if(Ared > 0) { Ared = -0.1; } // avoid overflow
+
+      ma9 = cal.fitParameter[3][col][row]; // ma9 must be positive,
+      if(ma9 < 0) ma9 = -ma9;             // if not, change sign
+
+      (*pix).vcal = cal.fitParameter[1][col][row] * ( std::pow( -std::log( -Ared / ma9 ), 1./cal.fitParameter[2][col][row] ) - cal.fitParameter[0][col][row] ) * keV;
+      // q = ( (-ln(-(A-p4)/p3))^1/p2 - p0 )*p1
     }
     // DESY TanH Calibration:
     else {
@@ -5846,7 +5859,7 @@ bool EUTelAnalysisCMSPixel::InitializeCalibration(std::string gainfilename, int 
       i++;
     }
   }
-  else if(strcmp(CalibrationType.c_str(),"desy_weibull_decorr") == 0) {
+  else if(strcmp(CalibrationType.c_str(),"desy_weibull_decorr") == 0 || strcmp(CalibrationType.c_str(),"desy_weibull_decorr_pos") == 0) {
     while( gainFile >> string ) {
       gainFile >> icol;
       gainFile >> irow;
