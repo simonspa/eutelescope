@@ -5738,9 +5738,24 @@ bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixel
  					 // Feb 2014
     if( cal.chip_id == 203) keV = 0.324;
 
-    if( cal.chip_id == 405) keV = 0.290;
+    //if( cal.chip_id == 405) keV = 0.290;
+    //if( cal.chip_id == 404) keV = 0.250;
 
-    if( cal.chip_id == 404) keV = 0.250;
+    if( cal.chip_id == 400 ) keV = 0.288; // 12593 to get q0f peak at 22 ke
+    if( cal.chip_id == 401 ) keV = 0.275; // 12603 to get q0f peak at 22 ke
+    if( cal.chip_id == 402 ) keV = 0.295; // 12556 to get q0f peak at 22 ke
+    if( cal.chip_id == 403 ) keV = 0.280; // copy  to get q0f peak at 22 ke
+    if( cal.chip_id == 404 ) keV = 0.262; // 12525 to get q0f peak at 22 ke
+    if( cal.chip_id == 405 ) keV = 0.301; // 12544 to get q0f peak at 22 ke
+
+    //if( cal.chip_id == 500 ) keV = 0.312; // 14470 to get q0f peak at 22 ke
+    if( cal.chip_id == 500 ) keV = 0.305; // 14393 to get q0f peak at 22 ke no eps in Q
+    //if( cal.chip_id == 504 ) keV = 0.254; // 14614 to get q0f peak at 22 ke
+    if( cal.chip_id == 504 ) keV = 0.235; // 19045 to get q0f peak at 22 ke
+    if( cal.chip_id == 506 ) keV = 0.290; // 14654 to get q0f peak at 22 ke
+    if( cal.chip_id == 506 ) keV = 0.252; // 19447 chiller off, large tilt
+    if( cal.chip_id == 506 ) keV = 0.268; // 19582 chiller off, tilt 28
+
     
     // PSI Tanh Calibration (psi46expert vanilla):
     if(strcmp(cal.type.c_str(),"psi_tanh") == 0) {
