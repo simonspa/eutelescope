@@ -109,7 +109,7 @@ double DUTaligny = 0;
 double DUTrot = 0;
 
 
-EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _CMS_gain_path(""), _gearfile(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF() {
+EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _CMS_gain_path(""), _gearfile(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF(), m_millefilename("") {
 
   // modify processor description
   _description = "Analysis for CMS PSI46 Pixel Detectors as DUT in AIDA telescopes ";
@@ -276,8 +276,6 @@ void EUTelAnalysisCMSPixel::init() {
 #if defined(USE_AIDA) || defined(MARLIN_USE_AIDA)
   bookHistos();
 #endif
-  mille = new gbl::MilleBinary( "mille.bin" );
-
 }//init
 
 //------------------------------------------------------------------------------
@@ -292,6 +290,12 @@ void EUTelAnalysisCMSPixel::processRunHeader( LCRunHeader* runHeader) {
 
   streamlog_out( MESSAGE2 )  << "Processing run header"
                              << ", run nr " << runHeader->getRunNumber() << std::endl;
+
+  // Prepare the mille binary file:
+  std::stringstream name;
+  name << "run" << _nRun << "-mille.bin";
+  m_millefilename = name.str();
+  mille = new gbl::MilleBinary( m_millefilename.c_str() );
 
   const std::string detectorName = runHeader->getDetectorName();
   const std::string detectorDescription = runHeader->getDescription();
@@ -2724,10 +2728,9 @@ void EUTelAnalysisCMSPixel::end(){
   streamlog_out(MESSAGE5) << "Entries " << cmsdxaHisto->entries() << std::endl;
   streamlog_out(MESSAGE5) << "Maximum " << cmsdxaHisto->maxBinHeight() << std::endl;
 
-  int nb = cmsdxaHisto->axis().bins();
   int nmax = 0;
   double DUTx = 0;
-  for( int ib = 0; ib < nb; ++ib ) {
+  for( int ib = 0; ib < cmsdxaHisto->axis().bins(); ++ib ) {
     if( cmsdxaHisto->binHeight(ib) > nmax ) {
       nmax = static_cast<int>(cmsdxaHisto->binHeight(ib));
       DUTx = cmsdxaHisto->binMean(ib);
@@ -2738,10 +2741,10 @@ void EUTelAnalysisCMSPixel::end(){
   streamlog_out(MESSAGE5) << "DUT y   " << cmssyaHisto->title() << std::endl;
   streamlog_out(MESSAGE5) << "Entries " << cmssyaHisto->entries() << std::endl;
   streamlog_out(MESSAGE5) << "Maximum " << cmssyaHisto->maxBinHeight() << std::endl;
-  nb = cmssyaHisto->axis().bins();
+
   nmax = 0;
   double DUTy = 0;
-  for( int ib = 0; ib < nb; ++ib ) {
+  for( int ib = 0; ib < cmssyaHisto->axis().bins(); ++ib ) {
     if( cmssyaHisto->binHeight(ib) > nmax ) {
       nmax = static_cast<int>(cmssyaHisto->binHeight(ib));
       DUTy = cmssyaHisto->binMean(ib);
@@ -2753,10 +2756,9 @@ void EUTelAnalysisCMSPixel::end(){
   streamlog_out(MESSAGE5) << "Entries " << refdxaHisto->entries() << std::endl;
   streamlog_out(MESSAGE5) << "Maximum " << refdxaHisto->maxBinHeight() << std::endl;
 
-  nb = refdxaHisto->axis().bins();
   nmax = 0;
   double REFx = 0;
-  for( int ib = 0; ib < nb; ++ib ) {
+  for( int ib = 0; ib < refdxaHisto->axis().bins(); ++ib ) {
     if( refdxaHisto->binHeight(ib) > nmax ) {
       nmax = static_cast<int>(refdxaHisto->binHeight(ib));
       REFx = refdxaHisto->binMean(ib);
@@ -2767,10 +2769,10 @@ void EUTelAnalysisCMSPixel::end(){
   streamlog_out(MESSAGE5) << "REF y   " << refsyaHisto->title() << std::endl;
   streamlog_out(MESSAGE5) << "Entries " << refsyaHisto->entries() << std::endl;
   streamlog_out(MESSAGE5) << "Maximum " << refsyaHisto->maxBinHeight() << std::endl;
-  nb = refsyaHisto->axis().bins();
+
   nmax = 0;
   double REFy = 0;
-  for( int ib = 0; ib < nb; ++ib ) {
+  for( int ib = 0; ib < refsyaHisto->axis().bins(); ++ib ) {
     if( refsyaHisto->binHeight(ib) > nmax ) {
       nmax = static_cast<int>(refsyaHisto->binHeight(ib));
       REFy = refsyaHisto->binMean(ib);
@@ -2830,13 +2832,15 @@ void EUTelAnalysisCMSPixel::end(){
   bool ldut = naldut > 99;
 
   ofstream steerFile;
-  steerFile.open( "steerPede.txt" );
+  std::stringstream steername;
+  steername << "run" << _nRun << "-steerPede.txt";
+  steerFile.open( steername.str().c_str() );
 
   if( steerFile.is_open() && ldut ) {
 
     steerFile << "! generated by EUTelTestFitter" << std::endl;
     steerFile << "Cfiles" << std::endl;
-    steerFile << "mille.bin" << std::endl;
+    steerFile << m_millefilename << std::endl;
     steerFile << std::endl;
 
     //FIXME maybe reduce dimensions if tilt || turn == 0?
@@ -2853,6 +2857,7 @@ void EUTelAnalysisCMSPixel::end(){
     steerFile << "outlierdownweighting 4" << std::endl;
     steerFile << std::endl;
     steerFile << "method inversion 10  0.1" << std::endl;
+    steerFile << "threads 10 1" << std::endl;
     steerFile << std::endl;
     steerFile << "! histprint" << std::endl;
     steerFile << std::endl;
@@ -2876,7 +2881,7 @@ void EUTelAnalysisCMSPixel::end(){
       streamlog_out( ERROR ) << "Pede cannot be executed because not found in the path" << std::endl;
     }
     else {
-      std::string command = "pede  steerPede.txt";
+      std::string command = "pede  " + steername.str();
 
       streamlog_out( MESSAGE2 ) << std::endl;
       streamlog_out( MESSAGE2 ) << "Starting pede..." << std::endl;

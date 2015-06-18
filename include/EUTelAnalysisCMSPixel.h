@@ -439,6 +439,8 @@ namespace eutelescope {
 
 #endif
 
+    // Millepede binary file name:
+    std::string m_millefilename;
   };
 
   //! A global instance of the processor:
