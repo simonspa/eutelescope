@@ -698,7 +698,7 @@ TMatrixD Jac55( double ds ) {
 //------------------------------------------------------------------------------
 void EUTelMilleGBL::processEvent( LCEvent * event ) {
 
-  if( _iEvt % 100 == 0 ) {
+  if( _iEvt % 1000 == 0 ) {
     streamlog_out( MESSAGE2 ) << "Processing event "
                               << setw(6) << setiosflags(ios::right)
 			      << event->getEventNumber() << " in run "
@@ -1726,6 +1726,8 @@ void EUTelMilleGBL::end() {
       steerFile << "dwfractioncut 0.1" << endl;
       steerFile << endl;
       steerFile << "method inversion 10  0.1" << endl;
+      // Use 10 OpenMP threads to process the data:
+      steerFile << "threads 10 1" << endl;
       steerFile << endl;
       steerFile << "histprint" << endl;
       steerFile << endl;
