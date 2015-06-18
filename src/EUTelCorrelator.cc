@@ -257,7 +257,7 @@ void EUTelCorrelator::processEvent (LCEvent * event) {
        } catch ( lcio::Exception& e ) {
 
          _hasClusterCollection = false;
-         streamlog_out ( WARNING ) << "NOT found " << i <<  " name " <<   _inputClusterCollectionName.c_str() << endl;
+         streamlog_out ( DEBUG5 ) << "NOT found " << i <<  " name " <<   _inputClusterCollectionName.c_str() << endl;
 
          break; 
        }
@@ -435,8 +435,8 @@ void EUTelCorrelator::processEvent (LCEvent * event) {
             // for each type of coordinate: X and Y
 
             
-            streamlog_out( MESSAGE1 )  << " ex " << externalSensorID <<" = [" << externalXCenter << ":" << externalYCenter << "]"
-                                       << " in " << internalSensorID <<" = [" << internalXCenter << ":" << internalYCenter << "]" << std::endl;
+            streamlog_out( DEBUG1 )  << " ex " << externalSensorID <<" = [" << externalXCenter << ":" << externalYCenter << "]"
+				     << " in " << internalSensorID <<" = [" << internalXCenter << ":" << internalYCenter << "]" << std::endl;
 
             _clusterXCorrelationMatrix[ externalSensorID ][ internalSensorID ]->fill( externalXCenter, internalXCenter );
             _clusterYCorrelationMatrix[ externalSensorID ][ internalSensorID ]->fill( externalYCenter, internalYCenter );
