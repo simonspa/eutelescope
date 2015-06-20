@@ -510,6 +510,10 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   // Horizontal DUT alignment for FPIX test beam:
   bool FPIX = 0;
 
+  // Rotatet chip on desytb-pcb-rot:
+  bool rot90 = false;
+  if(_DUT_chip == 506) rot90 = true;
+
   // ETH and KIT test beam Mar 2013 analog ROCs
   // Horizontal DUT alignment for ETH test beam:
   bool ETHh = 0;
@@ -541,7 +545,11 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     CMSPixel::pixel px;
     px.roc = 8;
 
-    if(hanging) {
+    if(rot90) {
+      px.col = pixel->getXCoord();
+      px.row = 80 - pixel->getYCoord();
+    }
+    else if(hanging) {
       px.col = 52 - pixel->getXCoord();
       px.row = 80 - pixel->getYCoord();
     }
@@ -1341,7 +1349,11 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	double cmsx = ( c->col - 26 ) * pitchcol; // -3.9..3.9 mm
 	double cmsy = ( c->row - 40 ) * pitchrow; // -4..4 mm
 
-	if( FPIX ) {
+	if(rot90) {
+	  cmsx = ( c->col - 40 ) * pitchrow; // -4..4 mm
+	  cmsy = ( c->row - 26 ) * pitchcol; // -3.9..3.9 mm
+	}
+	else if( FPIX ) {
 	  // FPIX rot at 90 deg:
 	  // col = y
 	  // row = x
@@ -1368,16 +1380,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	double cmsdx = dx4;
 	double cmsdy = dy4;
 
-	if( FPIX ) {
-	  // FPIX: resid = sums
-	  cmsdx = cmsx + DUTrot*cmsy - DUTalignx + xA; // residual x
-	  cmsdy = cmsy - DUTrot*cmsx - DUTaligny + yA; // residual y
-	}
-	
-	//if( ETHh ) {
-	//  cmsdx = cmsx + DUTrot*cmsy - DUTalignx - xA; // residual x
-	//  cmsdy = cmsy - DUTrot*cmsx - DUTaligny - yA; // residual y
-	//}
 
 	if( _DUT_chip >= 200 ) { // even/odd col effect for dig
 	  int iodd = static_cast<int>(floor( fmod( c->col, 2 ) ));
