@@ -787,8 +787,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   DUTrot = _DUTrot;
   tilt = _DUTtilt;
   turn = _DUTturn;
-  double cutx = 0.15;
-  double cuty = 0.1;
+  double cutx = _cutx;
+  double cuty = _cuty;
 
   double wt = atan(1.0) / 45.0; // pi/180 deg
   double DUTX0 = 0.07; // init, for analog ROC with thick carrier socket
