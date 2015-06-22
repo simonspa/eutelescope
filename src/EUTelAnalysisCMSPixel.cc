@@ -553,12 +553,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     px.roc = 8;
 
     if(rot90) {
-      px.col = pixel->getXCoord();
-      px.row = 80 - pixel->getYCoord();
-    }
-    else if(hanging) {
-      px.col = 52 - pixel->getXCoord();
-      px.row = 80 - pixel->getYCoord();
+      px.col = pixel->getYCoord();
+      px.row = pixel->getXCoord();
     }
     else {
       px.col = pixel->getXCoord();
@@ -812,7 +808,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   double pitchcolt = 0.150 * cos( turn * wt ); // [mm] in telescope system
   double pitchrowt = 0.100 * cos( tilt * wt ); // [mm] in telescope system
 
-  if( FPIX || ETHh ) {
+  if( FPIX || ETHh) {
     // FPIX rot at 90 deg:
     // col tilted
     // row turned
@@ -1176,7 +1172,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     double ymod = fmod( 9.050 + yAt, 0.2 ) * 1E3; // [0,200] um
     double ymd3 = fmod( 9.050 + yAt, 0.3 ) * 1E3; // [0,300] um
     double ymd6 = fmod( 9.050 + yAt, 0.6 ) * 1E3; // [0,600] um
-    if( FPIX || ETHh ) { // x = col = yt, y = row = xt
+    if( FPIX || ETHh || rot90) { // x = col = yt, y = row = xt
       xmod = fmod( 9.075 + yAt, 0.3 ) * 1E3; // [0,300] um, 2 pixel wide
       ymod = fmod( 9.030 + xAt, 0.2 ) * 1E3; // [0,200] um
       ymd3 = fmod( 9.030 + xAt, 0.3 ) * 1E3; // [0,300] um
@@ -1252,7 +1248,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       int nLinkedClusters = 0;
       for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ ){
 
-	if(ETHh || FPIX ) {
+	if(ETHh || FPIX || rot90) {
 	  // for ETH/KIT orientation
 	  cmsxxHisto->fill( c->row, xA ); // anti-correlation x-x
 	  cmsyyHisto->fill( c->col, yA ); // correlation y-y
@@ -1354,13 +1350,18 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	if( Q0 > 18 &&  Q0 < 35 ) lq = 1;
 
 	// DUT - triplet:
-
+	// Move from chip coordinates (col, row) to physical
+	// coordinates: cmsx, cmsy
 	double cmsx = ( c->col - 26 ) * pitchcol; // -3.9..3.9 mm
 	double cmsy = ( c->row - 40 ) * pitchrow; // -4..4 mm
 
 	if(rot90) {
-	  cmsx = ( c->col - 40 ) * pitchrow; // -4..4 mm
-	  cmsy = ( c->row - 26 ) * pitchcol; // -3.9..3.9 mm
+	  cmsx = ( c->row - 40 ) * pitchrow; // -4..4 mm
+	  cmsy = ( 26 - c->col ) * pitchcol; // -3.9..3.9 mm
+	}
+	else if(hanging) {
+	  cmsx = ( 26 - c->col ) * pitchcol; // -3.9..3.9 mm
+	  cmsy = ( 40 - c->row ) * pitchrow; // -4..4 mm
 	}
 	else if( FPIX ) {
 	  // FPIX rot at 90 deg:
@@ -2023,7 +2024,11 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       double cmsx = ( c->col - 26 ) * pitchcol; // -3.9..3.9 mm
       double cmsy = ( c->row - 40 ) * pitchrowt; // -4..4 mm
 
-      if( FPIX) {
+      if(rot90) {
+	cmsx = ( c->row - 40 ) * pitchrow; // old style
+	cmsy = ( 26 - c->col ) * pitchcol; // -3.9..3.9 mm
+      }
+      else if( FPIX) {
 	// FPIX rot at 90 deg:
 	// col = y
 	// row = x
