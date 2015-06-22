@@ -109,7 +109,7 @@ double DUTaligny = 0;
 double DUTrot = 0;
 
 
-EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _CMS_gain_path(""), _gearfile(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF(), m_millefilename("") {
+EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _CMS_gain_path(""), _gearfile(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF(), m_millefilename("") {
 
   // modify processor description
   _description = "Analysis for CMS PSI46 Pixel Detectors as DUT in AIDA telescopes ";
@@ -206,6 +206,13 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
   registerProcessorParameter( "REF_pos_z",
                               "REF position z in mm after the last telescope plane",
 			      _REFz, static_cast < double >(0));
+
+  registerProcessorParameter( "matching_cut_x",
+                              "cut for matching in x coordinate",
+			      _cutx, static_cast < double >(0.15));
+  registerProcessorParameter( "matching_cut_y",
+                              "cut for matching in y coordinate",
+			      _cuty, static_cast < double >(0.10));
 
   // Stuff only needed for the printout of the updated runlist line:
   registerOptionalParameter( "gearfile",
@@ -784,6 +791,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   DUTrot = _DUTrot;
   tilt = _DUTtilt;
   turn = _DUTturn;
+  double cutx = 0.15;
+  double cuty = 0.1;
 
   double wt = atan(1.0) / 45.0; // pi/180 deg
   double DUTX0 = 0.07; // init, for analog ROC with thick carrier socket
@@ -1391,7 +1400,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	bool seedPixelLost = false;     //Check if the seedPixel was
 					//probably lost
-	if(fiducial && abs( cmsdx ) < 0.15 && abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) { //Same
+	if(fiducial && abs( cmsdx ) < cutx && abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) { //Same
 													  //requirements 
 													  //as for cmsdyfct
 	  if(c->size == 1 && abs( cmsdy ) > 0.04){
@@ -1415,19 +1424,19 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  cmsdxfHisto->fill( cmsdx*1E3 );
 	  cmsdyfHisto->fill( cmsdy*1E3 );
 
-	  if( abs( cmsdy ) < 0.10 ) cmsdxfcHisto->fill( cmsdx*1E3 );
-	  if( abs( cmsdx ) < 0.15 ) cmsdyfcHisto->fill( cmsdy*1E3 );
+	  if( abs( cmsdy ) < cuty ) cmsdxfcHisto->fill( cmsdx*1E3 );
+	  if( abs( cmsdx ) < cutx ) cmsdyfcHisto->fill( cmsdy*1E3 );
 	  
 
 	}//CMS fiducial
 
 	 // accumulate cuts for y:
-	if( lowEff && fiducial && abs( cmsdx ) < 0.15 && abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) {
+	if( lowEff && fiducial && abs( cmsdx ) < cutx && abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) {
 	  cmsdyfctLowEffHisto->fill( cmsdy*1E3 );
 	  if(lowClusterCharge)
 	    cmsdyfctLowEffLowChargeHisto->fill( cmsdy*1E3 );
 	}
-	if( leff && fiducial && abs( cmsdx ) < 0.15 ) {
+	if( leff && fiducial && abs( cmsdx ) < cutx ) {
 
 	  if(      nrow == 1 )
 	    cmsdyfc1Histo->fill( cmsdy*1E3 ); // 3972: 7.7
@@ -1497,7 +1506,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	// accumulate cuts for x:
 
-	if( leff &&  fiducial && abs( cmsdy ) < 0.100 ) {
+	if( leff &&  fiducial && abs( cmsdy ) < cuty ) {
 
 	  if( abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ){
 	    cmsdxfctHisto->fill( cmsdx*1E3 );
@@ -1528,7 +1537,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	} // CMS fiducial for x
 
 	// Match CMS cluster and Upstream telescope triplet:
-	if( leff &&  abs( cmsdx ) < 0.3 && abs( cmsdy ) < 0.3  && isolatedTrip) {
+	if( leff &&  abs( cmsdx ) < cutx && abs( cmsdy ) < cuty  && isolatedTrip) {
 
 	  nLinkedClusters++;
 	  n_matched_clusters_dut++;
@@ -1811,7 +1820,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	}
 
 	// DUT alignment using GBL track fitting:
-	if( fiducial && abs( cmsdx ) < 0.300 && abs( cmsdy ) < 0.300 ) {
+	if( fiducial && abs( cmsdx ) < cutx && abs( cmsdy ) < cuty ) {
 	  //if( fiducial && abs( cmsdx ) < 0.2 && abs( cmsdy ) < 0.125) {
 
 	  //FIXME move into function addGBLmeasurement(int planeID) with new geometry?

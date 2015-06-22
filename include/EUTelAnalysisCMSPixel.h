@@ -408,6 +408,10 @@ namespace eutelescope {
     double _REFz;
     double _REFrot; //from refdyvsx
 
+    // Cuts for matching:
+    double _cutx;
+    double _cuty;
+
     std::string _CMS_gain_path;
 
     // Other variables only to print out the full runlist.csv line at
