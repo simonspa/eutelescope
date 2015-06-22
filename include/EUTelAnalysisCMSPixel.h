@@ -417,7 +417,8 @@ namespace eutelescope {
     // Other variables only to print out the full runlist.csv line at
     // the end:
     std::string _gearfile;
-    
+    std::string _alignmentrun;
+
     // Partly outdated GEAR readings:
     int * _planeSort;
     int * _planeID;
