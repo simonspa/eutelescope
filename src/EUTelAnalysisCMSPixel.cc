@@ -539,8 +539,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   if(dutCollectionVec->size() != 1) { throw StopProcessingException(this); }
 
   TrackerDataImpl * dutData = dynamic_cast< TrackerDataImpl * > ( dutCollectionVec->getElementAt(0) );
-  SparsePixelType   type   = static_cast<SparsePixelType> ( static_cast<int> (cellDecoder( dutData )["sparsePixelType"]) );
-
   unsigned int sensorID = static_cast<unsigned int > ( cellDecoder( dutData )["sensorID"] );
   streamlog_out ( DEBUG5 ) << "evt " << event->getEventNumber() << " SensorID " << sensorID << endl;
 
@@ -585,8 +583,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   if(refCollectionVec->size() != 1) { throw StopProcessingException(this); }
 
   TrackerDataImpl * refData = dynamic_cast< TrackerDataImpl * > ( refCollectionVec->getElementAt(0) );
-  SparsePixelType   reftype   = static_cast<SparsePixelType> ( static_cast<int> (cellDecoderRef( refData )["sparsePixelType"]) );
-
   unsigned int sensorIDref = static_cast<unsigned int > ( cellDecoder( refData )["sensorID"] );
   streamlog_out ( DEBUG5 ) << "evt " << event->getEventNumber() << " SensorID " << sensorIDref << endl;
 
@@ -790,6 +786,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   DUTrot = _DUTrot;
   tilt = _DUTtilt;
   turn = _DUTturn;
+
   double cutx = _cutx;
   double cuty = _cuty;
 
