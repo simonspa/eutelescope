@@ -1358,7 +1358,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	// lq: Cut on cluster charge, checking whether lies inside the Landau peak
 	bool lq = 0;
 	double Q0 = c->charge * norm; // cluster charge normalized to vertical incidence
-	if( Q0 > 18 &&  Q0 < 35 ) lq = 1;
+	//if( Q0 > 18 &&  Q0 < 35 ) lq = 1;
+	if( Q0 > 17 &&  Q0 < 30 ) lq = 1;
 
 	// DUT - triplet:
 	// Move from chip coordinates (col, row) to physical
@@ -1460,7 +1461,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  if(      Q0 < 18 )
 	    cmsdyq0Histo->fill( cmsdy*1E3 );
 
-	  else if( Q0 < 40 ){
+	  else if( Q0 < 35 ){
 	    cmsdyq1Histo->fill( cmsdy*1E3 );
 	    if( eta < 0 ) {
 	      cmsdyeta0Histo->fill( cmsdy*1E3 );
@@ -1494,7 +1495,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    cmsdyfctqHisto->fill( cmsdy*1E3 ); // 7.8 um @ 4 GeV, 19 deg
 	    if( nrow <= 2 ) cmsdyfcntqHisto->fill( cmsdy*1E3 );
 
-	    if( Q0 < 40 ) {
+	    if( Q0 < 35 ) {
 	      cmsdyfctq1Histo->fill( cmsdy*1E3 ); // 7.8 um @ 4 GeV, 19 deg, more Gaussian
 	      if( nrow <= 2 ) cmsdyfcntq1Histo->fill( cmsdy*1E3 );
 	      if( c->col < 26 )
@@ -1502,10 +1503,10 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      else
 		cmsdyfctq1rHisto->fill( cmsdy*1E3 ); // xdb
 	    }
-	    if( Q0 < 35 ) {
+	    if( Q0 < 30 ) {
 	      cmsdyfctq2Histo->fill( cmsdy*1E3 ); // inserted 26.12.2012
 	    }
-	    if( Q0 < 30 ) {
+	    if( Q0 < 25 ) {
 	      cmsdyfctq3Histo->fill( cmsdy*1E3 ); // was fctq2. 7.4 um @ 4 GeV, 19 deg
 	      if( ldot ) 
 		cmsdyfctqdotHisto->fill( cmsdy*1E3 ); // 8.1 um in run 5234
