@@ -315,15 +315,13 @@ void EUTelAnalysisCMSPixel::processRunHeader( LCRunHeader* runHeader) {
   mille = new gbl::MilleBinary( m_millefilename.c_str() );
 
 
-  // Scale cutx with the expected resolution (depending on tilt angle)
+  // Scale cuty with the expected resolution (depending on tilt angle)
   // should always be around 10sigma
-  // do cutx = 0.15mm @ optimal res, up to 30deg tilt
-  //    cutx = 0.4mm @ high angles 75deg tilt
-  if(_DUTtilt > 35) {
-    _cutx += 0.00625*(_DUTtilt-35);
-    streamlog_out(MESSAGE0) << "Set matching cut X to " << _cutx << "mm" << std::endl;
-  }
-
+  if     (_DUTtilt < 14) { _cuty = 0.40; }
+  else if(_DUTtilt < 19) { _cuty = 0.25; }
+  else if(_DUTtilt < 35) { _cuty = 0.10; }
+  else { _cuty = 0.1 + 0.00625*(_DUTtilt-35); }
+  streamlog_out(MESSAGE0) << "Set matching cut Y to " << _cuty << "mm" << std::endl;
 
   const std::string detectorName = runHeader->getDetectorName();
   const std::string detectorDescription = runHeader->getDescription();
