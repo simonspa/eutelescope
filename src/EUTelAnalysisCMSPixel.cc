@@ -1355,16 +1355,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	if( a12 > 1 ) eta = ( a1 - a2 ) / a12;
 	if( i1 > i2 ) eta = -eta;
 
-	// head-tail in cols:
-
-	if( ncol > 2 ) {
-	  double colmid = colmin + 0.5*(ncol-1);
-	  double qht  = qcol[colmin] + qcol[colmax];
-	  double asy = ( qcol[colmax] - qcol[colmin] ) / qht; // -1..1
-	  double range = 0.5; // range 0..1. 0.5 is best at 46 deg turn
-	  c->col = colmid + range * 0.5*(ncol-1) * asy;
-	}
-
 	// lq: Cut on cluster charge, checking whether lies inside the Landau peak
 	bool lq = 0;
 	double Q0 = c->charge * norm; // cluster charge normalized to vertical incidence
