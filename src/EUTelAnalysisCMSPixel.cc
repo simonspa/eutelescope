@@ -208,11 +208,18 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
 			      _REFz, static_cast < double >(0));
 
   registerProcessorParameter( "matching_cut_x",
-                              "cut for matching in x coordinate",
+                              "cut for matching in x coordinate in mm",
 			      _cutx, static_cast < double >(0.15));
   registerProcessorParameter( "matching_cut_y",
-                              "cut for matching in y coordinate",
+                              "cut for matching in y coordinate in mm",
 			      _cuty, static_cast < double >(0.10));
+
+  registerProcessorParameter( "slope_cut_x",
+                              "cut for track slopes in x coordinate in rad",
+			      _slope_x, static_cast < double >(0.002));
+  registerProcessorParameter( "slope_cut_y",
+                              "cut for track slopes in y coordinate in rad",
+			      _slope_y, static_cast < double >(0.002));
 
   // Stuff only needed for the printout of the updated runlist line:
   registerOptionalParameter( "gearfile",
@@ -800,6 +807,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
   double cutx = _cutx;
   double cuty = _cuty;
+
+  double slope_x = _slope_x;
+  double slope_y = _slope_y;
 
   double wt = atan(1.0) / 45.0; // pi/180 deg
   double DUTX0 = 0.07; // init, for analog ROC with thick carrier socket
@@ -1472,7 +1482,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  else
 	    cmsdyq2Histo->fill( cmsdy*1E3 );
 
-	  if( abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) {
+	  if( abs( ty-0.000 ) < slope_y &&  abs( tx-0.000 ) < slope_x ) {
 	    cmsdyfctHisto->fill( cmsdy*1E3 );
 	    if(lowClusterCharge)
 	      cmsdyfctLowChargeHisto->fill( cmsdy*1E3 );
@@ -1487,8 +1497,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    if( nrow <= 2 ) cmsdyfcntHisto->fill( cmsdy*1E3 );
 	  }
 
-	  if( abs( ty-0.000 ) < 0.002 &&
-	      abs( tx-0.000 ) < 0.002 &&
+	  if( abs( ty-0.000 ) < slope_y &&
+	      abs( tx-0.000 ) < slope_x &&
 	      Q0 > 18 ) {
 
 	    cmsdyfctqHisto->fill( cmsdy*1E3 ); // 7.8 um @ 4 GeV, 19 deg
@@ -1520,14 +1530,14 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	if( leff &&  fiducial && abs( cmsdy ) < cuty ) {
 
-	  if( abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ){
+	  if( abs( ty-0.000 ) < slope_y &&  abs( tx-0.000 ) < slope_x ){
 	    cmsdxfctHisto->fill( cmsdx*1E3 );
 	    if(lowClusterCharge)
 	      cmsdxfctLowChargeHisto->fill( cmsdx*1E3 );
 	  }
 
-	  if( abs( ty-0.000 ) < 0.002 &&
-	      abs( tx-0.000 ) < 0.002 &&
+	  if( abs( ty-0.000 ) < slope_y &&
+	      abs( tx-0.000 ) < slope_y &&
 	      Q0 > 18 ) {
 
 	    cmsdxfctqHisto->fill( cmsdx*1E3 );

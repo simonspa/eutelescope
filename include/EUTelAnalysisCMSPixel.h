@@ -411,6 +411,8 @@ namespace eutelescope {
     // Cuts for matching:
     double _cutx;
     double _cuty;
+    double _slope_x;
+    double _slope_y;
 
     std::string _CMS_gain_path;
 
