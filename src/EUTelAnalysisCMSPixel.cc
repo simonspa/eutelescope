@@ -1,4 +1,3 @@
-
 // -*- mode: c++; mode: auto-fill; mode: flyspell-prog; -*-
 
 /*
@@ -3788,7 +3787,7 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsnpx3Histo->setTitle( "linked CMS cluster size, no bias dot, edge;CMS pixel per linked cluster;linked CMS clusters no bias dot, edge" );
 
   cmsncolHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsncol", 11, -0.5, 10.5 );
+    createHistogram1D( "cmsncol", 21, -0.5, 20.5 );
   cmsncolHisto->setTitle( "DUT cluster col size;columns per cluster;DUT clusters" );
 
   cmsncolLowChargeHisto = AIDAProcessor::histogramFactory(this)->
@@ -3824,7 +3823,7 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsetaoddHisto->setTitle( "DUT 2-row eta (odd columns);DUT cluster 2-row eta;DUT 2-row clusters" );
 
   cmsqfHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsqf", 100, 0, 100 );
+    createHistogram1D( "cmsqf", 400, 0, 400 );
   cmsqfHisto->setTitle( "DUT cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
 
   cmsqfOnePixeldyCutHisto = AIDAProcessor::histogramFactory(this)->
