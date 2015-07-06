@@ -50,6 +50,7 @@
 
 // ROOT includes
 #include <TMatrixD.h>
+#include "TH1D.h"
 
 // system includes <>
 #include <string>
@@ -325,7 +326,18 @@ namespace eutelescope {
     std::vector<cluster> GetClusters(std::vector<CMSPixel::pixel> * pixels);
 
     //! Calibrate the raw ROC pulse height into kev / VCal units:
-    bool CalibratePixels(std::vector<CMSPixel::pixel> * pixels, calibration cal);
+    bool CalibratePixels(std::vector<CMSPixel::pixel> * pixels, calibration cal, double keV);
+
+    //! Get VCAL->Electron conversion factor - either external or from
+    //! chip list
+    double GetConversionFactor(EUTelAnalysisCMSPixel::calibration cal, double conversion = 0);
+
+    //! Fit returning the landau peak position, input is a cluster
+    //! charge histogram such as cmsq0f:
+    Double_t landau_gauss_peak(TH1* h);
+
+    // Fit function: convoluted landau and gauss
+    //Double_t fitLandauGauss( Double_t *x, Double_t *par );
 
     //! Initialize the calibration data, read in the files:
     bool InitializeCalibration(std::string gainfilename, int chip_id, std::string CalibrationType, calibration & cal);
@@ -387,6 +399,7 @@ namespace eutelescope {
     //! DUT specific variables and parameters
     int _DUT_chip;
     std::string _DUT_gain;
+    double _DUT_conversion;
     std::string _DUT_calibration_type;
 
     calibration dut_calibration;
@@ -401,6 +414,7 @@ namespace eutelescope {
     int _REF_chip;
     std::string _REF_gain;
     std::string _REF_calibration_type;
+    double _REF_conversion;
 
     calibration ref_calibration;
     double _REFalignx; // [mm] refsxa
@@ -568,6 +582,7 @@ namespace eutelescope {
   AIDA::IHistogram1D * cmsqfrow1Histo;
   AIDA::IHistogram1D * cmsqfrow2Histo;
   AIDA::IHistogram1D * cmsq0fHisto;
+  TH1D * cmsq0fHistoRoot;
   AIDA::IHistogram1D * cmsqf0Histo;
   AIDA::IHistogram1D * cmsqf1Histo;
   AIDA::IHistogram1D * cmsqf2Histo;

@@ -77,6 +77,7 @@
 // ROOT includes ".h"
 #include <TMath.h>
 #include <TVectorD.h>
+#include <TF1.h>
 #include <TMatrixD.h>
 #include <TVector3.h>
 #include <TRotation.h>
@@ -109,7 +110,7 @@ double DUTaligny = 0;
 double DUTrot = 0;
 
 
-EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _CMS_gain_path(""), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF(), m_millefilename("") {
+EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_conversion(0), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _CMS_gain_path(""), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF(), m_millefilename("") {
 
   // modify processor description
   _description = "Analysis for CMS PSI46 Pixel Detectors as DUT in AIDA telescopes ";
@@ -159,6 +160,9 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
   registerProcessorParameter("DUT_gain",
                              "CMS DUT gain file to be used",
                              _DUT_gain, std::string("/dev/null"));
+  registerProcessorParameter("DUT_conversion",
+                             "CMS DUT VCAL->electrons conversion factor. Set to 0 if default is to be used.",
+                             _DUT_conversion, static_cast<double>(0.));
   registerProcessorParameter("DUT_calibration",
                              "Choose DUT calibration type (psi_tanh, desy_tanh, desy_weibull)",
                              _DUT_calibration_type, std::string("desy_weibull"));
@@ -337,6 +341,17 @@ void EUTelAnalysisCMSPixel::processRunHeader( LCRunHeader* runHeader) {
   if(!InitializeCalibration(_CMS_gain_path + "/chip" + ZeroPadNumber(_REF_chip,3) + "/" + _REF_gain,
 			    _REF_chip, _REF_calibration_type, ref_calibration))
     throw marlin::ParseException("Error in processing REF calibration file.");
+
+  // Get conversion factors to kiloelectrons:
+  _DUT_conversion = GetConversionFactor(dut_calibration,_DUT_conversion);
+  _REF_conversion = GetConversionFactor(ref_calibration);
+
+  if(_DUT_chip == 506 && _nRun <= 15268) {
+    // Deal with backwards-incompatible change in DAQ software:
+    // before run 15268 the PCBTYPE flag has not been set and
+    // col/row are not inverted:
+    streamlog_out(WARNING) << "Old data run without PCBTYPE set by EUDAQ producer. Assuming rotated chip..." << endl;
+  }
 
 } // processRunHeader
 
@@ -585,10 +600,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   //streamlog_out( WARNING ) << "Evt " << event->getEventNumber() << ": " << dutPixels->size() << " on DUT";
 
   // Calibrate the pixel hits with the initialized calibration data:
-  if(!CalibratePixels(dutPixels,dut_calibration))
+  if(!CalibratePixels(dutPixels,dut_calibration,_DUT_conversion))
     throw StopProcessingException(this);
   ClustDUT = GetClusters(dutPixels);
-
 
   // Read the REF event:
   std::vector<CMSPixel::pixel> * refPixels = new std::vector<CMSPixel::pixel>;
@@ -622,7 +636,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   //streamlog_out( WARNING ) << "Evt " << event->getEventNumber() << ": " << refPixels->size() << " on REF";
 
   // Calibrate the pixel hits with the initialized calibration data:
-  if(!CalibratePixels(refPixels,ref_calibration))
+  if(!CalibratePixels(refPixels,ref_calibration,_REF_conversion))
     throw StopProcessingException(this);
 
   ClustREF = GetClusters(refPixels);
@@ -1623,7 +1637,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	    cmsqfHisto->fill( c->charge );
 	    cmsq0fHisto->fill( Q0 );
-	    
+	    cmsq0fHistoRoot->Fill( Q0 );
+
 	    if(seedPixelLost)
 	      cmsqfOnePixeldyCutHisto->fill( c->charge );
 	    else
@@ -2806,6 +2821,7 @@ void EUTelAnalysisCMSPixel::end(){
   }
   streamlog_out(MESSAGE5) << "REFy    " << REFy << std::endl;
 
+
   streamlog_out(MESSAGE5) 
     << std::endl
     << "runlistPreAlign: "
@@ -2816,6 +2832,7 @@ void EUTelAnalysisCMSPixel::end(){
     << "," << _DUT_chip
     << "," << _DUT_gain
     << "," << _DUT_calibration_type
+    << "," << _DUT_conversion
     << "," << _REF_chip
     << "," << _REF_gain
     << "," << _REF_calibration_type
@@ -2835,7 +2852,7 @@ void EUTelAnalysisCMSPixel::end(){
 
   ofstream prealignrunfile;
   prealignrunfile.open("prelines-for-runlist.txt",ios::app);
-  prealignrunfile << _nRun << "," << _alignmentrun << "," << _gearfile << "," <<_eBeam << "," << _DUT_chip << "," << _DUT_gain  << "," << _DUT_calibration_type << "," << _REF_chip << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTx << "," << DUTy << "," << DUTz - _planePosition[2] << "," << tilt << "," << turn << "," << DUTrot << "," << REFx << "," << REFy << "," << _REFz << "," << _REFrot << endl;
+  prealignrunfile << _nRun << "," << _alignmentrun << "," << _gearfile << "," <<_eBeam << "," << _DUT_chip << "," << _DUT_gain  << "," << _DUT_calibration_type << "," << _DUT_conversion << "," << _REF_chip << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTx << "," << DUTy << "," << DUTz - _planePosition[2] << "," << tilt << "," << turn << "," << DUTrot << "," << REFx << "," << REFy << "," << _REFz << "," << _REFrot << endl;
   prealignrunfile.close();
 
   // Clean memory:
@@ -2984,8 +3001,16 @@ void EUTelAnalysisCMSPixel::end(){
 	}//loop param
 
 	if( ldut ){
+	  // Update the DUT_conversion factor to get the landau peak to 22k electrons:
+	  streamlog_out(MESSAGE5) << std::endl << "DUT charge calibration corrections:" << std::endl;
+	  Double_t landau_peak = landau_gauss_peak(cmsq0fHistoRoot);
+	  streamlog_out(MESSAGE5) << "   current landau peak = " << landau_peak << std::endl;
+	  streamlog_out(MESSAGE5) << "   old conversion      = " << _DUT_conversion << std::endl;
+	  _DUT_conversion = _DUT_conversion*22/landau_peak;
+	  streamlog_out(MESSAGE5) << "   new conversion      = " << _DUT_conversion << std::endl;
+
 	  streamlog_out(MESSAGE5) << std::endl << "DUT alignment corrections:" << std::endl;
-	  streamlog_out(MESSAGE5) << std::resetiosflags(std::ios::floatfield) << std::setprecision(9) << "dx    " << alpar[1]*1E3 << " um" << std::endl;
+	  streamlog_out(MESSAGE5) << std::resetiosflags(std::ios::floatfield) << std::setprecision(9) << "   dx    " << alpar[1]*1E3 << " um" << std::endl;
 	  streamlog_out(MESSAGE5) << "   dy        = " << alpar[2]*1E3 << " um" << std::endl;
 	  streamlog_out(MESSAGE5) << "   drot      = " << alpar[3]*1E3 << " mrad" << std::endl;
 	  streamlog_out(MESSAGE5) << "   dtilt     = " << alpar[4]*180/3.141592654 << " deg" << std::endl;
@@ -3005,14 +3030,15 @@ void EUTelAnalysisCMSPixel::end(){
 	    << _nRun
 	    << "," << _alignmentrun
 	    << "," << _gearfile
-	    << "," << _eBeam
+	    << std::setprecision(2) << "," << _eBeam
 	    << "," << _DUT_chip
 	    << "," << _DUT_gain
 	    << "," << _DUT_calibration_type
+	     << std::setprecision(3) << "," << _DUT_conversion
 	    << "," << _REF_chip
 	    << "," << _REF_gain
 	    << "," << _REF_calibration_type
-	    << "," << DUTalignx-alpar[1]
+	    << std::setprecision(9) << "," << DUTalignx-alpar[1]
 	    << "," << DUTaligny-alpar[2]
 	    << "," << DUTz-alpar[6] - _planePosition[2]
 	    << "," << tilt-alpar[4]*180/3.141592654
@@ -3026,7 +3052,7 @@ void EUTelAnalysisCMSPixel::end(){
 
 	  ofstream runfile;
 	  runfile.open("lines-for-runlist.txt",ios::app);
-	  runfile << _nRun << "," << _alignmentrun << "," << _gearfile << "," << _eBeam << "," << _DUT_chip << "," << _DUT_gain << "," << _DUT_calibration_type << "," << _REF_chip << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTalignx-alpar[1] << "," << DUTaligny-alpar[2] << "," << DUTz-alpar[6] - _planePosition[2] << "," << tilt-alpar[4]*180/3.141592654 << "," << turn-alpar[5]*180/3.141592654 << "," << DUTrot-alpar[3] << "," << _REFalignx << "," << _REFaligny << "," << _REFz << "," << _REFrot << endl;
+	  runfile << _nRun << "," << _alignmentrun << "," << _gearfile << "," << _eBeam << "," << _DUT_chip << "," << _DUT_gain << "," << _DUT_calibration_type << "," << _DUT_conversion << "," << _REF_chip << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTalignx-alpar[1] << "," << DUTaligny-alpar[2] << "," << DUTz-alpar[6] - _planePosition[2] << "," << tilt-alpar[4]*180/3.141592654 << "," << turn-alpar[5]*180/3.141592654 << "," << DUTrot-alpar[3] << "," << _REFalignx << "," << _REFaligny << "," << _REFz << "," << _REFrot << endl;
 	  runfile.close();
 
 	} // ldut
@@ -3829,6 +3855,8 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsq0fHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsq0f", 100, 0, 100 );
   cmsq0fHisto->setTitle( "DUT cluster charge linked fiducial;normal DUT cluster charge [ke];DUT linked fiducial clusters" );
+
+  cmsq0fHistoRoot = new TH1D("cmsq0f_hist","DUT cluster charge linked fiducial;normal DUT cluster charge [ke];DUT linked fiducial clusters", 100, 0, 100 );
 
   cmsqf0Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsqf0", 100, 0, 100 );
@@ -5744,31 +5772,21 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
 }
 
 //------------------------------------------------------------------------------
-bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixels, EUTelAnalysisCMSPixel::calibration cal) {
+double EUTelAnalysisCMSPixel::GetConversionFactor(EUTelAnalysisCMSPixel::calibration cal, double conversion) {
 
-  for( std::vector<CMSPixel::pixel>::iterator pix = pixels->begin(); pix != pixels->end(); pix++) {
-    
-    size_t col = (*pix).col;
-    size_t row = (*pix).row;
-
-    int ff = 1;
-    if(cal.chip_id >= 110 && cal.chip_id <= 113)
-      ff = 4; // AB -- sync to b2h with tbm=true... 5.10.2013
-
-    double Ared = (*pix).raw / ff - cal.fitParameter[3][col][row]; // sub vert off, see gaintanh2ps.C
-    double ma9 = cal.fitParameter[0][col][row];
-    if( Ared >  ma9-1 ) ma9 = 1.000001 * Ared;
-    if( Ared < -ma9+1 ) ma9 = Ared - 1;
-
-    double keV = 0.45; // keV / large Vcal DAC
+  double keV = 0.45; // keV / large Vcal DAC
+  // Check if we have an external VCal->Electrons conversion factor:
+  if(conversion > 0.1) { keV = conversion; }
+  // Old chip dependent calibration:
+  else {
     if( cal.chip_id ==  10 ) keV = 0.36; // Landau peak at 24 ke, May 2012
     if( cal.chip_id ==  22 ) keV = 0.50; // Landau peak at 24 ke
     if( cal.chip_id >= 100 ) keV = 0.35; // xdb 15.7.2012 (7*0.05 = 0.35)
     if( cal.chip_id >= 110 && cal.chip_id <= 120) keV = 0.45; // AB -- sync to b2h, 5.10.2013
     //if( cal.chip_id == 202) keV = 0.307;
     if( cal.chip_id == 202) keV = 0.288; // VS -- data vs pixelav
-					 // comparison, Landau peak
- 					 // Feb 2014
+    // comparison, Landau peak
+    // Feb 2014
     if( cal.chip_id == 203) keV = 0.324;
 
     //if( cal.chip_id == 405) keV = 0.290;
@@ -5785,10 +5803,31 @@ bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixel
     if( cal.chip_id == 500 ) keV = 0.305; // 14393 to get q0f peak at 22 ke no eps in Q
     //if( cal.chip_id == 504 ) keV = 0.254; // 14614 to get q0f peak at 22 ke
     if( cal.chip_id == 504 ) keV = 0.235; // 19045 to get q0f peak at 22 ke
-    if( cal.chip_id == 506 ) keV = 0.290; // 14654 to get q0f peak at 22 ke
-    if( cal.chip_id == 506 ) keV = 0.252; // 19447 chiller off, large tilt
+    //if( cal.chip_id == 506 ) keV = 0.290; // 14654 to get q0f peak at 22 ke
+    //if( cal.chip_id == 506 ) keV = 0.252; // 19447 chiller off, large tilt
     if( cal.chip_id == 506 ) keV = 0.268; // 19582 chiller off, tilt 28
+    //if(cal.chip_id == 506) keV = 0.274; // 19817 chiller on
 
+    if(cal.chip_id == 506 && _nRun >= 20160 && _nRun <= 20161) { keV = 0.23; }
+  }
+  return keV;
+}
+
+bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixels, EUTelAnalysisCMSPixel::calibration cal, double keV) {
+
+  for( std::vector<CMSPixel::pixel>::iterator pix = pixels->begin(); pix != pixels->end(); pix++) {
+    
+    size_t col = (*pix).col;
+    size_t row = (*pix).row;
+
+    int ff = 1;
+    if(cal.chip_id >= 110 && cal.chip_id <= 113)
+      ff = 4; // AB -- sync to b2h with tbm=true... 5.10.2013
+
+    double Ared = (*pix).raw / ff - cal.fitParameter[3][col][row]; // sub vert off, see gaintanh2ps.C
+    double ma9 = cal.fitParameter[0][col][row];
+    if( Ared >  ma9-1 ) ma9 = 1.000001 * Ared;
+    if( Ared < -ma9+1 ) ma9 = Ared - 1;
     
     // PSI Tanh Calibration (psi46expert vanilla):
     if(strcmp(cal.type.c_str(),"psi_tanh") == 0) {
@@ -5939,6 +5978,88 @@ bool EUTelAnalysisCMSPixel::InitializeCalibration(std::string gainfilename, int 
   cal.chip_id = chip_id;
 
   return true;
+}
+
+Double_t fitLandauGauss( Double_t *x, Double_t *par ) {
+
+  static int nn=0;
+  nn++;
+  static double xbin = 1;
+  static double b1 = 0;
+  if( nn == 1 ) { b1 = x[0]; }
+  if( nn == 2 ) { xbin = x[0] - b1; } // bin width needed for normalization
+
+  // Landau:
+  Double_t invsq2pi = 0.3989422804014;   // (2 pi)^(-1/2)
+  Double_t mpshift  = -0.22278298;       // Landau maximum location
+
+  // MP shift correction:
+  double mpc = par[0] - mpshift * par[1]; //most probable value (peak pos)
+
+  //Fit parameters:
+  //par[0] = Most Probable (MP, location) parameter of Landau density
+  //par[1] = Width (scale) parameter of Landau density
+  //par[2] = Total area (integral -inf to inf, normalization constant)
+  //par[3] = Gaussian smearing
+
+  // Control constants
+  Double_t np = 100.0;      // number of convolution steps
+  Double_t sc =   5.0;      // convolution extends to +-sc Gaussian sigmas
+
+  // Range of convolution integral
+  double xlow = x[0] - sc * par[3];
+  double xupp = x[0] + sc * par[3];
+
+  double step = (xupp-xlow) / np;
+
+  // Convolution integral of Landau and Gaussian by sum
+
+  double sum = 0;
+  double xx;
+  double fland;
+
+  for( int i = 1; i <= np/2; i++ ) {
+
+    xx = xlow + ( i - 0.5 ) * step;
+    fland = TMath::Landau( xx, mpc, par[1] ) / par[1];
+    sum += fland * TMath::Gaus( x[0], xx, par[3] );
+
+    xx = xupp - ( i - 0.5 ) * step;
+    fland = TMath::Landau( xx, mpc, par[1] ) / par[1];
+    sum += fland * TMath::Gaus( x[0], xx, par[3] );
+  }
+
+  return( par[2] * invsq2pi * xbin * step * sum / par[3] );
+}
+
+Double_t EUTelAnalysisCMSPixel::landau_gauss_peak(TH1* h) {
+
+  double aa = h->GetEntries();//normalization
+
+  // find peak:
+  int ipk = h->GetMaximumBin();
+  double xpk = h->GetBinCenter(ipk);
+  double sm = xpk / 9; // sigma
+  double ns = sm; // noise
+
+  // fit range:
+  int ib0 = h->FindBin(18);
+  int ib9 = h->FindBin(40);
+  double x0 = h->GetBinLowEdge(ib0);
+  double x9 = h->GetBinLowEdge(ib9) + h->GetBinWidth(ib9);
+
+  // create a TF1 with the range from x0 to x9 and 4 parameters
+  TF1 *fitFcn = new TF1( "fitFcn", fitLandauGauss, x0, x9, 4 );
+
+  // set start values:
+  fitFcn->SetParameter( 0, xpk ); // peak position, defined above
+  fitFcn->SetParameter( 1, sm ); // width
+  fitFcn->SetParameter( 2, aa ); // area
+  fitFcn->SetParameter( 3, ns ); // noise
+
+  h->Fit("fitFcn", "R Q", "ep" );// R = range from fitFcn
+  TF1 *fit = h->GetFunction("fitFcn");
+  return fit->GetParameter(0);
 }
 
 #endif
