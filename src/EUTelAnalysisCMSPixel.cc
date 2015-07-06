@@ -730,9 +730,14 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     //eps = 0.03; // tsunami correction for psi46digV1
     eps = 0.6; // [ke] additive
 
-  if( _DUT_chip >= 400  )
-    //eps = 0.06; // tsunami correction for psi46digV2.1
-    eps = 1.2; // [ke] additive
+  if( _DUT_chip >= 400  ) {
+    eps = 0.06; // tsunami correction for psi46digV2.1
+    //eps = 1.2; // [ke] additive
+  }
+
+  if(rot90) {
+    //eps = 0;
+  }
 
   if( dutPixels->size() > 0 ) {
 
@@ -784,9 +789,10 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	// p is 2nd px in DC readout: apply tsunami correction:
 
-	if( hasPrevious )
-	  // px->vcal -= eps * qprv; // proportional, overwrite!
-	  px->vcal -= eps; // subtract constant, overwrite!
+	if( hasPrevious ) {
+	  px->vcal -= eps * qprv; // proportional, overwrite!
+	  //px->vcal -= eps; // subtract constant, overwrite!
+	}
 
       } // pix
 
