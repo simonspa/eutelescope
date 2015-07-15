@@ -3006,14 +3006,6 @@ void EUTelAnalysisCMSPixel::end(){
 	}//loop param
 
 	if( ldut ){
-	  // Update the DUT_conversion factor to get the landau peak to 22k electrons:
-	  streamlog_out(MESSAGE5) << std::endl << "DUT charge calibration corrections:" << std::endl;
-	  Double_t landau_peak = landau_gauss_peak(cmsq0fHistoRoot);
-	  streamlog_out(MESSAGE5) << "   current landau peak = " << landau_peak << std::endl;
-	  streamlog_out(MESSAGE5) << "   old conversion      = " << _DUT_conversion << std::endl;
-	  _DUT_conversion = _DUT_conversion*22/landau_peak;
-	  streamlog_out(MESSAGE5) << "   new conversion      = " << _DUT_conversion << std::endl;
-
 	  streamlog_out(MESSAGE5) << std::endl << "DUT alignment corrections:" << std::endl;
 	  streamlog_out(MESSAGE5) << std::resetiosflags(std::ios::floatfield) << std::setprecision(9) << "   dx    " << alpar[1]*1E3 << " um" << std::endl;
 	  streamlog_out(MESSAGE5) << "   dy        = " << alpar[2]*1E3 << " um" << std::endl;
@@ -3028,6 +3020,21 @@ void EUTelAnalysisCMSPixel::end(){
 	  streamlog_out(MESSAGE5) << "   DUTtilt   = " << tilt-alpar[4]*180/3.141592654 << ";" << std::endl;
 	  streamlog_out(MESSAGE5) << "   DUTturn   = " << turn-alpar[5]*180/3.141592654 << ";" << std::endl;
 	  streamlog_out(MESSAGE5) << "   DUTz      = " << DUTz-alpar[6] - _planePosition[2] << " + _planePosition[2];" << std::endl;
+
+	  // If the tilt correction is small (< 1mrad) we should be stable, correct the Landau peak:
+	  // tilt angle correction below 0.2deg:
+	  if(alpar[4] < 0.003490659) {
+	    streamlog_out(MESSAGE5) << std::endl << "Tilt angle converged." << std::endl;
+	    // Update the DUT_conversion factor to get the landau peak
+	    // to 22k electrons:
+	    streamlog_out(MESSAGE5) << std::endl << "DUT charge calibration corrections:" << std::endl;
+	    Double_t landau_peak = landau_gauss_peak(cmsq0fHistoRoot);
+	    streamlog_out(MESSAGE5) << "   current landau peak = " << landau_peak << std::endl;
+	    streamlog_out(MESSAGE5) << "   old conversion      = " << _DUT_conversion << std::endl;
+	    _DUT_conversion = _DUT_conversion*22/landau_peak;
+	    streamlog_out(MESSAGE5) << "   new conversion      = " << _DUT_conversion << std::endl;
+	  }
+
 	  streamlog_out(MESSAGE5)
 	    << std::endl
 	    << "for runlist.csv:" << std::endl
