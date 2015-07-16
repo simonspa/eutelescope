@@ -428,6 +428,9 @@ namespace eutelescope {
     double _slope_x;
     double _slope_y;
 
+    std::string _skew_db;
+    bool _have_skew_db;
+    double skew_par0, skew_par1;
     std::string _CMS_gain_path;
 
     // Other variables only to print out the full runlist.csv line at

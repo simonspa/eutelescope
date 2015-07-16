@@ -24,7 +24,6 @@
 #include "EUTelPStream.h" // process streams redi::ipstream
 
 // AIDA histogram package (on top of ROOT):
-
 #if defined(USE_AIDA) || defined(MARLIN_USE_AIDA)
 #include <marlin/AIDAProcessor.h>
 #include <AIDA/IHistogramFactory.h>
@@ -39,7 +38,6 @@
 // GBL:
 #include "include/GblTrajectory.h"
 #include "include/MilleBinary.h"
-
 
 // marlin includes ".h"
 #include "marlin/Processor.h"
@@ -109,7 +107,7 @@ double DUTaligny = 0;
 double DUTrot = 0;
 
 
-EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_conversion(0), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _CMS_gain_path(""), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF(), m_millefilename("") {
+EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_conversion(0), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _skew_db(""), _have_skew_db(false), skew_par0(0), skew_par1(0), _CMS_gain_path(""), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF(), m_millefilename("") {
 
   // modify processor description
   _description = "Analysis for CMS PSI46 Pixel Detectors as DUT in AIDA telescopes ";
@@ -224,6 +222,10 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
                               "cut for track slopes in y coordinate in rad",
 			      _slope_y, static_cast < double >(0.002));
 
+  registerProcessorParameter( "skew_database",
+                              "database file for skew corrections",
+			      _skew_db, std::string("none"));
+
   // Stuff only needed for the printout of the updated runlist line:
   registerOptionalParameter( "gearfile",
 			     "Again, the gear file of the used telescope configuration",
@@ -296,6 +298,50 @@ void EUTelAnalysisCMSPixel::init() {
 #if defined(USE_AIDA) || defined(MARLIN_USE_AIDA)
   bookHistos();
 #endif
+
+  // Read database with skew corrections:
+  std::ifstream in;
+  streamlog_out(MESSAGE2) << "Attmepting to open skew correction database from " << _skew_db << endl;    
+  in.open(_skew_db.c_str(), std::ifstream::in);
+
+  if (in.is_open()) {
+    string line;
+    // Skip first line:
+    getline(in,line);
+
+    while(std::getline(in,line)){
+      // Skip reading comments:
+      if (line.empty() || line[0] == '#') continue;
+
+      istringstream s(line);
+      int i = 0;
+      while (s) {
+	string str;
+	if(!getline( s, str, ',' )) break;
+	if(i == 0) {  // Read tilt angle
+	  if(_DUTtilt-.5 < atoi(str.c_str()) && atoi(str.c_str()) < _DUTtilt+.5) { 
+	    _have_skew_db = true;
+	    streamlog_out(MESSAGE2) << "Found angle in database..." << endl;
+	  }
+	}
+	if(_have_skew_db) {
+	  
+	  if(i == 1) { streamlog_out(MESSAGE2) << "skew0 " << atof(str.c_str()) << endl; skew_par0 = atof(str.c_str()); }
+	  if(i == 2) { streamlog_out(MESSAGE2) << "skew1 " << atof(str.c_str()) << endl; skew_par1 = atof(str.c_str()); break; }
+	}
+	i++;
+      }
+      if(_have_skew_db) break;
+    }
+
+    in.close();
+    streamlog_out(MESSAGE2) << "Loaded skew correction parameters for tilt " << _DUTtilt << ": " << skew_par0 << " " << skew_par1 << endl;    
+  }
+  else {
+    streamlog_out(WARNING) << "Could not open skew correction database, no correction applied." << endl;    
+  }
+  throw(1);
+
 }//init
 
 //------------------------------------------------------------------------------
