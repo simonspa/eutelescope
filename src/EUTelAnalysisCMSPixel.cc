@@ -305,6 +305,11 @@ void EUTelAnalysisCMSPixel::init() {
   streamlog_out(MESSAGE2) << _skew_db << endl;
   in.open(_skew_db.c_str(), std::ifstream::in);
 
+  bool have_lower_tilt = false;
+  bool have_higher_tilt = false;
+  double lower_skew_par0, lower_skew_par1, lower_tilt;
+  double higher_skew_par0, higher_skew_par1, higher_tilt;
+
   if (in.is_open()) {
     string line;
     // Skip first line:
@@ -320,22 +325,39 @@ void EUTelAnalysisCMSPixel::init() {
 	string str;
 	if(!getline( s, str, ',' )) break;
 	if(i == 0) {  // Read tilt angle
-	  if(_DUTtilt-.5 < atoi(str.c_str()) && atoi(str.c_str()) < _DUTtilt+.5) { 
-	    _have_skew_db = true;
-	    streamlog_out(MESSAGE2) << "Found angle in database..." << endl;
-	  }
+	  if(atof(str.c_str()) < _DUTtilt) { have_lower_tilt = true; lower_tilt = atof(str.c_str()); }
+	  if(atof(str.c_str()) > _DUTtilt) { have_higher_tilt = true; higher_tilt = atof(str.c_str()); }
 	}
-	if(_have_skew_db) {
-	  if(i == 1) { streamlog_out(MESSAGE2) << "skew0 " << atof(str.c_str()) << endl; skew_par0 = atof(str.c_str()); }
-	  if(i == 2) { streamlog_out(MESSAGE2) << "skew1 " << atof(str.c_str()) << endl; skew_par1 = atof(str.c_str()); break; }
+	if(have_higher_tilt) {
+	  if(i == 1) { higher_skew_par0 = atof(str.c_str()); }
+	  if(i == 2) { higher_skew_par1 = atof(str.c_str()); break; }
+	}
+	else if(have_lower_tilt) {
+	  if(i == 1) { lower_skew_par0 = atof(str.c_str()); }
+	  if(i == 2) { lower_skew_par1 = atof(str.c_str()); break; }
 	}
 	i++;
       }
-      if(_have_skew_db) { break; }
+      if(have_higher_tilt) { break; }
     }
-
     in.close();
-    streamlog_out(MESSAGE2) << "Loaded skew correction parameters for tilt " << _DUTtilt << ": " << skew_par0 << " " << skew_par1 << endl;    
+
+    if(have_higher_tilt && have_lower_tilt) {
+      streamlog_out(MESSAGE2) << "Skew correction parameters for tilt " << lower_tilt << " < " << _DUTtilt 
+			      << ": " << lower_skew_par0 << " " << lower_skew_par1 << endl;
+      streamlog_out(MESSAGE2) << "Skew correction parameters for tilt " << higher_tilt << " > " << _DUTtilt
+			      << ": " << higher_skew_par0 << " " << higher_skew_par1 << endl;
+
+      double slope1 = (higher_skew_par1-lower_skew_par1)/(higher_tilt-lower_tilt);
+      skew_par1 = lower_skew_par1 + (_DUTtilt-lower_tilt)*slope1;
+
+      double slope0 = (higher_skew_par0-lower_skew_par0)/(higher_tilt-lower_tilt);
+      skew_par0 = lower_skew_par0 + (_DUTtilt-lower_tilt)*slope0;
+
+      streamlog_out(MESSAGE2) << "Interpolated skew correction parameters for tilt " << _DUTtilt 
+			      << ": " << skew_par0 << " " << skew_par1 << endl;
+      _have_skew_db = true;
+    }
   }
   else {
     streamlog_out(WARNING) << "Could not open skew correction database, no correction applied." << endl;    
