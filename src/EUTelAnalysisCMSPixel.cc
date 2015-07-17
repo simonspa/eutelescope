@@ -301,7 +301,8 @@ void EUTelAnalysisCMSPixel::init() {
 
   // Read database with skew corrections:
   std::ifstream in;
-  streamlog_out(MESSAGE2) << "Attmepting to open skew correction database from " << _skew_db << endl;    
+  streamlog_out(MESSAGE2) << "Attempting to open skew correction database from " << endl;
+  streamlog_out(MESSAGE2) << _skew_db << endl;
   in.open(_skew_db.c_str(), std::ifstream::in);
 
   if (in.is_open()) {
@@ -325,13 +326,12 @@ void EUTelAnalysisCMSPixel::init() {
 	  }
 	}
 	if(_have_skew_db) {
-	  
 	  if(i == 1) { streamlog_out(MESSAGE2) << "skew0 " << atof(str.c_str()) << endl; skew_par0 = atof(str.c_str()); }
 	  if(i == 2) { streamlog_out(MESSAGE2) << "skew1 " << atof(str.c_str()) << endl; skew_par1 = atof(str.c_str()); break; }
 	}
 	i++;
       }
-      if(_have_skew_db) break;
+      if(_have_skew_db) { break; }
     }
 
     in.close();
@@ -340,7 +340,6 @@ void EUTelAnalysisCMSPixel::init() {
   else {
     streamlog_out(WARNING) << "Could not open skew correction database, no correction applied." << endl;    
   }
-  throw(1);
 
 }//init
 
@@ -1358,10 +1357,10 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	  qcol[px->col] += fabs(px->vcal); // project cluster onto cols
 	  qrow[px->row] += fabs(px->vcal); // project cluster onto rows
-	  if( px->col < colmin ) colmin = px->col;
-	  if( px->col > colmax ) colmax = px->col;
-	  if( px->row < rowmin ) rowmin = px->row;
-	  if( px->row > rowmax ) rowmax = px->row;
+	  if( px->col < colmin ) { colmin = px->col; }
+	  if( px->col > colmax ) { colmax = px->col; }
+	  if( px->row < rowmin ) { rowmin = px->row; }
+	  if( px->row > rowmax ) { rowmax = px->row; }
 
 	}//pix
 
@@ -1418,6 +1417,16 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	if( a12 > 1 ) eta = ( a1 - a2 ) / a12;
 	if( i1 > i2 ) eta = -eta;
 
+
+	// skew calculation (3rd moment):
+	double skw = 0;
+	// Sum third powers of x-x_cog:
+	for(int col = colmin; col <= colmax; col++) { skw += pow((col - c->col),3)*qcol[col]; }
+	// Normalize to total charge and cluster length/2 ^3:
+	skw /= (c->charge*pow(ncol/2,3));
+	cmsskwcolHisto->fill(skw);
+
+
 	// lq: Cut on cluster charge, checking whether lies inside the Landau peak
 	bool lq = 0;
 	double Q0 = c->charge * norm; // cluster charge normalized to vertical incidence
@@ -1462,16 +1471,33 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	cmsdx4Histo->fill( dx4 );
 	cmsdy4Histo->fill( dy4 );
 
+	double dy5 = dy4;
+	// Skew correction:
+	if(_have_skew_db) { 
+	  dy5 += (skew_par0 + skew_par1*skw)*1E-3;
+	}
+
+	cmsdx5Histo->fill( dx4 );
+	cmsdy5Histo->fill( dy5 );
+
 	double cmsdx = dx4;
-	double cmsdy = dy4;
+	double cmsdy = dy5;
+	// Comparison: new skew correction:
+	double cmsdy0 = dy4;
 
 
-	if( _DUT_chip >= 200 ) { // even/odd col effect for dig
-	  int iodd = static_cast<int>(floor( fmod( c->col, 2 ) ));
-	  if( iodd ) // odd
-	    cmsdy = cmsdy + 1.5E-3;
-	  else
-	    cmsdy = cmsdy - 1.5E-3;
+	if(!rot90) {
+	  if( _DUT_chip >= 200 ) { // even/odd col effect for dig
+	    int iodd = static_cast<int>(floor( fmod( c->col, 2 ) ));
+	    if( iodd ) {// odd
+	      cmsdy  = cmsdy  + 1.5E-3;
+	      cmsdy0 = cmsdy0 + 1.5E-3;
+	    }
+	    else {
+	      cmsdy  = cmsdy  - 1.5E-3;
+	      cmsdy0 = cmsdy0 - 1.5E-3;
+	    }
+	  }
 	}
 
 	bool seedPixelLost = false;     //Check if the seedPixel was
@@ -1493,6 +1519,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	if( leff ){
 	  cmsdxHisto->fill( cmsdx*1E3 );
 	  cmsdyHisto->fill( cmsdy*1E3 );
+	  cmsdy0Histo->fill( cmsdy0*1E3 );
 	}
 
 	if( leff && fiducial ) {
@@ -1570,6 +1597,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      cmsdyfctq2Histo->fill( cmsdy*1E3 ); // inserted 26.12.2012
 	    }
 	    if( Q0 < 25 ) {
+	      cmsdy0fctq3Histo->fill( cmsdy0*1E3 ); // for comparison, without skew correction
 	      cmsdyfctq3Histo->fill( cmsdy*1E3 ); // was fctq2. 7.4 um @ 4 GeV, 19 deg
 	      if( ldot ) 
 		cmsdyfctqdotHisto->fill( cmsdy*1E3 ); // 8.1 um in run 5234
@@ -1738,6 +1766,10 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    cmsqvsym->fill( ymod, c->charge ); //q within pixel
 	    cmsqvsxmym->fill( xmod, ymod, c->charge ); // cluster charge profile
 	    
+	    cmsskwvsym->fill( ymod, skw ); //skew within pixel
+	    cmsdy0vsskw->fill( skw, cmsdy0*1E3 ); //skew vs uncorrected residual
+	    cmsdyvsskw->fill( skw, cmsdy*1E3 ); //skew vs corrected residual
+
 	    // KIT: added for efficiency analysis
 	    double dotsize=10;
 	    double cutsize=5;
@@ -1778,6 +1810,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    if( lq ) {
 
 	      cmsdyvsxm->fill( xmod, cmsdy*1E3 );
+	      cmsdy0vsxm->fill( xmod, cmsdy0*1E3 );
 	      cmsdyvsym->fill( ymod, cmsdy*1E3 );
 
 	      cmsdxvsxm->fill( xmod, cmsdx*1E3 );
@@ -3132,7 +3165,6 @@ void EUTelAnalysisCMSPixel::end(){
 
 } // end end
 
-
 //------------------------------------------------------------------------------
 void EUTelAnalysisCMSPixel::bookHistos()
 {
@@ -3583,6 +3615,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmspxqrow2", 100, 0, 25 );
   cmspxqrow2Histo->setTitle( "DUT pixel charge linked 2 row cluster;DUT pixel charge [ke];DUT linked pixels" );
 
+  cmsskwcolHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsskwcol", 80, -0.2, 0.2 );
+  cmsskwcolHisto->setTitle( "DUT cluster skew in columns;DUT cluster skew;clusters" );
+
   cmssxaHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmssxa", 440, -11, 11 );
   cmssxaHisto->setTitle( "Pixel + Telescope x;cluster + triplet #Sigmax [mm];clusters" );
@@ -3607,6 +3643,14 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsdy4", 220, -5.5, 5.5 );
   cmsdy4Histo->setTitle( "Pixel - telescope y;cluster - triplet #Deltay [mm];clusters" );
 
+  cmsdx5Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdx5", 440, -11, 11 );
+  cmsdx5Histo->setTitle( "Pixel - Telescope x, skw corr;cluster + triplet #Sigmax [mm];clusters" );
+
+  cmsdy5Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdy5", 220, -5.5, 5.5 );
+  cmsdy5Histo->setTitle( "Pixel - telescope y, skw corr;cluster - triplet #Deltay [mm];clusters" );
+
   cmsdxHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdx", 200, -500, 500 );
   cmsdxHisto->setTitle( "Pixel + Telescope x;cluster + triplet #Sigmax [#mum];clusters" );
@@ -3614,6 +3658,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsdyHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdy", 500, -500, 500 );
   cmsdyHisto->setTitle( "Pixel - telescope y;cluster - triplet #Deltay [#mum];clusters" );
+
+  cmsdy0Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdy0", 500, -500, 500 );
+  cmsdy0Histo->setTitle( "Pixel - telescope y, no skew corr;cluster - triplet #Deltay [#mum];clusters" );
 
   cmsdxfHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdxf", 200, -500, 500 );
@@ -3754,6 +3802,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsdyfctq3Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfctq3", 500, -500, 500 );
   cmsdyfctq3Histo->setTitle( "fiducial Pixel - telescope y;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
+
+  cmsdy0fctq3Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdy0fctq3", 500, -500, 500 );
+  cmsdy0fctq3Histo->setTitle( "fiducial Pixel - telescope y, no skw corr;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
 
   cmsdyfctqdotHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfctqdot", 500, -500, 500 );
@@ -3940,6 +3992,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createProfile1D( "cmsdyvsxm", 60, 0, 300, -150, 150 );
   cmsdyvsxm->setTitle( "DUT y resid vs xmod;telescope x mod 300 [#mum];<DUT cluster - telescope triplet #Deltay> [#mum]" );
 
+  cmsdy0vsxm = AIDAProcessor::histogramFactory(this)->
+    createProfile1D( "cmsdy0vsxm", 60, 0, 300, -150, 150 );
+  cmsdy0vsxm->setTitle( "DUT y resid vs xmod, no skew corr;telescope x mod 300 [#mum];<DUT cluster - telescope triplet #Deltay> [#mum]" );
+
   cmsdyvsym = AIDAProcessor::histogramFactory(this)->
     createProfile1D( "cmsdyvsym", 40, 0, 200, -150, 150 );
   cmsdyvsym->setTitle( "DUT y resid vs ymod;telescope y mod 200 [#mum];<DUT cluster - telescope triplet #Deltay> [#mum]" );
@@ -4045,6 +4101,18 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsqvsxmym = AIDAProcessor::histogramFactory(this)->
     createProfile2D( "cmsqvsxmym", 60, 0, 300, 40, 0, 200, 0, 250 );
   cmsqvsxmym->setTitle( "DUT cluster charge map;x_{track} mod 300 #mum;y_{track} mod 200 #mum;<cluster charge> [ke]" );
+
+  cmsskwvsym = AIDAProcessor::histogramFactory(this)->
+    createProfile1D( "cmsskwvsym", 40, 0, 200, -0.2, 0.2 );
+  cmsskwvsym->setTitle( "DUT skew vs ymod;telescope y_{DUT} mod 200 [#mum];cluster column skew" );
+
+  cmsdyvsskw = AIDAProcessor::histogramFactory(this)->
+    createProfile1D( "cmsdyvsskw", 80, -0.2, 0.2, -200, 200);
+  cmsdyvsskw->setTitle( "DUT skew vs ymod;cluster column skew;<#Deltay> [#mum]" );
+
+  cmsdy0vsskw = AIDAProcessor::histogramFactory(this)->
+    createProfile1D( "cmsdy0vsskw", 80, -0.2, 0.2, -200, 200);
+  cmsdy0vsskw->setTitle( "DUT skew vs ymod, no skw corr;cluster column skew;<#Deltay> [#mum]" );
 
   // KIT: added for efficiency analysis - charge
 
