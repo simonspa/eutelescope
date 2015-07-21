@@ -1442,12 +1442,28 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	// skew calculation (3rd moment):
 	double skw = 0;
-	// Sum third powers of x-x_cog:
-	for(int col = colmin; col <= colmax; col++) { skw += pow((col - c->col),3)*qcol[col]; }
-	// Normalize to total charge and cluster length/2 ^3:
-	skw /= (c->charge*pow(ncol/2,3));
-	cmsskwcolHisto->fill(skw);
+	if(rot90) {
+	  // Sum third powers of x-x_cog:
+	  for(int col = colmin; col <= colmax; col++) { skw += pow((col - c->col),3)*qcol[col]; }
+	  // Normalize to total charge and cluster length/2 ^3:
+	  skw /= (c->charge*pow(ncol/2,3));
+	}
+	else {
+	  // Sum third powers of x-x_cog:
+	  for(int row = rowmin; row <= rowmax; row++) { skw += pow((row - c->row),3)*qrow[row]; }
+	  // Normalize to total charge and cluster length/2 ^3:
+	  skw /= (c->charge*pow(nrow/2,3));
+	}
+	cmsskwHisto->fill(skw);
 
+	// Detect huge skew values:
+	if(fabs(skw) > 0.2) {
+	  cmsskw1colcogHisto->fill(c->col);
+	  cmsskw1rowcogHisto->fill(c->row);
+	  cmsskw1qHisto->fill(c->charge);
+	  cmsskw1ncolHisto->fill(ncol);
+	  cmsskw1nrowHisto->fill(nrow);
+	}
 
 	// lq: Cut on cluster charge, checking whether lies inside the Landau peak
 	bool lq = 0;
@@ -1494,9 +1510,12 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	cmsdy4Histo->fill( dy4 );
 
 	double dy5 = dy4;
-	// Skew correction:
-	if(_have_skew_db) { 
-	  dy5 += (skew_par0 + skew_par1*skw)*1E-3;
+	// Skew correction, limit to multi-pixel clusters:
+	if(_have_skew_db) {
+	  if((rot90 && ncol > 1) || (!rot90 && nrow > 1)) {
+	    dy5 += (skew_par0 + skew_par1*skw)*1E-3;
+	    cmsskwcorrHisto->fill((skew_par0 + skew_par1*skw));
+	  }
 	}
 
 	cmsdx5Histo->fill( dx4 );
@@ -3637,9 +3656,33 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmspxqrow2", 100, 0, 25 );
   cmspxqrow2Histo->setTitle( "DUT pixel charge linked 2 row cluster;DUT pixel charge [ke];DUT linked pixels" );
 
-  cmsskwcolHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsskwcol", 80, -0.2, 0.2 );
-  cmsskwcolHisto->setTitle( "DUT cluster skew in columns;DUT cluster skew;clusters" );
+  cmsskwHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsskw", 80, -0.2, 0.2 );
+  cmsskwHisto->setTitle( "DUT cluster skew (tilt);DUT cluster skew;clusters" );
+
+  cmsskwcorrHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsskwcorr", 2000, -1000, +1000 );
+  cmsskwcorrHisto->setTitle( "DUT cluster skew correction;DUT cluster skew correction [#mum];clusters" );
+
+  cmsskw1colcogHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsskw1colcog", 52, -0.5, 51.5 );
+  cmsskw1colcogHisto->setTitle( "DUT cluster column COG w/ large skew;DUT cluster col cog;clusters" );
+
+  cmsskw1rowcogHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsskw1rowcog", 80, -0.5, 79.5 );
+  cmsskw1rowcogHisto->setTitle( "DUT cluster row COG w/ large skew;DUT cluster row cog;clusters" );
+
+  cmsskw1qHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsskw1q", 100, 0, 100 );
+  cmsskw1qHisto->setTitle( "DUT cluster charge linked w/ large skew;DUT cluster charge [ke];DUT linked clusters" );
+
+  cmsskw1ncolHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsskw1ncol", 21, -0.5, 20.5 );
+  cmsskw1ncolHisto->setTitle( "DUT cluster col size /w large skew;columns per cluster;DUT clusters" );
+
+  cmsskw1nrowHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsskw1nrow", 11, -0.5, 10.5 );
+  cmsskw1nrowHisto->setTitle( "DUT cluster row size w/ large skew;rows per cluster;DUT clusters" );
 
   cmssxaHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmssxa", 440, -11, 11 );
