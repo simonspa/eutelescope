@@ -1559,6 +1559,14 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  cmsdxfHisto->fill( cmsdx*1E3 );
 	  cmsdyfHisto->fill( cmsdy*1E3 );
 
+	  // Check for difference in 2col clusters:
+	  if(ncol == 2) {
+	    // Cluster in one double column?
+	    if(colmin%2 == 0) { cmsdyf1dcHisto->fill(cmsdy*1E3); }
+	    // Cluster spread over two double columns
+	    else {  cmsdyf2dcHisto->fill(cmsdy*1E3); }
+	  }
+
 	  if( abs( cmsdy ) < cuty ) cmsdxfcHisto->fill( cmsdx*1E3 );
 	  if( abs( cmsdx ) < cutx ) cmsdyfcHisto->fill( cmsdy*1E3 );
 	  
