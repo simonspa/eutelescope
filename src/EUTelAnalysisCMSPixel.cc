@@ -1393,23 +1393,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	if( colmax == 51 ) fiducial = 0;
 
 	bool lowClusterCharge = false;
-
-	if( runNumber == 8604 && c->charge < 11)
-	  lowClusterCharge = true;
-	else if(runNumber == 8605 && c->charge < 11)
-	  lowClusterCharge = true;
- 	else if(runNumber == 10903 && c->charge < 13)
-	  lowClusterCharge = true;
-	else if(runNumber == 10929 && c->charge < 13)
-	  lowClusterCharge = true;
-	else if(runNumber == 11191 && c->charge < 10)
-	  lowClusterCharge = true;
-	else if(runNumber == 11200 && c->charge < 10)
-	  lowClusterCharge = true;
-	else if(runNumber == 11202 && c->charge < 10)
-	  lowClusterCharge = true;
-	else if(c->charge < 8)
-	  lowClusterCharge = true;
+	if(c->charge < 8) { lowClusterCharge = true; }
 
 	
 	int ncol = colmax - colmin + 1;
@@ -2323,6 +2307,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     double upsign = -1; // analog psi46: upside down
     if( _DUT_chip >= 100 )
       upsign = 1; // xdb and dig mounted upright
+
     double x4 = upsign*x3 + DUTalignx; // shift to mid
     if(ETHh) x4 = upsign*x3 - DUTalignx;
 
