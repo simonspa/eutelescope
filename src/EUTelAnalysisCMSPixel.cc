@@ -1446,13 +1446,15 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  // Sum third powers of x-x_cog:
 	  for(int col = colmin; col <= colmax; col++) { skw += pow((col - c->col),3)*qcol[col]; }
 	  // Normalize to total charge and cluster length/2 ^3:
-	  skw /= (c->charge*pow(ncol/2,3));
+	  skw /= (c->charge*pow(ncol,3));
+	  skw *= 8;
 	}
 	else {
 	  // Sum third powers of x-x_cog:
 	  for(int row = rowmin; row <= rowmax; row++) { skw += pow((row - c->row),3)*qrow[row]; }
 	  // Normalize to total charge and cluster length/2 ^3:
-	  skw /= (c->charge*pow(nrow/2,3));
+	  skw /= (c->charge*pow(nrow,3));
+	  skw *= 8;
 	}
 	cmsskwHisto->fill(skw);
 
