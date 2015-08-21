@@ -1308,7 +1308,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 
     // Extrapolate Upstream triplet to Downstream planes 3,4,5: Resolution studies
-    for( std::vector<hit>::iterator lhit = hits->begin(); lhit != hits->end(); lhit++ ){
+    for( std::vector<hit>::iterator lhit = hits->begin(); lhit != hits->end(); lhit++ ) {
 
       if( (*lhit).plane <= 2 ) continue; // want 3,4, or 5
 
@@ -1659,8 +1659,10 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    if( Q0 < 23 ) {
 	      cmsdy0fctq4Histo->fill( cmsdy0*1E3 ); // for comparison, without skew correction
 	      cmsdyfctq4Histo->fill( cmsdy*1E3 ); // was fctq2. 7.4 um @ 4 GeV, 19 deg
-	      if( !ldot ) 
+	      if( !ldot ) {
+		cmsdy0fctq4dHisto->fill( cmsdy0*1E3 ); // for comparison, without skew correction
 		cmsdyfctq4dHisto->fill( cmsdy*1E3 ); // 7.2 um in run 5234
+	      }
 	    }
 	  }
 
@@ -1823,7 +1825,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    cmsqvsxm->fill( xmod, c->charge ); //q within pixel
 	    cmsqvsym->fill( ymod, c->charge ); //q within pixel
 	    cmsqvsxmym->fill( xmod, ymod, c->charge ); // cluster charge profile
-	    
+	    if(ldot) { cmsqvsxmymdot->fill( xmod, ymod, c->charge ); } // cluster charge profile
+
 	    // KIT: added for efficiency analysis
 	    double dotsize=10;
 	    double cutsize=5;
@@ -3957,6 +3960,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsdyfctq4d", 500, -500, 500 );
   cmsdyfctq4dHisto->setTitle( "fiducial Pixel - telescope y;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
 
+  cmsdy0fctq4dHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdy0fctq4d", 500, -500, 500 );
+  cmsdy0fctq4dHisto->setTitle( "fiducial Pixel - telescope y, no skw;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
+
 
   cmscolHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmscol", 52, -0.5, 51.5 );
@@ -4243,6 +4250,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsqvsxmym = AIDAProcessor::histogramFactory(this)->
     createProfile2D( "cmsqvsxmym", 60, 0, 300, 40, 0, 200, 0, 250 );
   cmsqvsxmym->setTitle( "DUT cluster charge map;x_{track} mod 300 #mum;y_{track} mod 200 #mum;<cluster charge> [ke]" );
+
+  cmsqvsxmymdot = AIDAProcessor::histogramFactory(this)->
+    createProfile2D( "cmsqvsxmymdot", 60, 0, 300, 40, 0, 200, 0, 250 );
+  cmsqvsxmymdot->setTitle( "DUT cluster charge map - Dot;x_{track} mod 300 #mum;y_{track} mod 200 #mum;<cluster charge> [ke]" );
 
   cmsskwvsym = AIDAProcessor::histogramFactory(this)->
     createProfile1D( "cmsskwvsym", 40, 0, 200, -0.2, 0.2 );
