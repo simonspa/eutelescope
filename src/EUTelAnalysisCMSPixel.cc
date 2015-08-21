@@ -870,9 +870,18 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       // sum up corrected pixel charges:
 
       double q = 0;
-      for( std::vector<CMSPixel::pixel>::iterator px = c->vpix.begin(); px != c->vpix.end(); px++ )
+      double sumcol = 0, sumrow = 0;
+      for( std::vector<CMSPixel::pixel>::iterator px = c->vpix.begin(); px != c->vpix.end(); px++ ) {
 	q += px->vcal;
+	sumcol += px->col*px->vcal;
+	sumrow += px->row*px->vcal;
+      }
 
+      // Recalculate the cluster COG position after tsunami correction!
+      c->col = sumcol / q;
+      c->row = sumrow / q;
+      dutcolcorrHisto->fill(c->col);
+      dutrowcorrHisto->fill(c->row);
       c->charge = q; // overwritten !
 
     } // DUT clusters
@@ -1385,15 +1394,17 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	for( std::vector<CMSPixel::pixel>::iterator px = c->vpix.begin(); px != c->vpix.end(); px++ ){
 
-	  qcol[px->col] += fabs(px->vcal); // project cluster onto cols
-	  qrow[px->row] += fabs(px->vcal); // project cluster onto rows
+	  if(px->vcal < 0) continue;
+	  
+	  qcol[px->col] += px->vcal; // project cluster onto cols
+	  qrow[px->row] += px->vcal; // project cluster onto rows
 	  if( px->col < colmin ) { colmin = px->col; }
 	  if( px->col > colmax ) { colmax = px->col; }
 	  if( px->row < rowmin ) { rowmin = px->row; }
 	  if( px->row > rowmax ) { rowmax = px->row; }
 
 	}//pix
-
+ 
 	bool fiducial = 1;
 	if( rowmin ==  0 ) fiducial = 0;
 	if( rowmax == 79 ) fiducial = 0;
@@ -3359,13 +3370,37 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "dutrow", 80, -0.5, 79.5 );
   dutrowHisto->setTitle( "DUT row;DUT cluster row;DUT clusters" );
 
+  dutcolcorrHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutcolcorr", 52, -0.5, 51.5 );
+  dutcolcorrHisto->setTitle( "DUT column Tsunami corrected;DUT cluster col;DUT clusters" );
+
+  dutrowcorrHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutrowcorr", 80, -0.5, 79.5 );
+  dutrowcorrHisto->setTitle( "DUT row Tsunami corrected;DUT cluster row;DUT clusters" );
+
   dutnpxHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "dutnpx", 11, -0.5, 10.5 );
+    createHistogram1D( "dutnpx", 21, -0.5, 20.5 );
   dutnpxHisto->setTitle( "DUT cluster size;DUT pixel per cluster;DUT clusters" );
 
   dutadcHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "dutadc", 100, 0, 100 );
+    createHistogram1D( "dutadc", 150, 0, 150 );
   dutadcHisto->setTitle( "DUT cluster charge;DUT cluster charge [ke];DUT clusters" );
+
+  dutpxcolHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpxcol", 52, -0.5, 51.5 );
+  dutpxcolHisto->setTitle( "DUT column;DUT pixel col;DUT pixels" );
+
+  dutpxrowHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpxrow", 80, -0.5, 79.5 );
+  dutpxrowHisto->setTitle( "DUT row;DUT pixel row;DUT pixels" );
+
+  dutpxadcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpxadc", 120, -100, 500 );
+  dutpxadcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpxqHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpxq", 100, 0, 25 );
+  dutpxqHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ke];DUT pixels" );
 
 
   refnclusHisto = AIDAProcessor::histogramFactory(this)->
