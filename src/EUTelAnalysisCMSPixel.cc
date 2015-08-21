@@ -1277,6 +1277,10 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     double ymod = fmod( 9.050 + yAt, 0.2 ) * 1E3; // [0,200] um
     double ymd3 = fmod( 9.050 + yAt, 0.3 ) * 1E3; // [0,300] um
     double ymd6 = fmod( 9.050 + yAt, 0.6 ) * 1E3; // [0,600] um
+    if(hanging) {
+      xmod = fmod( 9.075 - xAt, 0.3 ) * 1E3; // [0,300] um, 2 pixel wide
+      ymod = fmod( 9.050 - yAt, 0.2 ) * 1E3; // [0,200] um
+    }
     if( FPIX || ETHh || rot90) { // x = col = yt, y = row = xt
       xmod = fmod( 9.075 + yAt, 0.3 ) * 1E3; // [0,300] um, 2 pixel wide
       ymod = fmod( 9.030 + xAt, 0.2 ) * 1E3; // [0,200] um
@@ -1620,7 +1624,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	  if( abs( ty-0.000 ) < slope_y &&
 	      abs( tx-0.000 ) < slope_x &&
-	      Q0 > 18 ) {
+	      Q0 > 16 ) {
 
 	    cmsdyfctqHisto->fill( cmsdy*1E3 ); // 7.8 um @ 4 GeV, 19 deg
 	    if( nrow <= 2 ) cmsdyfcntqHisto->fill( cmsdy*1E3 );
@@ -1643,6 +1647,12 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 		cmsdyfctqdotHisto->fill( cmsdy*1E3 ); // 8.1 um in run 5234
 	      else
 		cmsdyfctq3dHisto->fill( cmsdy*1E3 ); // 7.2 um in run 5234
+	    }
+	    if( Q0 < 23 ) {
+	      cmsdy0fctq4Histo->fill( cmsdy0*1E3 ); // for comparison, without skew correction
+	      cmsdyfctq4Histo->fill( cmsdy*1E3 ); // was fctq2. 7.4 um @ 4 GeV, 19 deg
+	      if( !ldot ) 
+		cmsdyfctq4dHisto->fill( cmsdy*1E3 ); // 7.2 um in run 5234
 	    }
 	  }
 
@@ -3925,6 +3935,19 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsdyfctq3dHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfctq3d", 500, -500, 500 );
   cmsdyfctq3dHisto->setTitle( "fiducial Pixel - telescope y;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
+
+
+  cmsdyfctq4Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfctq4", 500, -500, 500 );
+  cmsdyfctq4Histo->setTitle( "fiducial Pixel - telescope y;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
+
+  cmsdy0fctq4Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdy0fctq4", 500, -500, 500 );
+  cmsdy0fctq4Histo->setTitle( "fiducial Pixel - telescope y, no skw corr;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
+
+  cmsdyfctq4dHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfctq4d", 500, -500, 500 );
+  cmsdyfctq4dHisto->setTitle( "fiducial Pixel - telescope y;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
 
 
   cmscolHisto = AIDAProcessor::histogramFactory(this)->
