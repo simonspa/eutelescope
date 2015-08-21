@@ -1521,18 +1521,24 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	// Comparison: new skew correction:
 	double cmsdy0 = dy4;
 
-
+	double oddcorr = 1.0;
 	if(!rot90) {
-	  if( _DUT_chip >= 200 ) { // even/odd col effect for dig
-	    int iodd = static_cast<int>(floor( fmod( c->col, 2 ) ));
-	    if( iodd ) {// odd
-	      cmsdy  = cmsdy  + 1.5E-3;
-	      cmsdy0 = cmsdy0 + 1.5E-3;
-	    }
-	    else {
-	      cmsdy  = cmsdy  - 1.5E-3;
-	      cmsdy0 = cmsdy0 - 1.5E-3;
-	    }
+
+	  if(_DUT_chip == 504) {
+	    oddcorr = 1.0;
+	  }
+	  else if( _DUT_chip >= 200 ) { // even/odd col effect for dig
+	    oddcorr = 1.5;
+	  }
+
+	  int iodd = static_cast<int>(floor( fmod( c->col, 2 ) ));
+	  if( iodd ) {// odd
+	    cmsdy  = cmsdy  - 1.0E-3;
+	    cmsdy0 = cmsdy0 - 1.0E-3;
+	  }
+	  else {
+	    cmsdy  = cmsdy  + 1.0E-3;
+	    cmsdy0 = cmsdy0 + 1.0E-3;
 	  }
 	}
 
