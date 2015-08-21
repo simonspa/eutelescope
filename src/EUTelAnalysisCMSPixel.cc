@@ -1544,10 +1544,10 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	bool seedPixelLost = false;     //Check if the seedPixel was
 					//probably lost
-	if(fiducial && abs( cmsdx ) < cutx && abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) { //Same
+	if(fiducial && fabs( cmsdx ) < cutx && fabs( ty-0.000 ) < 0.002 &&  fabs( tx-0.000 ) < 0.002 ) { //Same
 													  //requirements 
 													  //as for cmsdyfct
-	  if(c->size == 1 && abs( cmsdy ) > 0.04){
+	  if(c->size == 1 && fabs( cmsdy ) > 0.04){
 	    seedPixelLost = true;
 	    trackHasLostSeedPixel = true;
 	  }
@@ -1577,19 +1577,21 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    else {  cmsdyf2dcHisto->fill(cmsdy*1E3); }
 	  }
 
-	  if( abs( cmsdy ) < cuty ) cmsdxfcHisto->fill( cmsdx*1E3 );
-	  if( abs( cmsdx ) < cutx ) cmsdyfcHisto->fill( cmsdy*1E3 );
+	  if( fabs( cmsdy ) < cuty ) cmsdxfcHisto->fill( cmsdx*1E3 );
+	  if( fabs( cmsdx ) < cutx ) cmsdyfcHisto->fill( cmsdy*1E3 );
 	  
-
+	  
 	}//CMS fiducial
 
 	 // accumulate cuts for y:
-	if( lowEff && fiducial && abs( cmsdx ) < cutx && abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) {
+	if( lowEff && fiducial && fabs( cmsdx ) < cutx && fabs( ty-0.000 ) < 0.002 && fabs( tx-0.000 ) < 0.002 ) {
 	  cmsdyfctLowEffHisto->fill( cmsdy*1E3 );
 	  if(lowClusterCharge)
 	    cmsdyfctLowEffLowChargeHisto->fill( cmsdy*1E3 );
 	}
-	if( leff && fiducial && abs( cmsdx ) < cutx ) {
+
+
+	if( leff && fiducial && fabs( cmsdx ) < cutx && isolatedTrip) {
 
 	  if(      nrow == 1 )
 	    cmsdyfc1Histo->fill( cmsdy*1E3 ); // 3972: 7.7
@@ -1613,7 +1615,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  else
 	    cmsdyq2Histo->fill( cmsdy*1E3 );
 
-	  if( abs( ty-0.000 ) < slope_y &&  abs( tx-0.000 ) < slope_x ) {
+	  if( fabs( ty-0.000 ) < slope_y &&  fabs( tx-0.000 ) < slope_x ) {
 	    cmsdyfctHisto->fill( cmsdy*1E3 );
 	    if(lowClusterCharge)
 	      cmsdyfctLowChargeHisto->fill( cmsdy*1E3 );
@@ -1628,8 +1630,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    if( nrow <= 2 ) cmsdyfcntHisto->fill( cmsdy*1E3 );
 	  }
 
-	  if( abs( ty-0.000 ) < slope_y &&
-	      abs( tx-0.000 ) < slope_x &&
+	  if( fabs( ty-0.000 ) < slope_y &&
+	      fabs( tx-0.000 ) < slope_x &&
 	      Q0 > 16 ) {
 
 	    cmsdyfctqHisto->fill( cmsdy*1E3 ); // 7.8 um @ 4 GeV, 19 deg
@@ -1666,16 +1668,16 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	// accumulate cuts for x:
 
-	if( leff &&  fiducial && abs( cmsdy ) < cuty ) {
+	if( leff &&  fiducial && fabs( cmsdy ) < cuty && isolatedTrip) {
 
-	  if( abs( ty-0.000 ) < slope_y &&  abs( tx-0.000 ) < slope_x ){
+	  if( fabs( ty-0.000 ) < slope_y &&  fabs( tx-0.000 ) < slope_x ){
 	    cmsdxfctHisto->fill( cmsdx*1E3 );
 	    if(lowClusterCharge)
 	      cmsdxfctLowChargeHisto->fill( cmsdx*1E3 );
 	  }
 
-	  if( abs( ty-0.000 ) < slope_y &&
-	      abs( tx-0.000 ) < slope_y &&
+	  if( fabs( ty-0.000 ) < slope_y &&
+	      fabs( tx-0.000 ) < slope_y &&
 	      Q0 > 18 ) {
 
 	    cmsdxfctqHisto->fill( cmsdx*1E3 );
@@ -1697,8 +1699,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	} // CMS fiducial for x
 
 	// Match CMS cluster and Upstream telescope triplet:
-	if( leff &&  abs( cmsdx ) < cutx && abs( cmsdy ) < cuty  && isolatedTrip) {
-
+	if( leff &&  fabs( cmsdx ) < cutx && fabs( cmsdy ) < cuty  && isolatedTrip) {
+	  
 	  nLinkedClusters++;
 	  n_matched_clusters_dut++;
 	  correvt100Histo->fill(event->getEventNumber());
@@ -1846,13 +1848,13 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    cmsqvst3->fill( (time_now_tlu-time_event0)/fTLU, c->charge ); // cluster charge vs time
 	    cmsqvst4->fill( (time_now_tlu-time_event0)/fTLU, c->charge ); // cluster charge vs time
 
-	    cmsrmsxvsq->fill( Q0, abs(cmsdx)*1E3 ); //resolution vs charge
-	    cmsrmsyvsq->fill( Q0, abs(cmsdy)*1E3 ); //resolution vs charge
+	    cmsrmsxvsq->fill( Q0, fabs(cmsdx)*1E3 ); //resolution vs charge
+	    cmsrmsyvsq->fill( Q0, fabs(cmsdy)*1E3 ); //resolution vs charge
 
 	    double pMoyal = exp( -exp( -( Q0 - 28 ) / 3.3 ) ); // fitMoyal
 	    cmspMoyalvsq->fill( Q0, pMoyal );
 	    cmspMoyalHisto->fill( pMoyal );
-	    cmsrmsyvsp->fill( pMoyal, abs(cmsdy)*1E3 ); // resolution vs charge
+	    cmsrmsyvsp->fill( pMoyal, fabs(cmsdy)*1E3 ); // resolution vs charge
 
 	    if(lowClusterCharge)
 	      cmspixvsxmymLowCharge->fill( xmod, ymod );
@@ -1889,25 +1891,25 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      if( ymod >= 175-cutsize && ymod <= 175+cutsize ) cmspixvsym175->fill( xmod );
 	      // KIT end
 
-	      cmsrmsxvsx->fill( xAt, abs(cmsdx)*1E3 ); //resolution across cols
-	      cmsrmsyvsx->fill( xAt, abs(cmsdy)*1E3 ); //resolution across cols
-	      cmsrmsxvsy->fill( yAt, abs(cmsdx)*1E3 ); //resolution across rows
-	      cmsrmsyvsy->fill( yAt, abs(cmsdy)*1E3 ); //resolution across rows
-	      cmsrmsxvsxm->fill( xmod, abs(cmsdx)*1E3 ); //resolution within pixel
-	      cmsrmsyvsxm->fill( xmod, abs(cmsdy)*1E3 ); //resolution within pixel
+	      cmsrmsxvsx->fill( xAt, fabs(cmsdx)*1E3 ); //resolution across cols
+	      cmsrmsyvsx->fill( xAt, fabs(cmsdy)*1E3 ); //resolution across cols
+	      cmsrmsxvsy->fill( yAt, fabs(cmsdx)*1E3 ); //resolution across rows
+	      cmsrmsyvsy->fill( yAt, fabs(cmsdy)*1E3 ); //resolution across rows
+	      cmsrmsxvsxm->fill( xmod, fabs(cmsdx)*1E3 ); //resolution within pixel
+	      cmsrmsyvsxm->fill( xmod, fabs(cmsdy)*1E3 ); //resolution within pixel
 	      cmsncolvsxm->fill( xmod, ncol );
 	      cmsnrowvsxm->fill( xmod, nrow );
 	      if( !ldot ) {
-		cmsrmsxvsym->fill( ymod, abs(cmsdx)*1E3 ); //resolution within pixel
-		cmsrmsyvsym->fill( ymod, abs(cmsdy)*1E3 ); //resolution within pixel
-		cmsrmsyvsym3->fill( ymd3, abs(cmsdy)*1E3 ); //resolution within pixel
-		cmsrmsyvsym6->fill( ymd6, abs(cmsdy)*1E3 ); //resolution within pixel
+		cmsrmsxvsym->fill( ymod, fabs(cmsdx)*1E3 ); //resolution within pixel
+		cmsrmsyvsym->fill( ymod, fabs(cmsdy)*1E3 ); //resolution within pixel
+		cmsrmsyvsym3->fill( ymd3, fabs(cmsdy)*1E3 ); //resolution within pixel
+		cmsrmsyvsym6->fill( ymd6, fabs(cmsdy)*1E3 ); //resolution within pixel
 	      }
-	      cmsrmsyvst->fill( (time_now_tlu-time_event0)/fTLU, abs(cmsdy)*1E3 ); //resolution vs time
+	      cmsrmsyvst->fill( (time_now_tlu-time_event0)/fTLU, fabs(cmsdy)*1E3 ); //resolution vs time
 
 	      if( nrow <= 2 ) {
 		cmsdyvseta->fill( eta, cmsdy*1E3 );
-		cmsrmsyvseta->fill( eta, abs(cmsdy)*1E3 );
+		cmsrmsyvseta->fill( eta, fabs(cmsdy)*1E3 );
 	      }
 
 	      cmsnpxvsxmym->fill( xmod, ymod, c->size ); // cluster size map
@@ -1987,7 +1989,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  }
 	}
 
-	if( leff && abs( cmsdx ) < 0.5 && abs( cmsdy ) < 0.5 ){ // link to CMS
+	if( leff && fabs( cmsdx ) < 0.5 && fabs( cmsdy ) < 0.5 ){ // link to CMS
 	  (*trip).linked_dut = true;
 	  (*trip).cmsdx = cmsdx;
 	  (*trip).cmsdy = cmsdy;
@@ -1996,7 +1998,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	}
 
 	// DUT alignment using GBL track fitting:
-	if( fiducial && abs( cmsdx ) < cutx && abs( cmsdy ) < cuty ) {
+	if( fiducial && fabs( cmsdx ) < cutx && fabs( cmsdy ) < cuty ) {
 	  //if( fiducial && abs( cmsdx ) < 0.2 && abs( cmsdy ) < 0.125) {
 
 	  //FIXME move into function addGBLmeasurement(int planeID) with new geometry?
@@ -2239,7 +2241,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	cmsdxeHisto->fill( sx*1E3 );
 	cmsdyeHisto->fill( dy*1E3 );
 
-	if( abs(sx) < 0.300 && abs(dy) < 0.200 ) {
+	if( fabs(sx) < 0.300 && fabs(dy) < 0.200 ) {
 	  nm++;
 	  im = 1;
 	}
@@ -2489,7 +2491,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  meas[1] = trip.cmsdy;
 
 	  double resx = 48E-3; // [mm] CMS col resolution
-	  if( abs( turn ) > 11 ) resx = 22E-3;
+	  if( fabs( turn ) > 11 ) resx = 22E-3;
 	  double resy =  8E-3; // [mm] CMS row resolution at 20 deg tilt
 
 	  TVectorD measWeight(2);
@@ -2738,7 +2740,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     //------------------------------------------------------------------------
     // CMS DUT efficiency:
 
-    if( abs(dx) < 0.1 && abs(dy) < 0.1 && drip.linked_dut ) { // six with link
+    if( fabs(dx) < 0.1 && fabs(dy) < 0.1 && drip.linked_dut ) { // six with link
 
       sixxylkHisto->fill( -xA, -yA ); // six-tracks with REF link at CMS DUT
 
@@ -2810,14 +2812,14 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
      //------------------------------------------------------------------------
      // eff(REF) with DUT as timing plane:
 
-    if( abs(dx) < 0.1 && abs(dy) < 0.1 && trip.linked_dut ) {
+    if( fabs(dx) < 0.1 && fabs(dy) < 0.1 && trip.linked_dut ) {
 
       bool nm = 0;
       if( drip.linked_dut ) nm = 1;
 
       rffvsxy->fill( -xR, -yR, nm ); // CMS REF efficiency profile
 
-      if( abs( yR ) < 3 ) {
+      if( fabs( yR ) < 3 ) {
 	rffvsx->fill( -xR, nm ); // CMS REF efficiency profile
       }
 
@@ -2829,20 +2831,20 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     double zx = intersect.x;
     double zy = intersect.y;
 
-    if( abs(dy) < 0.1 ) { // no cut on dx
-      if( abs( kx ) > 0.003 ) { // 
+    if( fabs(dy) < 0.1 ) { // no cut on dx
+      if( fabs( kx ) > 0.003 ) { // 
 	sixzx3Histo->fill( zx - _planePosition[2] );
       }
-      if( abs( kx ) > 0.002 ) { // 
+      if( fabs( kx ) > 0.002 ) { // 
 	sixzx2Histo->fill( zx - _planePosition[2] );
       }
     }
 
-    if( abs(dx) < 0.1 ) { // no cut on dy
-      if( abs( ky ) > 0.003 ) { // 
+    if( fabs(dx) < 0.1 ) { // no cut on dy
+      if( fabs( ky ) > 0.003 ) { // 
 	sixzy3Histo->fill( zy - _planePosition[2] );
       }
-      if( abs( ky ) > 0.002 ) { // 
+      if( fabs( ky ) > 0.002 ) { // 
 	sixzy2Histo->fill( zy - _planePosition[2] );
       }
     }
@@ -2850,22 +2852,22 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     //------------------------------------------------------------------------
     // z intersect:
 
-    if( abs(dx) < 0.2 && abs(dy) < 0.2 ) { // looser cut allows more z range
+    if( fabs(dx) < 0.2 && fabs(dy) < 0.2 ) { // looser cut allows more z range
 
       // measure scattering angle x after cuts in y:
       // cut on ky creates bias in kx
 
-      if( abs( kx ) > 0.001 ) {
+      if( fabs( kx ) > 0.001 ) {
 	sixzx1Histo->fill( zx - _planePosition[2] );
-	if( abs( zx - DUTz ) < 30 ) {
+	if( fabs( zx - DUTz ) < 30 ) {
 	  sixkyzxHisto->fill( ky*1E3 );
 	  sixkxzxHisto->fill( kx*1E3 ); // plot with gap, fittp0g.C("sixkxzx")
 	}
       }
 
-      if( abs( ky ) > 0.001 ) {
+      if( fabs( ky ) > 0.001 ) {
 	sixzy1Histo->fill( zy - _planePosition[2] );
-	if( abs( zy - DUTz ) < 30 ) {
+	if( fabs( zy - DUTz ) < 30 ) {
 	  sixkxzyHisto->fill( kx*1E3 );
 	  sixkyzyHisto->fill( ky*1E3 ); // plot with gap
 	}
@@ -5676,12 +5678,12 @@ std::vector<EUTelAnalysisCMSPixel::triplet> * EUTelAnalysisCMSPixel::FindTriplet
 	triplet new_triplet((*ihit),(*khit),(*jhit));
 
 	// Setting cuts on the triplet track angle:
-	if( abs(new_triplet.getdy()) > triplet_angle_cut * new_triplet.getdz()) continue;
-	if( abs(new_triplet.getdx()) > triplet_angle_cut * new_triplet.getdz()) continue;
+	if( fabs(new_triplet.getdy()) > triplet_angle_cut * new_triplet.getdz()) continue;
+	if( fabs(new_triplet.getdx()) > triplet_angle_cut * new_triplet.getdz()) continue;
 
 	// Setting cuts on the triplet residual on the middle plane
-	if( abs(new_triplet.getdx(plane1)) > triplet_residual_cut) continue;
-	if( abs(new_triplet.getdy(plane1)) > triplet_residual_cut) continue;
+	if( fabs(new_triplet.getdx(plane1)) > triplet_residual_cut) continue;
+	if( fabs(new_triplet.getdy(plane1)) > triplet_residual_cut) continue;
 
 	// The triplet is accepted, push it back:
 	triplets->push_back(new_triplet);
@@ -5730,12 +5732,12 @@ std::vector<EUTelAnalysisCMSPixel::track> * EUTelAnalysisCMSPixel::MatchTriplets
       sixdyHisto->fill( dy );
       
       
-      if( abs(dy) < 0.4 ) sixdxcHisto->fill( dx*1E3 ); // sig = 17 um at 5 GeV
-      if( abs(dx) < 0.4 ) sixdycHisto->fill( dy*1E3 );
+      if( fabs(dy) < 0.4 ) sixdxcHisto->fill( dx*1E3 ); // sig = 17 um at 5 GeV
+      if( fabs(dx) < 0.4 ) sixdycHisto->fill( dy*1E3 );
 
       // match driplet and triplet:
-      if( abs(dx) > intersect_residual_cut) continue;
-      if( abs(dy) > intersect_residual_cut) continue;
+      if( fabs(dx) > intersect_residual_cut) continue;
+      if( fabs(dy) > intersect_residual_cut) continue;
 	
       sixkxcHisto->fill( kx*1E3 );
       sixkycHisto->fill( ky*1E3 );
@@ -5744,7 +5746,7 @@ std::vector<EUTelAnalysisCMSPixel::track> * EUTelAnalysisCMSPixel::MatchTriplets
       sixxyHisto->fill( -xA, -yA ); // DP: x_out, y_up
 
       // Fill kink map histogram:
-      if( abs( kx ) > 0.002 || abs( ky ) > 0.002 ) sixxycHisto->fill( -xA, -yA );
+      if( fabs( kx ) > 0.002 || fabs( ky ) > 0.002 ) sixxycHisto->fill( -xA, -yA );
 
       kinkvsxy->fill( -xA, -yA, (kx*kx + ky*ky)*1E6 ); //<kink^2> [mrad^2]
 
@@ -5895,9 +5897,9 @@ void EUTelAnalysisCMSPixel::FillDeltaTPlots(double time_now_tlu, double time_bef
   for( double tau = 372; tau < 378; tau += 0.01 ) {
     double ganz;
     double frac = std::modf( (time_now_tlu - time_before) / tau, &ganz );
-    dtfvstau->fill( tau, abs( frac - 0.5 ) ); // peak at 375.055 for run 5513
+    dtfvstau->fill( tau, fabs( frac - 0.5 ) ); // peak at 375.055 for run 5513
     frac = std::modf( (time_now_tlu - time_event0) / tau, &ganz ); // absolute phase
-    tfvstau->fill( tau, abs( frac - 0.5 ) );
+    tfvstau->fill( tau, fabs( frac - 0.5 ) );
   }
 
   double tau = 375.06106; // Umlauftakt [TLU ticks] for run 5359
