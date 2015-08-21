@@ -660,6 +660,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     }
     px.raw = pixel->getSignal();
 
+    dutpxcolHisto->fill(px.col);
+    dutpxrowHisto->fill(px.row);
+    dutpxadcHisto->fill(px.raw);
     //and push this pixel back
     dutPixels->push_back(px);
   }
@@ -668,6 +671,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   // Calibrate the pixel hits with the initialized calibration data:
   if(!CalibratePixels(dutPixels,dut_calibration,_DUT_conversion))
     throw StopProcessingException(this);
+  for(size_t i = 0; i < dutPixels->size(); i++) { dutpxqHisto->fill(dutPixels->at(i).vcal); }
   ClustDUT = GetClusters(dutPixels);
 
   // Read the REF event:
