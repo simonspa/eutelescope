@@ -651,8 +651,16 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     px.roc = 8;
 
     if(rot90) {
+      // Deal with backwards-incompatible change in DAQ software:
+      // before run 15268 the PCBTYPE flag has not been set and
+      // col/row are not inverted:
+      //if(_nRun > 15268) {
       px.col = pixel->getYCoord();
       px.row = pixel->getXCoord();
+      //} else {
+      //px.col = pixel->getXCoord();
+      //px.row = pixel->getYCoord();
+      //}
     }
     else {
       px.col = pixel->getXCoord();
