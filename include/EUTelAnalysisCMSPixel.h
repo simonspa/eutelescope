@@ -452,522 +452,512 @@ namespace eutelescope {
     std::vector <cluster> ClustDUT;
     std::vector <cluster> ClustREF;
 
-#if defined(USE_AIDA) || defined(MARLIN_USE_AIDA)
-    //! AIDA histogram map
-    /*! Used to refer to histograms by their names, i.e. to recall
-     *  a histogram pointer using histogram name.
-     */
-    
-    // FIXME might become useful if tying to write histos with names depending on a parameter:
-    //std::map<std::string , AIDA::IBaseHistogram * > _aidaHistoMap;
-
-#endif
-
     // Millepede binary file name:
     std::string m_millefilename;
+
+    // definition of static members mainly used to name histograms
+#if defined(USE_AIDA) || defined(MARLIN_USE_AIDA)
+
+    AIDA::IHistogram1D *t1Histo, *t10Histo, *t100Histo, *t300Histo, *t600Histo, *t1000Histo, *t1800Histo, *t3600Histo;
+    AIDA::IHistogram1D *dtHisto, *dtmsHisto, *logdtHisto, *logdtcmsHisto;
+    AIDA::IProfile1D *dtfvstau, *tfvstau;
+    AIDA::IHistogram1D * dtfHisto;
+    AIDA::IProfile1D * dtfvst, *dtfvsdt;
+    AIDA::IHistogram1D * tfHisto;
+    AIDA::IProfile1D * tfvst, * tfvst1, * tfvst10, * tfvst100, * tfvst300;
+
+    AIDA::IHistogram1D * nAllHitHisto;
+
+    AIDA::IHistogram1D * dutnclusHisto, * dutcolHisto, * dutrowHisto, * dutnpxHisto, * dutadcHisto;
+    AIDA::IHistogram1D * refnclusHisto, * refcolHisto, * refrowHisto, * refnpxHisto, * refadcHisto;
+
+    AIDA::IHistogram1D * tlutrigvstusHisto;
+    AIDA::IHistogram1D * cmsdtHisto;
+    AIDA::IHistogram1D * dutrefddtHisto;
+    AIDA::IHistogram1D * sysrtHisto;
+    AIDA::IHistogram1D * sysrdtHisto;
+    AIDA::IHistogram1D * dutddtnsHisto;
+    AIDA::IHistogram1D * refddtnsHisto;
+    AIDA::IHistogram1D * dutddtusHisto;
+    AIDA::IHistogram1D * dutddtmsHisto;
+    AIDA::IProfile1D * dutddtvst;
+    AIDA::IProfile1D * dutddtvsdt;
+    AIDA::IProfile1D * ddtvst;
+    AIDA::IProfile1D * ddtvstms;
+    AIDA::IProfile1D * ddtvsdt;
+    AIDA::IHistogram1D * gapdtHisto;
+
+
+    // Correlation plots for telescope planes
+    AIDA::IHistogram1D * dx01Histo, * dy01Histo, * du01Histo, * dx02Histo, * dx03Histo, * dx04Histo, * dx05Histo, * dx12Histo, * dy12Histo, * du12Histo, * dx23Histo, * dy23Histo, * du23Histo, * dx34Histo, * dy34Histo, * du34Histo, * dx45Histo, * dy45Histo, * du45Histo;
+
+
+    // triplets 0-1-2:
+
+    AIDA::IHistogram1D * da02Histo;
+    AIDA::IHistogram1D * db02Histo;
+
+    AIDA::IProfile2D * dzcvsxy;
+    AIDA::IProfile2D * z3vsxy;
+
+    AIDA::IHistogram1D * tridxHisto;
+    AIDA::IHistogram1D * tridyHisto;
+
+    AIDA::IProfile1D * tridxvsx;
+    AIDA::IProfile1D * tridxvsy;
+    AIDA::IProfile1D * tridxvstx;
+    AIDA::IProfile1D * tridxvsty;
+    AIDA::IProfile1D * tridyvsx;
+    AIDA::IProfile1D * tridyvsy;
+    AIDA::IProfile1D * tridyvstx;
+    AIDA::IProfile1D * tridyvsty;
+
+    AIDA::IHistogram1D * tridx1Histo, * tridy1Histo, * tridx3Histo, * tridy3Histo, * tridx3bHisto, * tridy3bHisto, * tridx4Histo, * tridy4Histo, * tridx4bHisto, * tridy4bHisto, * tridx5Histo, * tridy5Histo, * tridx5bHisto, * tridy5bHisto, * trixHisto, * triyHisto, * tritxHisto, * trityHisto;
+    AIDA::IHistogram2D * trixyHisto;
+
+    AIDA::IHistogram1D * trixdutHisto; // at DUT
+    AIDA::IHistogram1D * triydutHisto;
+    AIDA::IHistogram2D * trixydutHisto;
+
+    AIDA::IHistogram1D * triddaMindutHisto;
+
+    AIDA::IHistogram2D * cmsxxHisto;
+    AIDA::IHistogram2D * cmsyyHisto;
+
+    AIDA::IHistogram1D * cmspxqHisto, * cmspxqcl2Histo, * cmspxqrow2Histo, *cmsskwHisto, *cmsskw3pxHisto, *cmsskw4pxHisto, *cmsskwfcqHisto, *cmsskwfcHisto, *cmsskwcorrHisto, *cmsskw1colcogHisto, *cmsskw1rowcogHisto, *cmsskw1qHisto, *cmsskw1ncolHisto, *cmsskw1nrowHisto, *cmsskw0qHisto, *cmsskw0ncolHisto, *cmsskw0nrowHisto, * cmssxaHisto, * cmsdyaHisto, * cmsdxaHisto, * cmssyaHisto, * cmsdx4Histo, * cmsdy4Histo, * cmsdx5Histo, *cmsdy5Histo, * cmsdxHisto, * cmsdyHisto, * cmsdy0Histo, * cmsdxfHisto, * cmsdyfHisto, * cmsdyf1dcHisto, * cmsdyf2dcHisto, * cmsdxfcHisto, * cmsdyfcHisto, * cmsdyfc1Histo, * cmsdyfc2Histo, * cmsdyfc3Histo, * cmsdyq0Histo, * cmsdyq1Histo, * cmsdyq2Histo, * cmsdyeta0Histo, * cmsdyeta1Histo, * cmsdxfctHisto, * cmsdyfctHisto, * cmsdyfctLowEffHisto, * cmsdyfctLowEffLowChargeHisto, * cmsdyfcntHisto, * cmsdxfctqHisto, * cmsdyfctqHisto, * cmsdyfcntqHisto, * cmsdxfctq1Histo, * cmsdyfctq1Histo, * cmsdyfcntq1Histo, * cmsdyfctq1lHisto, * cmsdyfctq1rHisto, * cmsdxfctq2Histo, * cmsdyfctq2Histo, * cmsdxfctq3Histo, * cmsdyfctq3Histo, * cmsdy0fctq3Histo, * cmsdyfctqdotHisto, * cmsdyfctq3dHisto, * cmsdy0fctq4Histo, * cmsdyfctq4Histo, * cmsdyfctq4dHisto, * cmscolHisto, * cmsrowHisto, * cmsqHisto, * cmsq0Histo, * trixlkHisto, * triylkHisto, * cmsqseedfHisto,* cmsdyfctOnePixelHisto, * cmsdyfctLowChargeHisto, * cmsdyfctHighChargeHisto, * cmsdyfctOnePixelLowChargeHisto,* cmsdyfctOnePixelHighChargeHisto,* cmsdxfctLowChargeHisto;
+
+    AIDA::IHistogram2D * trixylkHisto;
+    AIDA::IHistogram1D * cmstimingcut;
+    AIDA::IHistogram1D * twoClusterDistanceHisto;
+    AIDA::IHistogram1D * twoClusterXDistanceHisto;
+    AIDA::IHistogram1D * twoClusterYDistanceHisto;
+    AIDA::IHistogram1D * twoClusterDistanceLostSeedHisto;
+    AIDA::IHistogram1D * twoClusterXDistanceLostSeedHisto;
+    AIDA::IHistogram1D * twoClusterYDistanceLostSeedHisto;
+    AIDA::IHistogram1D * twoClusterDistanceLinkedTrackHisto;
+    AIDA::IHistogram1D * twoClusterXDistanceLinkedTrackHisto;
+    AIDA::IHistogram1D * twoClusterYDistanceLinkedTrackHisto;
+    AIDA::IHistogram1D * twoClusterDistanceLostSeedLinkedTrackHisto;
+    AIDA::IHistogram1D * twoClusterXDistanceLostSeedLinkedTrackHisto;
+    AIDA::IHistogram1D * twoClusterYDistanceLostSeedLinkedTrackHisto;
+    AIDA::IProfile1D * cmsdxvsx;
+    AIDA::IProfile1D * cmsdyvsx;
+    AIDA::IProfile1D * cmsdxvsy;
+    AIDA::IProfile1D * cmsdyvsy;
+    AIDA::IProfile1D * cmsdxvstx;
+    AIDA::IProfile1D * cmsdyvsty;
+    AIDA::IHistogram2D * cmsdyvsxHisto;
+
+    AIDA::IHistogram1D * cmsnpxHisto;
+    AIDA::IHistogram1D * cmsnpxLowChargeHisto;
+    AIDA::IHistogram1D * cmsnpx0Histo;
+    AIDA::IHistogram1D * cmsnpx1Histo;
+    AIDA::IHistogram1D * cmsnpx2Histo;
+    AIDA::IHistogram1D * cmsnpx3Histo;
+    AIDA::IHistogram1D * cmsncolHisto;
+    AIDA::IHistogram1D * cmsncolLowChargeHisto;
+    AIDA::IHistogram1D * cmsnrowHisto;
+    AIDA::IHistogram1D * cmsnrowLowChargeHisto;
+    AIDA::IHistogram1D * cmsnrowqHisto;
+    AIDA::IProfile1D * cmsnrowvst1;
+    AIDA::IHistogram1D * cmsetaHisto, *cmsetaevenHisto, * cmsetaoddHisto;
+    AIDA::IHistogram1D * cmsqfHisto;
+    AIDA::IHistogram1D * cmsqfOnePixeldyCutHisto;
+    AIDA::IHistogram1D * cmsqfNotOnePixeldyCutHisto;
+    AIDA::IHistogram1D * cmsqfcl1Histo;
+    AIDA::IHistogram1D * cmsqfcl2Histo;
+    AIDA::IHistogram1D * cmsqfrow1Histo;
+    AIDA::IHistogram1D * cmsqfrow2Histo;
+    AIDA::IHistogram1D * cmsq0fHisto;
+    TH1D * cmsq0fHistoRoot;
+    AIDA::IHistogram1D * cmsqf0Histo;
+    AIDA::IHistogram1D * cmsqf1Histo;
+    AIDA::IHistogram1D * cmsqf2Histo;
+    AIDA::IHistogram1D * cmsqf3Histo;
+
+    AIDA::IProfile1D * cmsdyvsxm, * cmsdy0vsxm, * cmsdxvsxm;
+    AIDA::IProfile1D * cmsdyvsym, * cmsdxvsym;
+    AIDA::IHistogram2D * cmspixvsxmym;
+    AIDA::IHistogram2D * cmspix1vsxmym;
+    AIDA::IHistogram2D * cmspixvsxmymLowCharge;
+
+    // KIT: added for efficiency analysis - occupancy
+    AIDA::IHistogram1D * cmspixvsxm50;
+    AIDA::IHistogram1D * cmspixvsxm100; // Dot
+    AIDA::IHistogram1D * cmspixvsxm150; // Pixel border
+    AIDA::IHistogram1D * cmspixvsxm200; // Dot
+    AIDA::IHistogram1D * cmspixvsxm250;
+    AIDA::IHistogram1D * cmspixvsym25;
+    AIDA::IHistogram1D * cmspixvsym50; // Dot
+    AIDA::IHistogram1D * cmspixvsym75;
+    AIDA::IHistogram1D * cmspixvsym100; // Pixel border
+    AIDA::IHistogram1D * cmspixvsym125;
+    AIDA::IHistogram1D * cmspixvsym150; // Dot
+    AIDA::IHistogram1D * cmspixvsym175;
+
+    AIDA::IHistogram2D * cmsxyHitMap;
+    AIDA::IHistogram2D * cmsxyHitMapLowCharge;
+    AIDA::IProfile1D * cmsqvsx;
+    AIDA::IProfile1D * cmsqvsy;
+    AIDA::IProfile1D * cmsqvsxm;
+    AIDA::IProfile1D * cmsqvsym;
+    AIDA::IProfile2D * cmsqvsxmym;
+    AIDA::IProfile1D * cmsskwvsym;
+    AIDA::IProfile1D * cmsskwvsxm;
+    AIDA::IProfile1D * cmsdyvsskw;
+    AIDA::IProfile1D * cmsdy0vsskw;
+    AIDA::IProfile1D * cmsqvsddt;
+    AIDA::IProfile1D * cmsqvst1;
+    AIDA::IProfile1D * cmsqvst2;
+    AIDA::IProfile1D * cmsqvst3;
+    AIDA::IProfile1D * cmsqvst4;
+    // KIT: added for efficiency analysis - charge
+    AIDA::IProfile1D * cmsqvsxm50;
+    AIDA::IProfile1D * cmsqvsxm100; // Dot
+    AIDA::IProfile1D * cmsqvsxm150; // Pixel border
+    AIDA::IProfile1D * cmsqvsxm200; // Dot
+    AIDA::IProfile1D * cmsqvsxm250;
+    AIDA::IProfile1D * cmsqvsym25;
+    AIDA::IProfile1D * cmsqvsym50; // Dot
+    AIDA::IProfile1D * cmsqvsym75;
+    AIDA::IProfile1D * cmsqvsym100; // Pixel border
+    AIDA::IProfile1D * cmsqvsym125;
+    AIDA::IProfile1D * cmsqvsym150; // Dot
+    AIDA::IProfile1D * cmsqvsym175;
+
+    AIDA::IProfile1D * cmsrmsxvsx;
+    AIDA::IProfile1D * cmsrmsyvsx;
+    AIDA::IProfile1D * cmsrmsxvsy;
+    AIDA::IProfile1D * cmsrmsyvsy;
+    AIDA::IProfile1D * cmsrmsxvsxm;
+    AIDA::IProfile1D * cmsrmsyvsxm;
+    AIDA::IProfile1D * cmsncolvsxm;
+    AIDA::IProfile1D * cmsnrowvsxm;
+    AIDA::IProfile1D * cmsrmsxvsym;
+    AIDA::IProfile1D * cmsrmsyvsym;
+    AIDA::IProfile1D * cmsrmsyvsym3;
+    AIDA::IProfile1D * cmsrmsyvsym6;
+    AIDA::IProfile1D * cmsrmsyvst;
+    AIDA::IProfile1D * cmsrmsyvsddt;
+    AIDA::IProfile1D * cmsrmsxvsq;
+    AIDA::IProfile1D * cmsrmsyvsq;
+
+    AIDA::IProfile1D * cmsdyvseta;
+    AIDA::IProfile1D * cmsrmsyvseta;
+
+    AIDA::IProfile1D * cmspMoyalvsq;
+    AIDA::IHistogram1D * cmspMoyalHisto;
+    AIDA::IProfile1D * cmsrmsyvsp;
+
+    AIDA::IProfile2D * cmsnpxvsxmym;
+    AIDA::IProfile1D * cmsncolvsym;
+    AIDA::IProfile1D * cmsnrowvsym;
+    AIDA::IProfile1D * cmsetavsym;
+    AIDA::IProfile1D * cmsetavsym3;
+    AIDA::IProfile1D * cmsetavsym2;
+    AIDA::IHistogram1D * cmsym1Histo;
+    AIDA::IHistogram1D * cmsym2Histo;
+    // KIT: added for efficiency analysis - cluster size
+    AIDA::IProfile1D * cmsnpxvsxm50;
+    AIDA::IProfile1D * cmsnpxvsxm100; // Dot
+    AIDA::IProfile1D * cmsnpxvsxm150; // Pixel border
+    AIDA::IProfile1D * cmsnpxvsxm200; // Dot
+    AIDA::IProfile1D * cmsnpxvsxm250;
+    AIDA::IProfile1D * cmsnpxvsym25;
+    AIDA::IProfile1D * cmsnpxvsym50; // Dot
+    AIDA::IProfile1D * cmsnpxvsym75;
+    AIDA::IProfile1D * cmsnpxvsym100; // Pixel border
+    AIDA::IProfile1D * cmsnpxvsym125;
+    AIDA::IProfile1D * cmsnpxvsym150; // Dot
+    AIDA::IProfile1D * cmsnpxvsym175;
+
+    AIDA::IHistogram2D * effxyHisto;
+    AIDA::IProfile2D * effvsxy;
+    AIDA::IProfile1D * effvsx;
+    AIDA::IProfile1D * effvsxg;
+    AIDA::IProfile1D * effvsy;
+    AIDA::IProfile1D * eff300;
+    AIDA::IProfile1D * eff600;
+    AIDA::IProfile1D * eff1200;
+    AIDA::IProfile1D * eff1800;
+    AIDA::IProfile1D * eff3600;
+    AIDA::IProfile1D * effvsddt;
+    AIDA::IProfile2D * effvsxmym;
+    AIDA::IProfile1D * effd600;
+    AIDA::IProfile1D * effn600;
+    AIDA::IProfile1D * effm600;
+    // KIT: added for efficiency analysis - efficiency
+    AIDA::IProfile1D * effvsxm50;
+    AIDA::IProfile1D * effvsxm100; // Dot
+    AIDA::IProfile1D * effvsxm150; // Pixel border
+    AIDA::IProfile1D * effvsxm200; // Dot
+    AIDA::IProfile1D * effvsxm250;
+    AIDA::IProfile1D * effvsym25;
+    AIDA::IProfile1D * effvsym50; // Dot
+    AIDA::IProfile1D * effvsym75;
+    AIDA::IProfile1D * effvsym100; // Pixel border
+    AIDA::IProfile1D * effvsym125;
+    AIDA::IProfile1D * effvsym150; // Dot
+    AIDA::IProfile1D * effvsym175;
+
+    AIDA::IProfile2D * rffvsxy;
+    AIDA::IProfile1D * rffvsx;
+
+    AIDA::IHistogram1D * nTripClus;
+    AIDA::IHistogram1D * nTripClusLostSeed;
+    AIDA::IHistogram1D * nTripPixels;
+    AIDA::IHistogram1D * nTripPixelsLostSeed;
+
+    AIDA::IHistogram1D * nLinkedTripClus;
+
+    AIDA::IHistogram1D * nTripClusLinkedTrack;
+    AIDA::IHistogram1D * nTripClusLostSeedLinkedTrack;
+    AIDA::IHistogram1D * nTripPixelsLinkedTrack;
+    AIDA::IHistogram1D * nTripPixelsLostSeedLinkedTrack;
+
+    AIDA::IHistogram1D * ntriHisto;
+    AIDA::IProfile1D * lkAvst;
+
+    // triplet eff w.r.t. CMS:
+
+    AIDA::IHistogram1D * cmsxeHisto;
+    AIDA::IHistogram1D * cmsyeHisto;
+
+    AIDA::IHistogram1D * cmsdxeHisto;
+    AIDA::IHistogram1D * cmsdyeHisto;
+
+    AIDA::IHistogram1D * cmsnmHisto;
+    AIDA::IProfile2D * trieffvsxy;
+
+    // driplets 3-4-5:
+
+    AIDA::IHistogram1D * dx35Histo;
+    AIDA::IHistogram1D * dy35Histo;
+
+    AIDA::IHistogram1D * dridxHisto;
+    AIDA::IHistogram1D * dridyHisto;
+    AIDA::IHistogram1D * drixHisto;
+    AIDA::IHistogram1D * driyHisto;
+    AIDA::IHistogram2D * drixyHisto;
+    AIDA::IHistogram1D * dritxHisto;
+    AIDA::IHistogram1D * drityHisto;
+
+    AIDA::IProfile1D * dridxvsx;
+    AIDA::IProfile1D * dridxvsy;
+    AIDA::IProfile1D * dridxvstx;
+    AIDA::IProfile1D * dridxvsty;
+    AIDA::IProfile1D * dridyvsx;
+    AIDA::IProfile1D * dridyvsy;
+    AIDA::IProfile1D * dridyvstx;
+    AIDA::IProfile1D * dridyvsty;
+
+    AIDA::IHistogram1D * drixrefHisto; // at REF
+    AIDA::IHistogram1D * driyrefHisto;
+    AIDA::IHistogram2D * drixyrefHisto;
+
+    AIDA::IHistogram1D * drixlkHisto;
+    AIDA::IHistogram1D * driylkHisto;
+    AIDA::IHistogram2D * drixylkHisto;
+    AIDA::IHistogram2D * refpixvsxmym;
+
+    AIDA::IHistogram1D * refqHisto;
+    AIDA::IProfile2D * refqvsxmym;
+
+    AIDA::IHistogram2D * refxxHisto; //REF vs driplet
+    AIDA::IHistogram2D * refyyHisto;
+
+    AIDA::IHistogram1D * refsxaHisto;
+    AIDA::IHistogram1D * refdxaHisto;
+    AIDA::IHistogram1D * refsyaHisto;
+    AIDA::IHistogram1D * refdyaHisto;
+    AIDA::IHistogram1D * refsxHisto;
+    AIDA::IHistogram1D * refdyHisto;
+    AIDA::IHistogram1D * refsxcHisto;
+    AIDA::IHistogram1D * refdycHisto;
+
+    AIDA::IProfile1D * refdyvsx;
+    AIDA::IProfile1D * refdyvsy;
+    AIDA::IProfile1D * refdyvsty;
+
+    AIDA::IHistogram1D * reflkcolHisto;
+    AIDA::IHistogram1D * reflkrowHisto;
+
+    AIDA::IHistogram1D * bacsxaHisto;
+    AIDA::IHistogram1D * bacdyaHisto;
+    AIDA::IHistogram1D * bacsxcHisto;
+    AIDA::IHistogram1D * bacdycHisto;
+    AIDA::IHistogram1D * bacsxcqHisto;
+    AIDA::IHistogram1D * bacdycqHisto;
+
+    AIDA::IHistogram1D * ndriHisto;
+    AIDA::IHistogram1D * ndrirefHisto;
+    AIDA::IProfile1D * lkBvst;
+
+    AIDA::IHistogram1D * nsixHisto;
+    AIDA::IHistogram1D * sixkxHisto; //driplet-triplet
+    AIDA::IHistogram1D * sixkyHisto;
+    AIDA::IHistogram1D * sixdxHisto;
+    AIDA::IHistogram1D * sixdyHisto;
+    AIDA::IHistogram1D * sixdxcHisto;
+    AIDA::IHistogram1D * sixdycHisto;
+
+    AIDA::IHistogram1D * sixkxcHisto;
+    AIDA::IHistogram1D * sixkycHisto;
+    AIDA::IHistogram1D * sixxHisto;
+    AIDA::IHistogram1D * sixyHisto;
+    AIDA::IHistogram2D * sixxyHisto;
+    AIDA::IHistogram2D * sixxycHisto;
+    AIDA::IProfile2D * kinkvsxy;
+
+    AIDA::IHistogram1D * sixx0Histo;
+    AIDA::IHistogram1D * sixy0Histo;
+    AIDA::IHistogram1D * sixx1Histo;
+    AIDA::IHistogram1D * sixy1Histo;
+    AIDA::IHistogram1D * sixx2Histo;
+    AIDA::IHistogram1D * sixy2Histo;
+    AIDA::IHistogram1D * sixx3Histo;
+    AIDA::IHistogram1D * sixy3Histo;
+    AIDA::IHistogram1D * sixx4Histo;
+    AIDA::IHistogram1D * sixy4Histo;
+    AIDA::IHistogram1D * sixx5Histo;
+    AIDA::IHistogram1D * sixy5Histo;
+
+    AIDA::IHistogram2D * sixxylkHisto;
+
+    AIDA::IHistogram1D * derxtiltHisto;
+    AIDA::IHistogram1D * derytiltHisto;
+    AIDA::IHistogram1D * derxturnHisto;
+    AIDA::IHistogram1D * deryturnHisto;
+
+    AIDA::IHistogram1D * selxHisto;
+    AIDA::IHistogram1D * selyHisto;
+    AIDA::IHistogram1D * selaxHisto;
+    AIDA::IHistogram1D * selayHisto;
+    AIDA::IHistogram1D * seldxHisto;
+    AIDA::IHistogram1D * seldyHisto;
+    AIDA::IHistogram1D * selkxHisto;
+    AIDA::IHistogram1D * selkyHisto;
+
+    AIDA::IHistogram1D * seldx1Histo;
+    AIDA::IHistogram1D * seldy1Histo;
+    AIDA::IHistogram1D * seldx3Histo;
+    AIDA::IHistogram1D * seldy3Histo;
+    AIDA::IHistogram1D * seldx4Histo;
+    AIDA::IHistogram1D * seldy4Histo;
+    AIDA::IHistogram1D * seldx5Histo;
+    AIDA::IHistogram1D * seldy5Histo;
+    AIDA::IHistogram1D * seldx6Histo;
+    AIDA::IHistogram1D * seldy6Histo;
+
+    AIDA::IHistogram1D * gblndfHisto;
+    AIDA::IHistogram1D * gblchi2aHisto;
+    AIDA::IHistogram1D * gblchi2bHisto;
+    AIDA::IHistogram1D * gblprbHisto;
+
+    AIDA::IHistogram1D * badxHisto;
+    AIDA::IHistogram1D * badyHisto;
+    AIDA::IHistogram1D * badaxHisto;
+    AIDA::IHistogram1D * badayHisto;
+    AIDA::IHistogram1D * baddxHisto;
+    AIDA::IHistogram1D * baddyHisto;
+    AIDA::IHistogram1D * badkxHisto;
+    AIDA::IHistogram1D * badkyHisto;
+
+    AIDA::IHistogram1D * baddx1Histo;
+    AIDA::IHistogram1D * baddy1Histo;
+    AIDA::IHistogram1D * baddx3Histo;
+    AIDA::IHistogram1D * baddy3Histo;
+    AIDA::IHistogram1D * baddx4Histo;
+    AIDA::IHistogram1D * baddy4Histo;
+    AIDA::IHistogram1D * baddx5Histo;
+    AIDA::IHistogram1D * baddy5Histo;
+    AIDA::IHistogram1D * baddx6Histo;
+    AIDA::IHistogram1D * baddy6Histo;
+
+    AIDA::IHistogram1D * goodx1Histo;
+    AIDA::IHistogram1D * goody1Histo;
+    AIDA::IHistogram1D * goodx6Histo;
+    AIDA::IHistogram1D * goody6Histo;
+
+    AIDA::IHistogram1D * gblax0Histo;
+    AIDA::IHistogram1D * gbldx0Histo;
+    AIDA::IHistogram1D * gblrx0Histo;
+    AIDA::IHistogram1D * gblpx0Histo;
+    AIDA::IHistogram1D * gblqx0Histo;
+
+    AIDA::IHistogram1D * gblax1Histo;
+    AIDA::IHistogram1D * gbldx1Histo;
+    AIDA::IHistogram1D * gblrx1Histo;
+    AIDA::IHistogram1D * gblpx1Histo;
+    AIDA::IHistogram1D * gblqx1Histo;
+    AIDA::IHistogram1D * gblsx1Histo;
+    AIDA::IHistogram1D * gbltx1Histo;
+
+    AIDA::IHistogram1D * gblax2Histo;
+    AIDA::IHistogram1D * gbldx2Histo;
+    AIDA::IHistogram1D * gblrx2Histo;
+    AIDA::IHistogram1D * gblpx2Histo;
+    AIDA::IHistogram1D * gblqx2Histo;
+
+    AIDA::IHistogram1D * gblax3Histo;
+    AIDA::IHistogram1D * gbldx3Histo;
+    AIDA::IHistogram1D * gblrx3Histo;
+    AIDA::IHistogram1D * gblpx3Histo;
+    AIDA::IHistogram1D * gblqx3Histo;
+
+    AIDA::IHistogram1D * gblax4Histo;
+    AIDA::IHistogram1D * gbldx4Histo;
+    AIDA::IHistogram1D * gblrx4Histo;
+    AIDA::IHistogram1D * gblpx4Histo;
+    AIDA::IHistogram1D * gblqx4Histo;
+
+    AIDA::IHistogram1D * gblax5Histo;
+    AIDA::IHistogram1D * gbldx5Histo;
+    AIDA::IHistogram1D * gblrx5Histo;
+    AIDA::IHistogram1D * gblpx5Histo;
+    AIDA::IHistogram1D * gblqx5Histo;
+
+    AIDA::IHistogram1D * gblax6Histo;
+    AIDA::IHistogram1D * gbldx6Histo;
+    AIDA::IHistogram1D * gbldy6Histo;
+    AIDA::IHistogram1D * gblrx6Histo;
+    AIDA::IHistogram1D * gblry6Histo;
+    AIDA::IHistogram1D * gblpx6Histo;
+    AIDA::IHistogram1D * gblpy6Histo;
+    AIDA::IHistogram1D * gblqx6Histo;
+    AIDA::IHistogram1D * gblsx6Histo;
+    AIDA::IHistogram1D * gbltx6Histo;
+
+    AIDA::IHistogram1D * gblkx1Histo;
+    AIDA::IHistogram1D * gblkx2Histo;
+    AIDA::IHistogram1D * gblkx3Histo;
+    AIDA::IHistogram1D * gblkx4Histo;
+    AIDA::IHistogram1D * gblkx5Histo;
+    AIDA::IHistogram1D * gblkx6Histo;
+
+    AIDA::IHistogram1D * sixzx3Histo;
+    AIDA::IHistogram1D * sixzy3Histo;
+    AIDA::IHistogram1D * sixzx2Histo;
+    AIDA::IHistogram1D * sixzy2Histo;
+    AIDA::IHistogram1D * sixzx1Histo;
+    AIDA::IHistogram1D * sixzy1Histo;
+
+    AIDA::IHistogram1D * sixkxzyHisto;
+    AIDA::IHistogram1D * sixkyzxHisto;
+    AIDA::IHistogram1D * sixkxzxHisto;
+    AIDA::IHistogram1D * sixkyzyHisto;
+
+    AIDA::IHistogram1D * correvt100Histo;
+    AIDA::IHistogram1D * correvt300Histo;
+    AIDA::IHistogram1D * correvt1000Histo;
+    AIDA::IHistogram1D * correvt4000Histo;
+#endif
+
+
   };
 
   //! A global instance of the processor:
   EUTelAnalysisCMSPixel aEUTelAnalysisCMSPixel;
-
-
-  // definition of static members mainly used to name histograms
-#if defined(USE_AIDA) || defined(MARLIN_USE_AIDA)
-
-  AIDA::IHistogram1D *t1Histo, *t10Histo, *t100Histo, *t300Histo, *t600Histo, *t1000Histo, *t1800Histo, *t3600Histo;
-  AIDA::IHistogram1D *dtHisto, *dtmsHisto, *logdtHisto, *logdtcmsHisto;
-  AIDA::IProfile1D *dtfvstau, *tfvstau;
-  AIDA::IHistogram1D * dtfHisto;
-  AIDA::IProfile1D * dtfvst, *dtfvsdt;
-  AIDA::IHistogram1D * tfHisto;
-  AIDA::IProfile1D * tfvst, * tfvst1, * tfvst10, * tfvst100, * tfvst300;
-
-  AIDA::IHistogram1D * nAllHitHisto;
-
-  AIDA::IHistogram1D * dutnclusHisto, * dutcolHisto, * dutrowHisto, * dutnpxHisto, * dutadcHisto;
-  AIDA::IHistogram1D * refnclusHisto, * refcolHisto, * refrowHisto, * refnpxHisto, * refadcHisto;
-
-  AIDA::IHistogram1D * tlutrigvstusHisto;
-  AIDA::IHistogram1D * cmsdtHisto;
-  AIDA::IHistogram1D * dutrefddtHisto;
-  AIDA::IHistogram1D * sysrtHisto;
-  AIDA::IHistogram1D * sysrdtHisto;
-  AIDA::IHistogram1D * dutddtnsHisto;
-  AIDA::IHistogram1D * refddtnsHisto;
-  AIDA::IHistogram1D * dutddtusHisto;
-  AIDA::IHistogram1D * dutddtmsHisto;
-  AIDA::IProfile1D * dutddtvst;
-  AIDA::IProfile1D * dutddtvsdt;
-  AIDA::IProfile1D * ddtvst;
-  AIDA::IProfile1D * ddtvstms;
-  AIDA::IProfile1D * ddtvsdt;
-  AIDA::IHistogram1D * gapdtHisto;
-
-
-  // Correlation plots for telescope planes
-  AIDA::IHistogram1D * dx01Histo, * dy01Histo, * du01Histo, * dx02Histo, * dx03Histo, * dx04Histo, * dx05Histo, * dx12Histo, * dy12Histo, * du12Histo, * dx23Histo, * dy23Histo, * du23Histo, * dx34Histo, * dy34Histo, * du34Histo, * dx45Histo, * dy45Histo, * du45Histo;
-
-
-  // triplets 0-1-2:
-
-  AIDA::IHistogram1D * da02Histo;
-  AIDA::IHistogram1D * db02Histo;
-
-  AIDA::IProfile2D * dzcvsxy;
-  AIDA::IProfile2D * z3vsxy;
-
-  AIDA::IHistogram1D * tridxHisto;
-  AIDA::IHistogram1D * tridyHisto;
-
-  AIDA::IProfile1D * tridxvsx;
-  AIDA::IProfile1D * tridxvsy;
-  AIDA::IProfile1D * tridxvstx;
-  AIDA::IProfile1D * tridxvsty;
-  AIDA::IProfile1D * tridyvsx;
-  AIDA::IProfile1D * tridyvsy;
-  AIDA::IProfile1D * tridyvstx;
-  AIDA::IProfile1D * tridyvsty;
-
-  AIDA::IHistogram1D * tridx1Histo, * tridy1Histo, * tridx3Histo, * tridy3Histo, * tridx3bHisto, * tridy3bHisto, * tridx4Histo, * tridy4Histo, * tridx4bHisto, * tridy4bHisto, * tridx5Histo, * tridy5Histo, * tridx5bHisto, * tridy5bHisto, * trixHisto, * triyHisto, * tritxHisto, * trityHisto;
-  AIDA::IHistogram2D * trixyHisto;
-
-  AIDA::IHistogram1D * trixdutHisto; // at DUT
-  AIDA::IHistogram1D * triydutHisto;
-  AIDA::IHistogram2D * trixydutHisto;
-
-  AIDA::IHistogram1D * triddaMindutHisto;
-
-  AIDA::IHistogram2D * cmsxxHisto;
-  AIDA::IHistogram2D * cmsyyHisto;
-
-  AIDA::IHistogram1D * cmspxqHisto, * cmspxqcl2Histo, * cmspxqrow2Histo, *cmsskwHisto, *cmsskw3pxHisto, *cmsskw4pxHisto, *cmsskwfcqHisto, *cmsskwfcHisto, *cmsskwcorrHisto, *cmsskw1colcogHisto, *cmsskw1rowcogHisto, *cmsskw1qHisto, *cmsskw1ncolHisto, *cmsskw1nrowHisto, *cmsskw0qHisto, *cmsskw0ncolHisto, *cmsskw0nrowHisto, * cmssxaHisto, * cmsdyaHisto, * cmsdxaHisto, * cmssyaHisto, * cmsdx4Histo, * cmsdy4Histo, * cmsdx5Histo, *cmsdy5Histo, * cmsdxHisto, * cmsdyHisto, * cmsdy0Histo, * cmsdxfHisto, * cmsdyfHisto, * cmsdyf1dcHisto, * cmsdyf2dcHisto, * cmsdxfcHisto, * cmsdyfcHisto, * cmsdyfc1Histo, * cmsdyfc2Histo, * cmsdyfc3Histo, * cmsdyq0Histo, * cmsdyq1Histo, * cmsdyq2Histo, * cmsdyeta0Histo, * cmsdyeta1Histo, * cmsdxfctHisto, * cmsdyfctHisto, * cmsdyfctLowEffHisto, * cmsdyfctLowEffLowChargeHisto, * cmsdyfcntHisto, * cmsdxfctqHisto, * cmsdyfctqHisto, * cmsdyfcntqHisto, * cmsdxfctq1Histo, * cmsdyfctq1Histo, * cmsdyfcntq1Histo, * cmsdyfctq1lHisto, * cmsdyfctq1rHisto, * cmsdxfctq2Histo, * cmsdyfctq2Histo, * cmsdxfctq3Histo, * cmsdyfctq3Histo, * cmsdy0fctq3Histo, * cmsdyfctqdotHisto, * cmsdyfctq3dHisto, * cmscolHisto, * cmsrowHisto, * cmsqHisto, * cmsq0Histo, * trixlkHisto, * triylkHisto, * cmsqseedfHisto,* cmsdyfctOnePixelHisto, * cmsdyfctLowChargeHisto, * cmsdyfctHighChargeHisto, * cmsdyfctOnePixelLowChargeHisto,* cmsdyfctOnePixelHighChargeHisto,* cmsdxfctLowChargeHisto;
-
-  AIDA::IHistogram2D * trixylkHisto;
-  AIDA::IHistogram1D * cmstimingcut;
-  AIDA::IHistogram1D * twoClusterDistanceHisto;
-  AIDA::IHistogram1D * twoClusterXDistanceHisto;
-  AIDA::IHistogram1D * twoClusterYDistanceHisto;
-  AIDA::IHistogram1D * twoClusterDistanceLostSeedHisto;
-  AIDA::IHistogram1D * twoClusterXDistanceLostSeedHisto;
-  AIDA::IHistogram1D * twoClusterYDistanceLostSeedHisto;
-  AIDA::IHistogram1D * twoClusterDistanceLinkedTrackHisto;
-  AIDA::IHistogram1D * twoClusterXDistanceLinkedTrackHisto;
-  AIDA::IHistogram1D * twoClusterYDistanceLinkedTrackHisto;
-  AIDA::IHistogram1D * twoClusterDistanceLostSeedLinkedTrackHisto;
-  AIDA::IHistogram1D * twoClusterXDistanceLostSeedLinkedTrackHisto;
-  AIDA::IHistogram1D * twoClusterYDistanceLostSeedLinkedTrackHisto;
-  AIDA::IProfile1D * cmsdxvsx;
-  AIDA::IProfile1D * cmsdyvsx;
-  AIDA::IProfile1D * cmsdxvsy;
-  AIDA::IProfile1D * cmsdyvsy;
-  AIDA::IProfile1D * cmsdxvstx;
-  AIDA::IProfile1D * cmsdyvsty;
-  AIDA::IHistogram2D * cmsdyvsxHisto;
-
-  AIDA::IHistogram1D * cmsnpxHisto;
-  AIDA::IHistogram1D * cmsnpxLowChargeHisto;
-  AIDA::IHistogram1D * cmsnpx0Histo;
-  AIDA::IHistogram1D * cmsnpx1Histo;
-  AIDA::IHistogram1D * cmsnpx2Histo;
-  AIDA::IHistogram1D * cmsnpx3Histo;
-  AIDA::IHistogram1D * cmsncolHisto;
-  AIDA::IHistogram1D * cmsncolLowChargeHisto;
-  AIDA::IHistogram1D * cmsnrowHisto;
-  AIDA::IHistogram1D * cmsnrowLowChargeHisto;
-  AIDA::IHistogram1D * cmsnrowqHisto;
-  AIDA::IProfile1D * cmsnrowvst1;
-  AIDA::IHistogram1D * cmsetaHisto, *cmsetaevenHisto, * cmsetaoddHisto;
-  AIDA::IHistogram1D * cmsqfHisto;
-  AIDA::IHistogram1D * cmsqfOnePixeldyCutHisto;
-  AIDA::IHistogram1D * cmsqfNotOnePixeldyCutHisto;
-  AIDA::IHistogram1D * cmsqfcl1Histo;
-  AIDA::IHistogram1D * cmsqfcl2Histo;
-  AIDA::IHistogram1D * cmsqfrow1Histo;
-  AIDA::IHistogram1D * cmsqfrow2Histo;
-  AIDA::IHistogram1D * cmsq0fHisto;
-  TH1D * cmsq0fHistoRoot;
-  AIDA::IHistogram1D * cmsqf0Histo;
-  AIDA::IHistogram1D * cmsqf1Histo;
-  AIDA::IHistogram1D * cmsqf2Histo;
-  AIDA::IHistogram1D * cmsqf3Histo;
-
-  AIDA::IProfile1D * cmsdyvsxm, * cmsdy0vsxm, * cmsdxvsxm;
-  AIDA::IProfile1D * cmsdyvsym, * cmsdxvsym;
-  AIDA::IHistogram2D * cmspixvsxmym;
-  AIDA::IHistogram2D * cmspix1vsxmym;
-  AIDA::IHistogram2D * cmspixvsxmymLowCharge;
-
-  // KIT: added for efficiency analysis - occupancy
-  AIDA::IHistogram1D * cmspixvsxm50;
-  AIDA::IHistogram1D * cmspixvsxm100; // Dot
-  AIDA::IHistogram1D * cmspixvsxm150; // Pixel border
-  AIDA::IHistogram1D * cmspixvsxm200; // Dot
-  AIDA::IHistogram1D * cmspixvsxm250;
-  AIDA::IHistogram1D * cmspixvsym25;
-  AIDA::IHistogram1D * cmspixvsym50; // Dot
-  AIDA::IHistogram1D * cmspixvsym75;
-  AIDA::IHistogram1D * cmspixvsym100; // Pixel border
-  AIDA::IHistogram1D * cmspixvsym125;
-  AIDA::IHistogram1D * cmspixvsym150; // Dot
-  AIDA::IHistogram1D * cmspixvsym175;
-
-  AIDA::IHistogram2D * cmsxyHitMap;
-  AIDA::IHistogram2D * cmsxyHitMapLowCharge;
-  AIDA::IProfile1D * cmsqvsx;
-  AIDA::IProfile1D * cmsqvsy;
-  AIDA::IProfile1D * cmsqvsxm;
-  AIDA::IProfile1D * cmsqvsym;
-  AIDA::IProfile2D * cmsqvsxmym;
-  AIDA::IProfile1D * cmsskwvsym;
-  AIDA::IProfile1D * cmsskwvsxm;
-  AIDA::IProfile1D * cmsdyvsskw;
-  AIDA::IProfile1D * cmsdy0vsskw;
-  AIDA::IProfile1D * cmsqvsddt;
-  AIDA::IProfile1D * cmsqvst1;
-  AIDA::IProfile1D * cmsqvst2;
-  AIDA::IProfile1D * cmsqvst3;
-  AIDA::IProfile1D * cmsqvst4;
-  // KIT: added for efficiency analysis - charge
-  AIDA::IProfile1D * cmsqvsxm50;
-  AIDA::IProfile1D * cmsqvsxm100; // Dot
-  AIDA::IProfile1D * cmsqvsxm150; // Pixel border
-  AIDA::IProfile1D * cmsqvsxm200; // Dot
-  AIDA::IProfile1D * cmsqvsxm250;
-  AIDA::IProfile1D * cmsqvsym25;
-  AIDA::IProfile1D * cmsqvsym50; // Dot
-  AIDA::IProfile1D * cmsqvsym75;
-  AIDA::IProfile1D * cmsqvsym100; // Pixel border
-  AIDA::IProfile1D * cmsqvsym125;
-  AIDA::IProfile1D * cmsqvsym150; // Dot
-  AIDA::IProfile1D * cmsqvsym175;
-
-  AIDA::IProfile1D * cmsrmsxvsx;
-  AIDA::IProfile1D * cmsrmsyvsx;
-  AIDA::IProfile1D * cmsrmsxvsy;
-  AIDA::IProfile1D * cmsrmsyvsy;
-  AIDA::IProfile1D * cmsrmsxvsxm;
-  AIDA::IProfile1D * cmsrmsyvsxm;
-  AIDA::IProfile1D * cmsncolvsxm;
-  AIDA::IProfile1D * cmsnrowvsxm;
-  AIDA::IProfile1D * cmsrmsxvsym;
-  AIDA::IProfile1D * cmsrmsyvsym;
-  AIDA::IProfile1D * cmsrmsyvsym3;
-  AIDA::IProfile1D * cmsrmsyvsym6;
-  AIDA::IProfile1D * cmsrmsyvst;
-  AIDA::IProfile1D * cmsrmsyvsddt;
-  AIDA::IProfile1D * cmsrmsxvsq;
-  AIDA::IProfile1D * cmsrmsyvsq;
-
-  AIDA::IProfile1D * cmsdyvseta;
-  AIDA::IProfile1D * cmsrmsyvseta;
-
-  AIDA::IProfile1D * cmspMoyalvsq;
-  AIDA::IHistogram1D * cmspMoyalHisto;
-  AIDA::IProfile1D * cmsrmsyvsp;
-
-  AIDA::IProfile2D * cmsnpxvsxmym;
-  AIDA::IProfile1D * cmsncolvsym;
-  AIDA::IProfile1D * cmsnrowvsym;
-  AIDA::IProfile1D * cmsetavsym;
-  AIDA::IProfile1D * cmsetavsym3;
-  AIDA::IProfile1D * cmsetavsym2;
-  AIDA::IHistogram1D * cmsym1Histo;
-  AIDA::IHistogram1D * cmsym2Histo;
-  // KIT: added for efficiency analysis - cluster size
-  AIDA::IProfile1D * cmsnpxvsxm50;
-  AIDA::IProfile1D * cmsnpxvsxm100; // Dot
-  AIDA::IProfile1D * cmsnpxvsxm150; // Pixel border
-  AIDA::IProfile1D * cmsnpxvsxm200; // Dot
-  AIDA::IProfile1D * cmsnpxvsxm250;
-  AIDA::IProfile1D * cmsnpxvsym25;
-  AIDA::IProfile1D * cmsnpxvsym50; // Dot
-  AIDA::IProfile1D * cmsnpxvsym75;
-  AIDA::IProfile1D * cmsnpxvsym100; // Pixel border
-  AIDA::IProfile1D * cmsnpxvsym125;
-  AIDA::IProfile1D * cmsnpxvsym150; // Dot
-  AIDA::IProfile1D * cmsnpxvsym175;
-
-  AIDA::IHistogram2D * effxyHisto;
-  AIDA::IProfile2D * effvsxy;
-  AIDA::IProfile1D * effvsx;
-  AIDA::IProfile1D * effvsxg;
-  AIDA::IProfile1D * effvsy;
-  AIDA::IProfile1D * eff300;
-  AIDA::IProfile1D * eff600;
-  AIDA::IProfile1D * eff1200;
-  AIDA::IProfile1D * eff1800;
-  AIDA::IProfile1D * eff3600;
-  AIDA::IProfile1D * effvsddt;
-  AIDA::IProfile2D * effvsxmym;
-  AIDA::IProfile1D * effd600;
-  AIDA::IProfile1D * effn600;
-  AIDA::IProfile1D * effm600;
-  // KIT: added for efficiency analysis - efficiency
-  AIDA::IProfile1D * effvsxm50;
-  AIDA::IProfile1D * effvsxm100; // Dot
-  AIDA::IProfile1D * effvsxm150; // Pixel border
-  AIDA::IProfile1D * effvsxm200; // Dot
-  AIDA::IProfile1D * effvsxm250;
-  AIDA::IProfile1D * effvsym25;
-  AIDA::IProfile1D * effvsym50; // Dot
-  AIDA::IProfile1D * effvsym75;
-  AIDA::IProfile1D * effvsym100; // Pixel border
-  AIDA::IProfile1D * effvsym125;
-  AIDA::IProfile1D * effvsym150; // Dot
-  AIDA::IProfile1D * effvsym175;
-
-  AIDA::IProfile2D * rffvsxy;
-  AIDA::IProfile1D * rffvsx;
-
-  AIDA::IHistogram1D * nTripClus;
-  AIDA::IHistogram1D * nTripClusLostSeed;
-  AIDA::IHistogram1D * nTripPixels;
-  AIDA::IHistogram1D * nTripPixelsLostSeed;
-
-  AIDA::IHistogram1D * nLinkedTripClus;
-
-  AIDA::IHistogram1D * nTripClusLinkedTrack;
-  AIDA::IHistogram1D * nTripClusLostSeedLinkedTrack;
-  AIDA::IHistogram1D * nTripPixelsLinkedTrack;
-  AIDA::IHistogram1D * nTripPixelsLostSeedLinkedTrack;
-
-  AIDA::IHistogram1D * ntriHisto;
-  AIDA::IProfile1D * lkAvst;
-
-  // triplet eff w.r.t. CMS:
-
-  AIDA::IHistogram1D * cmsxeHisto;
-  AIDA::IHistogram1D * cmsyeHisto;
-
-  AIDA::IHistogram1D * cmsdxeHisto;
-  AIDA::IHistogram1D * cmsdyeHisto;
-
-  AIDA::IHistogram1D * cmsnmHisto;
-  AIDA::IProfile2D * trieffvsxy;
-
-  // driplets 3-4-5:
-
-  AIDA::IHistogram1D * dx35Histo;
-  AIDA::IHistogram1D * dy35Histo;
-
-  AIDA::IHistogram1D * dridxHisto;
-  AIDA::IHistogram1D * dridyHisto;
-  AIDA::IHistogram1D * drixHisto;
-  AIDA::IHistogram1D * driyHisto;
-  AIDA::IHistogram2D * drixyHisto;
-  AIDA::IHistogram1D * dritxHisto;
-  AIDA::IHistogram1D * drityHisto;
-
-  AIDA::IProfile1D * dridxvsx;
-  AIDA::IProfile1D * dridxvsy;
-  AIDA::IProfile1D * dridxvstx;
-  AIDA::IProfile1D * dridxvsty;
-  AIDA::IProfile1D * dridyvsx;
-  AIDA::IProfile1D * dridyvsy;
-  AIDA::IProfile1D * dridyvstx;
-  AIDA::IProfile1D * dridyvsty;
-
-  AIDA::IHistogram1D * drixrefHisto; // at REF
-  AIDA::IHistogram1D * driyrefHisto;
-  AIDA::IHistogram2D * drixyrefHisto;
-
-  AIDA::IHistogram1D * drixlkHisto;
-  AIDA::IHistogram1D * driylkHisto;
-  AIDA::IHistogram2D * drixylkHisto;
-  AIDA::IHistogram2D * refpixvsxmym;
-
-  AIDA::IHistogram1D * refqHisto;
-  AIDA::IProfile2D * refqvsxmym;
-
-  AIDA::IHistogram2D * refxxHisto; //REF vs driplet
-  AIDA::IHistogram2D * refyyHisto;
-
-  AIDA::IHistogram1D * refsxaHisto;
-  AIDA::IHistogram1D * refdxaHisto;
-  AIDA::IHistogram1D * refsyaHisto;
-  AIDA::IHistogram1D * refdyaHisto;
-  AIDA::IHistogram1D * refsxHisto;
-  AIDA::IHistogram1D * refdyHisto;
-  AIDA::IHistogram1D * refsxcHisto;
-  AIDA::IHistogram1D * refdycHisto;
-
-  AIDA::IProfile1D * refdyvsx;
-  AIDA::IProfile1D * refdyvsy;
-  AIDA::IProfile1D * refdyvsty;
-
-  AIDA::IHistogram1D * reflkcolHisto;
-  AIDA::IHistogram1D * reflkrowHisto;
-
-  AIDA::IHistogram1D * bacsxaHisto;
-  AIDA::IHistogram1D * bacdyaHisto;
-  AIDA::IHistogram1D * bacsxcHisto;
-  AIDA::IHistogram1D * bacdycHisto;
-  AIDA::IHistogram1D * bacsxcqHisto;
-  AIDA::IHistogram1D * bacdycqHisto;
-
-  AIDA::IHistogram1D * ndriHisto;
-  AIDA::IHistogram1D * ndrirefHisto;
-  AIDA::IProfile1D * lkBvst;
-
-  AIDA::IHistogram1D * nsixHisto;
-  AIDA::IHistogram1D * sixkxHisto; //driplet-triplet
-  AIDA::IHistogram1D * sixkyHisto;
-  AIDA::IHistogram1D * sixdxHisto;
-  AIDA::IHistogram1D * sixdyHisto;
-  AIDA::IHistogram1D * sixdxcHisto;
-  AIDA::IHistogram1D * sixdycHisto;
-
-  AIDA::IHistogram1D * sixkxcHisto;
-  AIDA::IHistogram1D * sixkycHisto;
-  AIDA::IHistogram1D * sixxHisto;
-  AIDA::IHistogram1D * sixyHisto;
-  AIDA::IHistogram2D * sixxyHisto;
-  AIDA::IHistogram2D * sixxycHisto;
-  AIDA::IProfile2D * kinkvsxy;
-
-  AIDA::IHistogram1D * sixx0Histo;
-  AIDA::IHistogram1D * sixy0Histo;
-  AIDA::IHistogram1D * sixx1Histo;
-  AIDA::IHistogram1D * sixy1Histo;
-  AIDA::IHistogram1D * sixx2Histo;
-  AIDA::IHistogram1D * sixy2Histo;
-  AIDA::IHistogram1D * sixx3Histo;
-  AIDA::IHistogram1D * sixy3Histo;
-  AIDA::IHistogram1D * sixx4Histo;
-  AIDA::IHistogram1D * sixy4Histo;
-  AIDA::IHistogram1D * sixx5Histo;
-  AIDA::IHistogram1D * sixy5Histo;
-
-  AIDA::IHistogram2D * sixxylkHisto;
-
-  AIDA::IHistogram1D * derxtiltHisto;
-  AIDA::IHistogram1D * derytiltHisto;
-  AIDA::IHistogram1D * derxturnHisto;
-  AIDA::IHistogram1D * deryturnHisto;
-
-  AIDA::IHistogram1D * selxHisto;
-  AIDA::IHistogram1D * selyHisto;
-  AIDA::IHistogram1D * selaxHisto;
-  AIDA::IHistogram1D * selayHisto;
-  AIDA::IHistogram1D * seldxHisto;
-  AIDA::IHistogram1D * seldyHisto;
-  AIDA::IHistogram1D * selkxHisto;
-  AIDA::IHistogram1D * selkyHisto;
-
-  AIDA::IHistogram1D * seldx1Histo;
-  AIDA::IHistogram1D * seldy1Histo;
-  AIDA::IHistogram1D * seldx3Histo;
-  AIDA::IHistogram1D * seldy3Histo;
-  AIDA::IHistogram1D * seldx4Histo;
-  AIDA::IHistogram1D * seldy4Histo;
-  AIDA::IHistogram1D * seldx5Histo;
-  AIDA::IHistogram1D * seldy5Histo;
-  AIDA::IHistogram1D * seldx6Histo;
-  AIDA::IHistogram1D * seldy6Histo;
-
-  AIDA::IHistogram1D * gblndfHisto;
-  AIDA::IHistogram1D * gblchi2aHisto;
-  AIDA::IHistogram1D * gblchi2bHisto;
-  AIDA::IHistogram1D * gblprbHisto;
-
-  AIDA::IHistogram1D * badxHisto;
-  AIDA::IHistogram1D * badyHisto;
-  AIDA::IHistogram1D * badaxHisto;
-  AIDA::IHistogram1D * badayHisto;
-  AIDA::IHistogram1D * baddxHisto;
-  AIDA::IHistogram1D * baddyHisto;
-  AIDA::IHistogram1D * badkxHisto;
-  AIDA::IHistogram1D * badkyHisto;
-
-  AIDA::IHistogram1D * baddx1Histo;
-  AIDA::IHistogram1D * baddy1Histo;
-  AIDA::IHistogram1D * baddx3Histo;
-  AIDA::IHistogram1D * baddy3Histo;
-  AIDA::IHistogram1D * baddx4Histo;
-  AIDA::IHistogram1D * baddy4Histo;
-  AIDA::IHistogram1D * baddx5Histo;
-  AIDA::IHistogram1D * baddy5Histo;
-  AIDA::IHistogram1D * baddx6Histo;
-  AIDA::IHistogram1D * baddy6Histo;
-
-  AIDA::IHistogram1D * goodx1Histo;
-  AIDA::IHistogram1D * goody1Histo;
-  AIDA::IHistogram1D * goodx6Histo;
-  AIDA::IHistogram1D * goody6Histo;
-
-  AIDA::IHistogram1D * gblax0Histo;
-  AIDA::IHistogram1D * gbldx0Histo;
-  AIDA::IHistogram1D * gblrx0Histo;
-  AIDA::IHistogram1D * gblpx0Histo;
-  AIDA::IHistogram1D * gblqx0Histo;
-
-  AIDA::IHistogram1D * gblax1Histo;
-  AIDA::IHistogram1D * gbldx1Histo;
-  AIDA::IHistogram1D * gblrx1Histo;
-  AIDA::IHistogram1D * gblpx1Histo;
-  AIDA::IHistogram1D * gblqx1Histo;
-  AIDA::IHistogram1D * gblsx1Histo;
-  AIDA::IHistogram1D * gbltx1Histo;
-
-  AIDA::IHistogram1D * gblax2Histo;
-  AIDA::IHistogram1D * gbldx2Histo;
-  AIDA::IHistogram1D * gblrx2Histo;
-  AIDA::IHistogram1D * gblpx2Histo;
-  AIDA::IHistogram1D * gblqx2Histo;
-
-  AIDA::IHistogram1D * gblax3Histo;
-  AIDA::IHistogram1D * gbldx3Histo;
-  AIDA::IHistogram1D * gblrx3Histo;
-  AIDA::IHistogram1D * gblpx3Histo;
-  AIDA::IHistogram1D * gblqx3Histo;
-
-  AIDA::IHistogram1D * gblax4Histo;
-  AIDA::IHistogram1D * gbldx4Histo;
-  AIDA::IHistogram1D * gblrx4Histo;
-  AIDA::IHistogram1D * gblpx4Histo;
-  AIDA::IHistogram1D * gblqx4Histo;
-
-  AIDA::IHistogram1D * gblax5Histo;
-  AIDA::IHistogram1D * gbldx5Histo;
-  AIDA::IHistogram1D * gblrx5Histo;
-  AIDA::IHistogram1D * gblpx5Histo;
-  AIDA::IHistogram1D * gblqx5Histo;
-
-  AIDA::IHistogram1D * gblax6Histo;
-  AIDA::IHistogram1D * gbldx6Histo;
-  AIDA::IHistogram1D * gbldy6Histo;
-  AIDA::IHistogram1D * gblrx6Histo;
-  AIDA::IHistogram1D * gblry6Histo;
-  AIDA::IHistogram1D * gblpx6Histo;
-  AIDA::IHistogram1D * gblpy6Histo;
-  AIDA::IHistogram1D * gblqx6Histo;
-  AIDA::IHistogram1D * gblsx6Histo;
-  AIDA::IHistogram1D * gbltx6Histo;
-
-  AIDA::IHistogram1D * gblkx1Histo;
-  AIDA::IHistogram1D * gblkx2Histo;
-  AIDA::IHistogram1D * gblkx3Histo;
-  AIDA::IHistogram1D * gblkx4Histo;
-  AIDA::IHistogram1D * gblkx5Histo;
-  AIDA::IHistogram1D * gblkx6Histo;
-
-  AIDA::IHistogram1D * sixzx3Histo;
-  AIDA::IHistogram1D * sixzy3Histo;
-  AIDA::IHistogram1D * sixzx2Histo;
-  AIDA::IHistogram1D * sixzy2Histo;
-  AIDA::IHistogram1D * sixzx1Histo;
-  AIDA::IHistogram1D * sixzy1Histo;
-
-  AIDA::IHistogram1D * sixkxzyHisto;
-  AIDA::IHistogram1D * sixkyzxHisto;
-  AIDA::IHistogram1D * sixkxzxHisto;
-  AIDA::IHistogram1D * sixkyzyHisto;
-
-  AIDA::IHistogram1D * correvt100Histo;
-  AIDA::IHistogram1D * correvt300Histo;
-  AIDA::IHistogram1D * correvt1000Histo;
-  AIDA::IHistogram1D * correvt4000Histo;
-#endif
 
 }
 
