@@ -307,8 +307,8 @@ void EUTelAnalysisCMSPixel::init() {
 
   bool have_lower_tilt = false;
   bool have_higher_tilt = false;
-  double lower_skew_par0, lower_skew_par1, lower_tilt;
-  double higher_skew_par0, higher_skew_par1, higher_tilt;
+  double lower_skew_par0 = 0, lower_skew_par1 = 0, lower_tilt = 0;
+  double higher_skew_par0 = 0, higher_skew_par1 = 0, higher_tilt = 0;
 
   if (in.is_open()) {
     string line;
