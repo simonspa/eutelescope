@@ -58,22 +58,16 @@
 #include <map>
 #include <deque>
 
+
+// Intrinsic nominal telescope resolution (MIMOSA26)
+#define telescope_resx 3.5E-3
+#define telescope_resy 3.5E-3
+
+// Instrinsic nominal DUT resolution (CMS Pixel)
+#define dut_resx 3.5E-3
+#define dut_resy 3.5E-3
+
 namespace eutelescope {
-
-  //FIXME global constants:
-  // mostly to be read from geometry description (GEAR)
-
-  // Intrinsic nominal telescope resolution (MIMOSA26)
-  double telescope_resx = 3.5E-3;
-  double telescope_resy = 3.5E-3;
-
-  // Instrinsic nominal DUT resolution (CMS Pixel)
-  double dut_resx = 3.5E-3;
-  double dut_resy = 3.5E-3;
-
-
-  //FIXME should not be needed!
-  int hts[6][999]; // 6 planes
 
   class EUTelAnalysisCMSPixel : public marlin::Processor {
 
@@ -959,7 +953,7 @@ namespace eutelescope {
   };
 
   //! A global instance of the processor:
-  EUTelAnalysisCMSPixel aEUTelAnalysisCMSPixel;
+  //inline EUTelAnalysisCMSPixel aEUTelAnalysisCMSPixel;
 
 }
 
