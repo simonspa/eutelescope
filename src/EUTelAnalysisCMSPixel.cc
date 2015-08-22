@@ -1302,22 +1302,37 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     if(hanging) {
       xmod = fmod( 9.075 - xAt, 0.3 ) * 1E3; // [0,300] um, 2 pixel wide
       ymod = fmod( 9.050 - yAt, 0.2 ) * 1E3; // [0,200] um
+      ymd3 = fmod( 9.050 - yAt, 0.3 ) * 1E3; // [0,300] um
+      ymd6 = fmod( 9.050 - yAt, 0.6 ) * 1E3; // [0,600] um
     }
     if( FPIX || ETHh || rot90) { // x = col = yt, y = row = xt
-      xmod = fmod( 9.075 + yAt, 0.3 ) * 1E3; // [0,300] um, 2 pixel wide
-      ymod = fmod( 9.030 + xAt, 0.2 ) * 1E3; // [0,200] um
-      ymd3 = fmod( 9.030 + xAt, 0.3 ) * 1E3; // [0,300] um
-      ymd6 = fmod( 9.030 + xAt, 0.6 ) * 1E3; // [0,600] um
+      xmod = fmod( 9.075 - yAt, 0.3 ) * 1E3; // [0,300] um, 2 pixel wide
+      ymod = fmod( 9.050 + xAt, 0.2 ) * 1E3; // [0,200] um
+      ymd3 = fmod( 9.050 - xAt, 0.3 ) * 1E3; // [0,300] um
+      ymd6 = fmod( 9.050 - xAt, 0.6 ) * 1E3; // [0,600] um
     }
 
     // 0 deg:
     bool ldot = 1; // bias dot, from cmsqvsxmym
-    if( xmod < 105 ) ldot = 0; // dot at x = 125
-    if( xmod > 195 ) ldot = 0; // and at x = 175
-    if( tilt < 6 ) {
-      if( ymod <  55 ) ldot = 0; // dot at y =  75
+    // Not rotated, cut in xmod (and ymod at small tilt)
+    if(!rot90) {
+      if( xmod < 105 ) ldot = 0; // dot at x = 125
+      if( xmod > 195 ) ldot = 0; // and at x = 175
+      if( tilt < 6 ) {
+	if( ymod <  55 ) ldot = 0; // dot at y =  75
+	if( ymod > 195 ) ldot = 0; // dot at y = 175
+	if( ymod >  95 && ymod < 155 ) ldot = 0; // band between dots
+      }
+    }
+    // Not rotated, cut in ymod (and xmod at small tilt)
+    else {
       if( ymod > 195 ) ldot = 0; // dot at y = 175
+      if( ymod <  55 ) ldot = 0; // dot at y =  75
       if( ymod >  95 && ymod < 155 ) ldot = 0; // band between dots
+      if( tilt < 6 ) {
+	if( xmod < 105 ) ldot = 0; // dot at y =  75
+	if( xmod > 195 ) ldot = 0; // dot at y = 175
+      }
     }
 
     bool lcore = 1; // pixel core, 2x2 pixel region
