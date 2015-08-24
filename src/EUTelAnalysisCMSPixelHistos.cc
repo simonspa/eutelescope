@@ -733,14 +733,6 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsdyfctHighCharge", 500, -500, 500 );
   cmsdyfctHighChargeHisto->setTitle( "fiducial Pixel - telescope y;fiducial low charge clusters - triplet #Deltay [#mum];fiducial clusters" );
 
-  cmsdyfctLowEffHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsdyfctLowEff", 500, -500, 500 );
-  cmsdyfctLowEffHisto->setTitle( "fiducial Pixel - telescope y;fiducial low Eff. clusters - triplet #Deltay [#mum];fiducial clusters" );
-
-  cmsdyfctLowEffLowChargeHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsdyfctLowEffLowCharge", 500, -500, 500 );
-  cmsdyfctLowEffLowChargeHisto->setTitle( "fiducial Pixel - telescope y;fiducial low charge, low Eff. clusters - triplet #Deltay [#mum];fiducial clusters" );
-
   cmsdyfctOnePixelHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfctOnePixel", 500, -500, 500 );
   cmsdyfctOnePixelHisto->setTitle( "fiducial Pixel - telescope y;fiducial one pixel clusters - triplet #Deltay [#mum];fiducial clusters" );
@@ -850,6 +842,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsq0Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsq0", 100, 0, 100 );
   cmsq0Histo->setTitle( "DUT cluster charge linked;normal DUT cluster charge [ke];DUT linked clusters" );
+
+  cmslq0Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmslq0", 100, 0, 100 );
+  cmslq0Histo->setTitle( "DUT cluster charge linked within Q0 cuts;normal DUT cluster charge [ke];DUT linked clusters" );
 
   trixlkHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "trixlk", 240, -12, 12 );

@@ -374,7 +374,6 @@ namespace eutelescope {
     double _eBeam;
     int _nRun;
     int _nEvt;
-    int _leff_val;
     int _nTelPlanes;
     
     //! Timestamp of event number 0
@@ -519,7 +518,7 @@ namespace eutelescope {
     AIDA::IHistogram2D * cmsxxHisto;
     AIDA::IHistogram2D * cmsyyHisto;
 
-    AIDA::IHistogram1D * cmspxqHisto, * cmspxqcl2Histo, * cmspxqrow2Histo, *cmsskwHisto, *cmsskw3pxHisto, *cmsskw4pxHisto, *cmsskwfcqHisto, *cmsskwfcHisto, *cmsskwcorrHisto, *cmsskw1colcogHisto, *cmsskw1rowcogHisto, *cmsskw1qHisto, *cmsskw1ncolHisto, *cmsskw1nrowHisto, *cmsskw0qHisto, *cmsskw0ncolHisto, *cmsskw0nrowHisto, * cmssxaHisto, * cmsdyaHisto, * cmsdxaHisto, * cmssyaHisto, * cmsdx4Histo, * cmsdy4Histo, * cmsdx5Histo, *cmsdy5Histo, * cmsdxHisto, * cmsdyHisto, * cmsdy0Histo, * cmsdxfHisto, * cmsdyfHisto, * cmsdyf1dcHisto, * cmsdyf2dcHisto, * cmsdxfcHisto, * cmsdyfcHisto, * cmsdyfc1Histo, * cmsdyfc2Histo, * cmsdyfc3Histo, * cmsdyq0Histo, * cmsdyq1Histo, * cmsdyq2Histo, * cmsdyeta0Histo, * cmsdyeta1Histo, * cmsdxfctHisto, * cmsdyfctHisto, * cmsdyfctLowEffHisto, * cmsdyfctLowEffLowChargeHisto, * cmsdyfcntHisto, * cmsdxfctqHisto, * cmsdyfctqHisto, * cmsdyfcntqHisto, * cmsdxfctq1Histo, * cmsdyfctq1Histo, * cmsdyfcntq1Histo, * cmsdyfctq1lHisto, * cmsdyfctq1rHisto, * cmsdxfctq2Histo, * cmsdyfctq2Histo, * cmsdxfctq3Histo, * cmsdyfctq3Histo, * cmsdy0fctq3Histo, * cmsdyfctqdotHisto, * cmsdyfctq3dHisto, * cmsdy0fctq4Histo, * cmsdyfctq4Histo, * cmsdyfctq4dHisto, * cmsdy0fctq4dHisto, * cmscolHisto, * cmsrowHisto, * cmsqHisto, * cmsq0Histo, * trixlkHisto, * triylkHisto, * cmsqseedfHisto,* cmsdyfctOnePixelHisto, * cmsdyfctLowChargeHisto, * cmsdyfctHighChargeHisto, * cmsdyfctOnePixelLowChargeHisto,* cmsdyfctOnePixelHighChargeHisto,* cmsdxfctLowChargeHisto;
+    AIDA::IHistogram1D * cmspxqHisto, * cmspxqcl2Histo, * cmspxqrow2Histo, *cmsskwHisto, *cmsskw3pxHisto, *cmsskw4pxHisto, *cmsskwfcqHisto, *cmsskwfcHisto, *cmsskwcorrHisto, *cmsskw1colcogHisto, *cmsskw1rowcogHisto, *cmsskw1qHisto, *cmsskw1ncolHisto, *cmsskw1nrowHisto, *cmsskw0qHisto, *cmsskw0ncolHisto, *cmsskw0nrowHisto, * cmssxaHisto, * cmsdyaHisto, * cmsdxaHisto, * cmssyaHisto, * cmsdx4Histo, * cmsdy4Histo, * cmsdx5Histo, *cmsdy5Histo, * cmsdxHisto, * cmsdyHisto, * cmsdy0Histo, * cmsdxfHisto, * cmsdyfHisto, * cmsdyf1dcHisto, * cmsdyf2dcHisto, * cmsdxfcHisto, * cmsdyfcHisto, * cmsdyfc1Histo, * cmsdyfc2Histo, * cmsdyfc3Histo, * cmsdyq0Histo, * cmsdyq1Histo, * cmsdyq2Histo, * cmsdyeta0Histo, * cmsdyeta1Histo, * cmsdxfctHisto, * cmsdyfctHisto, * cmsdyfcntHisto, * cmsdxfctqHisto, * cmsdyfctqHisto, * cmsdyfcntqHisto, * cmsdxfctq1Histo, * cmsdyfctq1Histo, * cmsdyfcntq1Histo, * cmsdyfctq1lHisto, * cmsdyfctq1rHisto, * cmsdxfctq2Histo, * cmsdyfctq2Histo, * cmsdxfctq3Histo, * cmsdyfctq3Histo, * cmsdy0fctq3Histo, * cmsdyfctqdotHisto, * cmsdyfctq3dHisto, * cmsdy0fctq4Histo, * cmsdyfctq4Histo, * cmsdyfctq4dHisto, * cmsdy0fctq4dHisto, * cmscolHisto, * cmsrowHisto, * cmsqHisto, * cmsq0Histo, * cmslq0Histo, * trixlkHisto, * triylkHisto, * cmsqseedfHisto,* cmsdyfctOnePixelHisto, * cmsdyfctLowChargeHisto, * cmsdyfctHighChargeHisto, * cmsdyfctOnePixelLowChargeHisto,* cmsdyfctOnePixelHighChargeHisto,* cmsdxfctLowChargeHisto;
 
     AIDA::IHistogram2D * trixylkHisto;
     AIDA::IHistogram1D * cmstimingcut;

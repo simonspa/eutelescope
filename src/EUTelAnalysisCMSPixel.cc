@@ -108,7 +108,7 @@ double DUTaligny = 0;
 double DUTrot = 0;
 
 
-EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _leff_val(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_conversion(0), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _skew_db(""), _have_skew_db(false), skew_par0(0), skew_par1(0), _CMS_gain_path(""), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF(), m_millefilename("") {
+EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_conversion(0), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _skew_db(""), _have_skew_db(false), skew_par0(0), skew_par1(0), _CMS_gain_path(""), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF(), m_millefilename("") {
 
   // modify processor description
   _description = "Analysis for CMS PSI46 Pixel Detectors as DUT in AIDA telescopes ";
@@ -1375,29 +1375,17 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
      // correlate with CMS DUT:
     if( dutPixels->size() > 0 ) {
 
-      bool leff = 1;
-      bool lowEff = 0;
-
-      if( runNumber == 11193 && eventTime <  220                     ){
-	lowEff = 1;
-	leff = 0;
-      }
-
-      if( runNumber == 11289 && eventTime >  540 && eventTime <  560 ) leff = 0;
-      
-      if(leff)
-	cmstimingcut->fill(eventTime);
+      cmstimingcut->fill(eventTime);
 
       // CMS pixel clusters:
-
       bool trackHasLostSeedPixel = false;
       int nLinkedClusters = 0;
       for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ ){
 
 	if(ETHh || FPIX || rot90) {
 	  // for ETH/KIT orientation
-	  cmsxxHisto->fill( c->row, xA ); // anti-correlation x-x
-	  cmsyyHisto->fill( c->col, yA ); // correlation y-y
+	  cmsxxHisto->fill( c->col, yA ); // anti-correlation x-x
+	  cmsyyHisto->fill( c->row, xA ); // correlation y-y
 	}
 	else {
 	  cmsxxHisto->fill( c->col, xA ); // anti-correlation x-x
@@ -1505,6 +1493,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	//if( Q0 > 18 &&  Q0 < 35 ) lq = 1;
 	if( Q0 > 17 &&  Q0 < 30 ) lq = 1;
 
+	if(lq) cmslq0Histo->fill(Q0);
+
 	// DUT - triplet:
 	// Move from chip coordinates (col, row) to physical
 	// coordinates: cmsx, cmsy
@@ -1593,17 +1583,11 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	}
 
+	cmsdxHisto->fill( cmsdx*1E3 );
+	cmsdyHisto->fill( cmsdy*1E3 );
+	cmsdy0Histo->fill( cmsdy0*1E3 );
 	
-	
-	
-
-	if( leff ){
-	  cmsdxHisto->fill( cmsdx*1E3 );
-	  cmsdyHisto->fill( cmsdy*1E3 );
-	  cmsdy0Histo->fill( cmsdy0*1E3 );
-	}
-
-	if( leff && fiducial ) {
+	if( fiducial ) {
 
 	  cmsdxfHisto->fill( cmsdx*1E3 );
 	  cmsdyfHisto->fill( cmsdy*1E3 );
@@ -1623,14 +1607,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	}//CMS fiducial
 
 	 // accumulate cuts for y:
-	if( lowEff && fiducial && fabs( cmsdx ) < cutx && fabs( ty-0.000 ) < 0.002 && fabs( tx-0.000 ) < 0.002 ) {
-	  cmsdyfctLowEffHisto->fill( cmsdy*1E3 );
-	  if(lowClusterCharge)
-	    cmsdyfctLowEffLowChargeHisto->fill( cmsdy*1E3 );
-	}
-
-
-	if( leff && fiducial && fabs( cmsdx ) < cutx && isolatedTrip) {
+	if( fiducial && fabs( cmsdx ) < cutx && isolatedTrip) {
 
 	  if(      nrow == 1 )
 	    cmsdyfc1Histo->fill( cmsdy*1E3 ); // 3972: 7.7
@@ -1709,7 +1686,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	// accumulate cuts for x:
 
-	if( leff &&  fiducial && fabs( cmsdy ) < cuty && isolatedTrip) {
+	if( fiducial && fabs( cmsdy ) < cuty && isolatedTrip) {
 
 	  if( fabs( ty-0.000 ) < slope_y &&  fabs( tx-0.000 ) < slope_x ){
 	    cmsdxfctHisto->fill( cmsdx*1E3 );
@@ -1740,7 +1717,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	} // CMS fiducial for x
 
 	// Match CMS cluster and Upstream telescope triplet:
-	if( leff &&  fabs( cmsdx ) < cutx && fabs( cmsdy ) < cuty  && isolatedTrip) {
+	if( fabs( cmsdx ) < cutx && fabs( cmsdy ) < cuty  && isolatedTrip) {
 	  
 	  nLinkedClusters++;
 	  n_matched_clusters_dut++;
@@ -2031,7 +2008,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  }
 	}
 
-	if( leff && fabs( cmsdx ) < 0.5 && fabs( cmsdy ) < 0.5 ){ // link to CMS
+	if( fabs( cmsdx ) < 0.5 && fabs( cmsdy ) < 0.5 ){ // link to CMS
 	  (*trip).linked_dut = true;
 	  (*trip).cmsdx = cmsdx;
 	  (*trip).cmsdy = cmsdy;
@@ -2799,17 +2776,15 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	fidxmax =  3.8 - ( yAt + 4 ) / 10;
       }
 
-      bool leff = 1;
+      effxyHisto->fill( xAt, yAt );
+      effvsxy->fill( xAt, yAt, nm ); // CMS DUT efficiency profile
 
-      if( leff ) effxyHisto->fill( xAt, yAt );
-      if( leff ) effvsxy->fill( xAt, yAt, nm ); // CMS DUT efficiency profile
-
-      if( leff && yAt > fidymin && yAt < fidymax ) {
+      if( yAt > fidymin && yAt < fidymax ) {
 	effvsx->fill( xAt, nm ); // CMS DUT efficiency profile
 	if( probchi > 0.01 ) effvsxg->fill( xAt, nm );
       }
 
-      if( leff && xAt > fidxmin && xAt < fidxmax ) {
+      if( xAt > fidxmin && xAt < fidxmax ) {
 	effvsy->fill( yAt, nm ); // CMS DUT efficiency profile
       }
 
@@ -2820,28 +2795,27 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	eff1800->fill( (time_now_tlu-time_event0)/fTLU, nm );
 	eff3600->fill( (time_now_tlu-time_event0)/fTLU, nm );
 
-	if( leff ) { 
-	    effvsxmym->fill( xmod, ymod, nm ); // CMS DUT efficiency profile
+	effvsxmym->fill( xmod, ymod, nm ); // CMS DUT efficiency profile
 	    
-	    // KIT: added for efficiency analysis
-	    double dotsize=10;
-	    double cutsize=5;
+	// KIT: added for efficiency analysis
+	double dotsize=10;
+	double cutsize=5;
 
-	    if( xmod >= 50-cutsize  && xmod <= 50+cutsize )  effvsxm50->fill( ymod, nm );
-	    if( xmod >= 100-dotsize && xmod <= 100+dotsize ) effvsxm100->fill( ymod, nm );
-	    if( xmod >= 150-cutsize && xmod <= 150+cutsize ) effvsxm150->fill( ymod, nm );
-	    if( xmod >= 200-dotsize && xmod <= 200+dotsize ) effvsxm200->fill( ymod, nm );
-	    if( xmod >= 250-cutsize && xmod <= 250+cutsize ) effvsxm250->fill( ymod, nm );
+	if( xmod >= 50-cutsize  && xmod <= 50+cutsize )  effvsxm50->fill( ymod, nm );
+	if( xmod >= 100-dotsize && xmod <= 100+dotsize ) effvsxm100->fill( ymod, nm );
+	if( xmod >= 150-cutsize && xmod <= 150+cutsize ) effvsxm150->fill( ymod, nm );
+	if( xmod >= 200-dotsize && xmod <= 200+dotsize ) effvsxm200->fill( ymod, nm );
+	if( xmod >= 250-cutsize && xmod <= 250+cutsize ) effvsxm250->fill( ymod, nm );
 
-	    if( ymod >= 25-cutsize  && ymod <= 25+cutsize )  effvsym25->fill( xmod, nm );
-	    if( ymod >= 50-dotsize  && ymod <= 50+dotsize )  effvsym50->fill( xmod, nm );
-	    if( ymod >= 75-cutsize  && ymod <= 75+cutsize )  effvsym75->fill( xmod, nm );
-	    if( ymod >= 100-cutsize && ymod <= 100+cutsize ) effvsym100->fill( xmod, nm );
-	    if( ymod >= 125-cutsize && ymod <= 125+cutsize ) effvsym125->fill( xmod, nm );
-	    if( ymod >= 150-dotsize && ymod <= 150+dotsize ) effvsym150->fill( xmod, nm );
-	    if( ymod >= 175-cutsize && ymod <= 175+cutsize ) effvsym175->fill( xmod, nm );
-	    // KIT end
-	  }
+	if( ymod >= 25-cutsize  && ymod <= 25+cutsize )  effvsym25->fill( xmod, nm );
+	if( ymod >= 50-dotsize  && ymod <= 50+dotsize )  effvsym50->fill( xmod, nm );
+	if( ymod >= 75-cutsize  && ymod <= 75+cutsize )  effvsym75->fill( xmod, nm );
+	if( ymod >= 100-cutsize && ymod <= 100+cutsize ) effvsym100->fill( xmod, nm );
+	if( ymod >= 125-cutsize && ymod <= 125+cutsize ) effvsym125->fill( xmod, nm );
+	if( ymod >= 150-dotsize && ymod <= 150+dotsize ) effvsym150->fill( xmod, nm );
+	if( ymod >= 175-cutsize && ymod <= 175+cutsize ) effvsym175->fill( xmod, nm );
+	// KIT end
+
 	//if( prevdutrefddt == 0 && dutrefddt == 0 )
 	//effd600->fill( (time_now_tlu-time_event0)/fTLU, nm );
 	if( downstream_triplets->size() < 3 ) effn600->fill( (time_now_tlu-time_event0)/fTLU, nm );
