@@ -673,6 +673,14 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsdyfdc2", 500, -500, 500 );
   cmsdyfdc2Histo->setTitle( "fiducial Pixel - telescope y, clusters spread over 2 DC;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
 
+  cmsdyfdc1qHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfdc1q", 100, 0, 100 );
+  cmsdyfdc1qHisto->setTitle( "DUT cluster charge linked, within 1 DC;DUT cluster charge [ke];DUT linked clusters" );
+
+  cmsdyfdc2qHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfdc2q", 100, 0, 100 );
+  cmsdyfdc2qHisto->setTitle( "DUT cluster charge linked, within 2 DC;DUT cluster charge [ke];DUT linked clusters" );
+
   cmsdxfcHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdxfc", 200, -500, 500 );
   cmsdxfcHisto->setTitle( "fiducial Pixel - telescope x;fiducial cluster - triplet #Deltax [#mum];fiducial clusters" );
@@ -834,9 +842,17 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsdyfctq4dc1", 500, -500, 500 );
   cmsdyfctq4dc1Histo->setTitle( "fiducial Pixel - telescope y, clusters contained in 1 DC;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
 
+  cmsdyfctq4dc1qHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfctq4dc1q", 100, 0, 100 );
+  cmsdyfctq4dc1qHisto->setTitle( "DUT cluster charge linked, within 1 DC;DUT cluster charge [ke];DUT linked clusters" );
+
   cmsdyfctq4dc2Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsdyfdc2", 500, -500, 500 );
+    createHistogram1D( "cmsdyfctq4dc2", 500, -500, 500 );
   cmsdyfctq4dc2Histo->setTitle( "fiducial Pixel - telescope y, clusters spread over 2 DC;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
+
+  cmsdyfctq4dc2qHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfctq4dc2q", 100, 0, 100 );
+  cmsdyfctq4dc2qHisto->setTitle( "DUT cluster charge linked, within 2 DC;DUT cluster charge [ke];DUT linked clusters" );
 
   cmsdyfctq4dHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfctq4d", 500, -500, 500 );

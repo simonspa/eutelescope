@@ -1595,9 +1595,14 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  // Check for difference in 2col clusters:
 	  if(ncol == 2) {
 	    // Cluster in one double column?
-	    if(colmin%2 == 0) { cmsdyfdc1Histo->fill(cmsdy*1E3); }
+	    if(colmin%2 == 0) { 
+	      cmsdyfdc1Histo->fill(cmsdy*1E3);
+	      cmsdyfdc1qHisto->fill(Q0);
+	    }
 	    // Cluster spread over two double columns
-	    else {  cmsdyfdc2Histo->fill(cmsdy*1E3); }
+	    else {  
+	      cmsdyfdc2qHisto->fill(Q0); 
+	    }
 	  }
 
 	  if( fabs( cmsdy ) < cuty ) cmsdxfcHisto->fill( cmsdx*1E3 );
@@ -1687,9 +1692,15 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      // Check for difference in 2col clusters:
 	      if(ncol == 2) {
 		// Cluster in one double column?
-		if(colmin%2 == 0) { cmsdyfctq4dc1Histo->fill(cmsdy*1E3); }
+		if(colmin%2 == 0) { 
+		  cmsdyfctq4dc1Histo->fill(cmsdy*1E3);
+		  cmsdyfctq4dc1qHisto->fill(Q0);
+		}
 		// Cluster spread over two double columns
-		else {  cmsdyfctq4dc2Histo->fill(cmsdy*1E3); }
+		else {  
+		  cmsdyfctq4dc2Histo->fill(cmsdy*1E3);
+		  cmsdyfctq4dc2qHisto->fill(Q0);
+		}
 	      }
 
 	      if( !ldot ) {
