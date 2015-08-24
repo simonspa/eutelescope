@@ -1498,16 +1498,16 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	// DUT - triplet:
 	// Move from chip coordinates (col, row) to physical
 	// coordinates: cmsx, cmsy
-	double cmsx = ( c->col - 26 ) * pitchcol; // -3.9..3.9 mm
-	double cmsy = ( c->row - 40 ) * pitchrow; // -4..4 mm
+	double cmsx = ( c->col - 26.0 ) * pitchcol; // -3.9..3.9 mm
+	double cmsy = ( c->row - 40.0 ) * pitchrow; // -4..4 mm
 
 	if(rot90) {
-	  cmsx = ( c->row - 40 ) * pitchrow; // -4..4 mm
-	  cmsy = ( 26 - c->col ) * pitchcol; // -3.9..3.9 mm
+	  cmsx = ( c->row - 40.0 ) * pitchrow; // -4..4 mm
+	  cmsy = ( 26.0 - c->col ) * pitchcol; // -3.9..3.9 mm
 	}
 	else if(hanging) {
-	  cmsx = ( 26 - c->col ) * pitchcol; // -3.9..3.9 mm
-	  cmsy = ( 40 - c->row ) * pitchrow; // -4..4 mm
+	  cmsx = ( 26.0 - c->col ) * pitchcol; // -3.9..3.9 mm
+	  cmsy = ( 40.0 - c->row ) * pitchrow; // -4..4 mm
 	}
 	else if( FPIX ) {
 	  // FPIX rot at 90 deg:
@@ -1595,9 +1595,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  // Check for difference in 2col clusters:
 	  if(ncol == 2) {
 	    // Cluster in one double column?
-	    if(colmin%2 == 0) { cmsdyf1dcHisto->fill(cmsdy*1E3); }
+	    if(colmin%2 == 0) { cmsdyfdc1Histo->fill(cmsdy*1E3); }
 	    // Cluster spread over two double columns
-	    else {  cmsdyf2dcHisto->fill(cmsdy*1E3); }
+	    else {  cmsdyfdc2Histo->fill(cmsdy*1E3); }
 	  }
 
 	  if( fabs( cmsdy ) < cuty ) cmsdxfcHisto->fill( cmsdx*1E3 );
@@ -1674,7 +1674,17 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    }
 	    if( Q0 < 23 ) {
 	      cmsdy0fctq4Histo->fill( cmsdy0*1E3 ); // for comparison, without skew correction
-	      cmsdyfctq4Histo->fill( cmsdy*1E3 ); // was fctq2. 7.4 um @ 4 GeV, 19 deg
+	      cmsdyfctq4Histo->fill( cmsdy*1E3 ); // was fctq2. 7.4 um
+						  // @ 4 GeV, 19 deg
+
+	      // Check for difference in 2col clusters:
+	      if(ncol == 2) {
+		// Cluster in one double column?
+		if(colmin%2 == 0) { cmsdyfctq4dc1Histo->fill(cmsdy*1E3); }
+		// Cluster spread over two double columns
+		else {  cmsdyfctq4dc2Histo->fill(cmsdy*1E3); }
+	      }
+
 	      if( !ldot ) {
 		cmsdy0fctq4dHisto->fill( cmsdy0*1E3 ); // for comparison, without skew correction
 		cmsdyfctq4dHisto->fill( cmsdy*1E3 ); // 7.2 um in run 5234

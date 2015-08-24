@@ -665,13 +665,13 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsdyf", 500, -500, 500 );
   cmsdyfHisto->setTitle( "fiducial Pixel - telescope y;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
 
-  cmsdyf1dcHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsdyf1dc", 500, -500, 500 );
-  cmsdyf1dcHisto->setTitle( "fiducial Pixel - telescope y, clusters contained in 1 DC;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
+  cmsdyfdc1Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfdc1", 500, -500, 500 );
+  cmsdyfdc1Histo->setTitle( "fiducial Pixel - telescope y, clusters contained in 1 DC;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
 
-  cmsdyf2dcHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsdyf2dc", 500, -500, 500 );
-  cmsdyf2dcHisto->setTitle( "fiducial Pixel - telescope y, clusters spread over 2 DC;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
+  cmsdyfdc2Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfdc2", 500, -500, 500 );
+  cmsdyfdc2Histo->setTitle( "fiducial Pixel - telescope y, clusters spread over 2 DC;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
 
   cmsdxfcHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdxfc", 200, -500, 500 );
@@ -817,6 +817,14 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsdy0fctq4Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdy0fctq4", 500, -500, 500 );
   cmsdy0fctq4Histo->setTitle( "fiducial Pixel - telescope y, no skw corr;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
+
+  cmsdyfctq4dc1Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfctq4dc1", 500, -500, 500 );
+  cmsdyfctq4dc1Histo->setTitle( "fiducial Pixel - telescope y, clusters contained in 1 DC;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
+
+  cmsdyfctq4dc2Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfdc2", 500, -500, 500 );
+  cmsdyfctq4dc2Histo->setTitle( "fiducial Pixel - telescope y, clusters spread over 2 DC;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
 
   cmsdyfctq4dHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfctq4d", 500, -500, 500 );
