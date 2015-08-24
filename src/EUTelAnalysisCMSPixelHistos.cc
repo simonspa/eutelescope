@@ -693,6 +693,18 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsdyfc3", 500, -500, 500 );
   cmsdyfc3Histo->setTitle( "Pixel - telescope y;3-row cluster - triplet #Deltay [#mum];fiducial 3-row clusters" );
 
+  cmsdyfc1cHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfc1c", 500, -500, 500 );
+  cmsdyfc1cHisto->setTitle( "Pixel - telescope y;1-col cluster - triplet #Deltay [#mum];fiducial 1-col clusters" );
+
+  cmsdyfc2cHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfc2c", 500, -500, 500 );
+  cmsdyfc2cHisto->setTitle( "Pixel - telescope y;2-col cluster - triplet #Deltay [#mum];fiducial 2-col clusters" );
+
+  cmsdyfc3cHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyfc3c", 500, -500, 500 );
+  cmsdyfc3cHisto->setTitle( "Pixel - telescope y;3-col cluster - triplet #Deltay [#mum];fiducial 3-col clusters" );
+
   cmsdyq0Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyq0", 500, -500, 500 );
   cmsdyq0Histo->setTitle( "Pixel - telescope y, Q < 18;cluster - triplet #Deltay [#mum];low dE/dx clusters" );

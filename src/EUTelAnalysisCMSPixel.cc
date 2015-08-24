@@ -1616,6 +1616,13 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  else
 	    cmsdyfc3Histo->fill( cmsdy*1E3 ); // 3872: 68
 
+	  if(      ncol == 1 )
+	    cmsdyfc1cHisto->fill( cmsdy*1E3 ); // 3972: 7.7
+	  else if( ncol == 2 )
+	    cmsdyfc2cHisto->fill( cmsdy*1E3 ); // 3972: 9.5
+	  else
+	    cmsdyfc3cHisto->fill( cmsdy*1E3 ); // 3872: 68
+
 	  if(      Q0 < 18 )
 	    cmsdyq0Histo->fill( cmsdy*1E3 );
 
