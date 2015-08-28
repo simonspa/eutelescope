@@ -71,6 +71,7 @@
 #include <map>
 #include <cstdlib>
 #include <limits>
+#include <iterator>
 
 // ROOT includes ".h"
 #include <TMath.h>
@@ -681,7 +682,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   if(!CalibratePixels(dutPixels,dut_calibration,_DUT_conversion))
     throw StopProcessingException(this);
   for(size_t i = 0; i < dutPixels->size(); i++) { dutpxqHisto->fill(dutPixels->at(i).vcal); }
-  ClustDUT = GetClusters(dutPixels);
+  ClustDUT = GetClusters(dutPixels,_DUT_chip);
 
   // Read the REF event:
   std::vector<CMSPixel::pixel> * refPixels = new std::vector<CMSPixel::pixel>;
@@ -718,7 +719,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   if(!CalibratePixels(refPixels,ref_calibration,_REF_conversion))
     throw StopProcessingException(this);
 
-  ClustREF = GetClusters(refPixels);
+  ClustREF = GetClusters(refPixels,_REF_chip);
 
   streamlog_out(DEBUG4) << std::setw(6) << std::setiosflags(std::ios::right) << event->getEventNumber() << ". DUT pixels " << dutPixels->size();
 
@@ -801,101 +802,13 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   // Fill the telescope plane correlation plots:
   TelescopeCorrelationPlots(hits);
 
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // Tsunami correction
 
-  double eps = 0; // for analog ROCs
-
-  if( _DUT_chip >= 200  )
-    //eps = 0.03; // tsunami correction for psi46digV1
-    eps = 0.6; // [ke] additive
-
-  if( _DUT_chip >= 400  ) {
-    eps = 0.06; // tsunami correction for psi46digV2.1
-    //eps = 1.2; // [ke] additive
+  // Compare first pixels of first and second cluster:
+  if(ClustDUT.size() > 1) {
+    cmspxq2c1stHisto->fill(ClustDUT.at(0).vpix.at(0).vcal);
+    cmspxq2c2ndHisto->fill(ClustDUT.at(1).vpix.at(0).vcal);
   }
 
-  if(rot90) {
-    //eps = 0;
-  }
-
-  if( dutPixels->size() > 0 ) {
-
-    for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ ){
-
-      if( c->size == 1 ) continue;
-
-      // look if some other pixel was readout earlier in the same DC:
-
-      for( std::vector<CMSPixel::pixel>::iterator px = c->vpix.begin(); px != c->vpix.end(); px++ ) {
-
-	int icol = px->col;
-	int dcp = icol / 2; // 0..25 double column number
-
-	bool hasPrevious = 0;
-	double qprv = 0;
-
-	for( std::vector<CMSPixel::pixel>::iterator qx = c->vpix.begin(); qx != c->vpix.end(); qx++ ) {
-
-	  if( px == qx ) continue; // the same pixel
-
-	  if( qx->col > px->col ) continue; // qx later than px
-
-	  int dcq = qx->col / 2;
-
-	  if( dcp != dcq ) continue; // want same double column
-
-	  if( qx->col < px->col ) {
-	    hasPrevious = 1;
-	    qprv = qx->vcal;
-	    continue;
-	  }
-
-	  // px and qx are in same column.
-
-	  if( icol%2 == 0 ) { // ascending readout
-	    if( qx->row < px->row ) {
-	      hasPrevious = 1;
-	      qprv = qx->vcal;
-	    }
-	  }
-	  else
-	    if( qx->row > px->row ) {
-	      hasPrevious = 1;
-	      qprv = qx->vcal;
-	    }
-
-	} // qx
-
-	// p is 2nd px in DC readout: apply tsunami correction:
-
-	if( hasPrevious ) {
-	  px->vcal -= eps * qprv; // proportional, overwrite!
-	  //px->vcal -= eps; // subtract constant, overwrite!
-	}
-
-      } // pix
-
-      // sum up corrected pixel charges:
-
-      double q = 0;
-      double sumcol = 0, sumrow = 0;
-      for( std::vector<CMSPixel::pixel>::iterator px = c->vpix.begin(); px != c->vpix.end(); px++ ) {
-	q += px->vcal;
-	sumcol += px->col*px->vcal;
-	sumrow += px->row*px->vcal;
-      }
-
-      // Recalculate the cluster COG position after tsunami correction!
-      c->col = sumcol / q;
-      c->row = sumrow / q;
-      dutcolcorrHisto->fill(c->col);
-      dutrowcorrHisto->fill(c->row);
-      c->charge = q; // overwritten !
-
-    } // DUT clusters
-
-  } // have DUT cust
 
   //----------------------------------------------------------------------------
   // DUT alignment: relative to _planePosition[2]
@@ -1454,6 +1367,15 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	if( a12 > 1 ) eta = ( a1 - a2 ) / a12;
 	if( i1 > i2 ) eta = -eta;
 
+      
+	if(ncol > 1) {
+	  // First pixel, second pixel?
+	  cmspxq1stHisto->fill(c->vpix.at(0).vcal);
+	  cmspxq2ndHisto->fill(c->vpix.at(1).vcal);
+	}
+	if(ncol > 2) {
+	  cmspxq3rdHisto->fill(c->vpix.at(2).vcal);
+	}
 
 	// skew calculation (3rd moment):
 	double skw = 0;
@@ -1807,6 +1729,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    }
 	    
 	    float qseed = 0;
+	    int oddcol = int(c->col) % 2;
+
 	    for( std::vector<CMSPixel::pixel>::iterator px = c->vpix.begin(); px != c->vpix.end(); px++ ){
 	      cmspxqHisto->fill( px->vcal);
 	      if( c->size == 2)
@@ -1815,6 +1739,18 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 		cmspxqrow2Histo->fill( px->vcal);
 	      if(px->vcal > qseed)
 		qseed =  px->vcal;
+	      if( oddcol )
+		cmspxqoddHisto->fill( px->vcal );
+	      else
+		cmspxqeveHisto->fill( px->vcal );
+	      //if( c->size == 1 ) cmspxq1Histo->fill( px->vcal );
+	      //if( c->size == 2 ) cmspxq2Histo->fill( px->vcal ); // flat
+	      //if( c->size >= 3 ) cmspxq3Histo->fill( px->vcal ); // hump at low q
+
+	      cmspxqvsq->fill( Q0, px->vcal );
+	      cmspxqvsqv->fill( Q0, px->vcal );
+	      cmspxqvsxm->fill( xmod, px->vcal );
+	      cmspxqvsym->fill( ymod, px->vcal );
 	    }
 	    cmsqseedfHisto->fill(qseed);
 
@@ -3711,14 +3647,62 @@ void EUTelAnalysisCMSPixel::FillClusterStatisticsPlots(std::vector<cluster> dutc
 }
 
 
-std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(std::vector<CMSPixel::pixel> * pixels) {
+std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(std::vector<CMSPixel::pixel> * pixels, int chip) {
 
   // FIXME: BEWARE! this currently handles only single ROCs!
 
-  int fCluCut = 1; // clustering: 1 = no gap (15.7.2012)
-
   std::vector<cluster> clusters;
   if(pixels->empty()) return clusters;
+
+  if(chip == _DUT_chip) {
+    // Fill the readout order plots:
+    if(pixels->size() > 0) cmspxq0Histo->fill(pixels->at(0).vcal);
+    if(pixels->size() > 1) cmspxq1Histo->fill(pixels->at(1).vcal);
+    if(pixels->size() > 2) cmspxq2Histo->fill(pixels->at(2).vcal);
+    if(pixels->size() > 3) cmspxq3Histo->fill(pixels->at(3).vcal);
+    if(pixels->size() > 4) cmspxq4Histo->fill(pixels->at(4).vcal);
+    if(pixels->size() > 5) cmspxq5Histo->fill(pixels->at(5).vcal);
+    if(pixels->size() > 6) cmspxq6Histo->fill(pixels->at(6).vcal);
+    if(pixels->size() > 7) cmspxq7Histo->fill(pixels->at(7).vcal);
+    if(pixels->size() > 8) cmspxq8Histo->fill(pixels->at(8).vcal);
+    if(pixels->size() > 9) cmspxq9Histo->fill(pixels->at(9).vcal);
+  }
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // Tsunami correction
+  double eps = 0; // for analog ROCs
+
+  if(chip >= 200) {
+    //eps = 0.03; // tsunami correction for psi46digV1
+    eps = 0.6; // [ke] additive
+  }
+  if(chip >= 400  ) {
+    //eps = 0.06; // tsunami correction for psi46digV2.1
+    eps = 1.1; // [ke] additive
+  }
+
+  // Apply tsunami correction for all pixels beside first:
+  std::vector<CMSPixel::pixel>::iterator px = pixels->begin();
+  std::advance(px, 1);
+  for(; px != pixels->end(); px++ ) {
+    px->vcal -= eps;//*px->vcal;
+  }
+
+  if(chip == _DUT_chip) {
+    // Fill the readout order plots:
+    if(pixels->size() > 0) cmspxq0cHisto->fill(pixels->at(0).vcal);
+    if(pixels->size() > 1) cmspxq1cHisto->fill(pixels->at(1).vcal);
+    if(pixels->size() > 2) cmspxq2cHisto->fill(pixels->at(2).vcal);
+    if(pixels->size() > 3) cmspxq3cHisto->fill(pixels->at(3).vcal);
+    if(pixels->size() > 4) cmspxq4cHisto->fill(pixels->at(4).vcal);
+    if(pixels->size() > 5) cmspxq5cHisto->fill(pixels->at(5).vcal);
+    if(pixels->size() > 6) cmspxq6cHisto->fill(pixels->at(6).vcal);
+    if(pixels->size() > 7) cmspxq7cHisto->fill(pixels->at(7).vcal);
+    if(pixels->size() > 8) cmspxq8cHisto->fill(pixels->at(8).vcal);
+    if(pixels->size() > 9) cmspxq9cHisto->fill(pixels->at(9).vcal);
+  }
+
+  int fCluCut = 1; // clustering: 1 = no gap (15.7.2012)
 
   int* gone = new int[pixels->size()];
   for(size_t i = 0; i < pixels->size(); i++) gone[i] = 0;
