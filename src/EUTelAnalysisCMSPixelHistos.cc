@@ -810,6 +810,14 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsdy", 500, -500, 500 );
   cmsdyHisto->setTitle( "Pixel - telescope y;cluster - triplet #Deltay [#mum];clusters" );
 
+  cmsdyoddHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyodd", 500, -500, 500 );
+  cmsdyoddHisto->setTitle( "Pixel - telescope y odd cols;cluster - triplet #Deltay [#mum];clusters" );
+
+  cmsdyevenHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsdyeven", 500, -500, 500 );
+  cmsdyevenHisto->setTitle( "Pixel - telescope y even cols;cluster - triplet #Deltay [#mum];clusters" );
+
   cmsdy0Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdy0", 500, -500, 500 );
   cmsdy0Histo->setTitle( "Pixel - telescope y, no skew corr;cluster - triplet #Deltay [#mum];clusters" );
