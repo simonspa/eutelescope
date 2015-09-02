@@ -3700,8 +3700,19 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
   std::vector<CMSPixel::pixel>::iterator px = pixels->begin();
   std::advance(px, 1);
   for(; px != pixels->end(); px++ ) {
-    px->vcal -= eps;//*px->vcal;
+    px->vcal -= eps; // additive
   }
+
+  // Alternative by Daniel: correct by 3% of precursor:
+  /*
+  eps = 0.03;
+  double previous_charge = 0;
+  for(std::vector<CMSPixel::pixel>::iterator px = pixels->begin(); px != pixels->end(); px++) {
+    double temp_charge = px->vcal;
+    px->vcal -= eps*previous_charge;
+    previous_charge = temp_charge;
+  }
+  */
 
   if(chip == _DUT_chip) {
     // Fill the readout order plots:
