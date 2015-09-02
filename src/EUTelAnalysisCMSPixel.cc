@@ -3151,7 +3151,7 @@ void EUTelAnalysisCMSPixel::end(){
 
 	  // If the tilt correction is small (< 1mrad) we should be stable, correct the Landau peak:
 	  // tilt angle correction below 0.2deg:
-	  if(alpar[4] < 0.003490659) {
+	  if(fabs(alpar[4]) < 0.003490659) {
 	    streamlog_out(MESSAGE5) << std::endl << "Tilt angle converged." << std::endl;
 	    // Update the DUT_conversion factor to get the landau peak
 	    // to 22k electrons:
@@ -3161,6 +3161,9 @@ void EUTelAnalysisCMSPixel::end(){
 	    streamlog_out(MESSAGE5) << "   old conversion      = " << _DUT_conversion << std::endl;
 	    _DUT_conversion = _DUT_conversion*22/landau_peak;
 	    streamlog_out(MESSAGE5) << "   new conversion      = " << _DUT_conversion << std::endl;
+	  }
+	  else {
+	    streamlog_out(MESSAGE5) << "Tilt angle not converged, no charge calibration correction applied." << std::endl;
 	  }
 
 	  streamlog_out(MESSAGE5)
