@@ -109,7 +109,7 @@ double DUTaligny = 0;
 double DUTrot = 0;
 
 
-EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_conversion(0), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _skew_db(""), _have_skew_db(false), skew_par0(0), skew_par1(0), _CMS_gain_path(""), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), ClustDUT(), ClustREF(), m_millefilename("") {
+EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_conversion(0), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _skew_db(""), _have_skew_db(false), skew_par0(0), skew_par1(0), _CMS_gain_path(""), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), _skip_dut(0), _skip_ref(0), _skip_tel(0), dut_event_buffer(), ref_event_buffer(), tel_event_buffer(), ClustDUT(), ClustREF(), m_millefilename("") {
 
   // modify processor description
   _description = "Analysis for CMS PSI46 Pixel Detectors as DUT in AIDA telescopes ";
@@ -227,6 +227,16 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
   registerProcessorParameter( "skew_database",
                               "database file for skew corrections",
 			      _skew_db, std::string("none"));
+
+  registerOptionalParameter( "skip_dut",
+			     "Skip N events from DUT data stream at beginning",
+			     _skip_dut, static_cast < int >(0) );
+  registerOptionalParameter( "skip_ref",
+			     "Skip N events from REL data stream at beginning",
+			     _skip_ref, static_cast < int >(0) );
+  registerOptionalParameter( "skip_tel",
+			     "Skip N events from TEL data stream at beginning",
+			     _skip_tel, static_cast < int >(0) );
 
   // Stuff only needed for the printout of the updated runlist line:
   registerOptionalParameter( "gearfile",
@@ -678,6 +688,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   }
   //streamlog_out( WARNING ) << "Evt " << event->getEventNumber() << ": " << dutPixels->size() << " on DUT";
 
+
   // Calibrate the pixel hits with the initialized calibration data:
   if(!CalibratePixels(dutPixels,dut_calibration,_DUT_conversion))
     throw StopProcessingException(this);
@@ -797,6 +808,60 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
   streamlog_out(DEBUG4) << "Event " << event->getEventNumber()
 			<< " contains " << hits->size() << " hits" << std::endl;
+
+
+ 
+  // Do the event shifting if necessary:
+  int nskip = max(_skip_dut,max(_skip_ref,_skip_tel));
+  if(nskip > 0) {
+    streamlog_out ( DEBUG5 ) << "Evt " << event->getEventNumber() << " read: DUT " << dutPixels->size() << "px, REF " << refPixels->size() << "px, TEL " << hits->size() << "px" << endl;
+
+    // Do the skipping magic:
+    if(event->getEventNumber() < nskip) {
+      if(event->getEventNumber() < _skip_dut) dut_event_buffer.push_back(*dutPixels);
+      if(event->getEventNumber() < _skip_ref) ref_event_buffer.push_back(*refPixels);
+      if(event->getEventNumber() < _skip_tel) tel_event_buffer.push_back(*hits);
+      throw SkipEventException(this);
+    }
+    streamlog_out ( DEBUG5 ) << "Evt " << event->getEventNumber() << " buffers: DUT " << dut_event_buffer.size() 
+			     << "ev, REF " << ref_event_buffer.size() 
+			     << "ev, TEL" << tel_event_buffer.size() << "ev" << endl;
+
+    // Retrieve info back from buffer:
+
+    // Continue pushing and reading the shifted data streams:
+    if(!dut_event_buffer.empty()) {
+      dut_event_buffer.push_back(*dutPixels);
+      dutPixels->clear();
+      std::vector<CMSPixel::pixel> temp  = dut_event_buffer.front();
+      for(size_t px = 0; px < temp.size(); px++) { dutPixels->push_back(temp.at(px)); }
+      dut_event_buffer.erase(dut_event_buffer.begin());
+    }
+
+    if(!ref_event_buffer.empty()) {
+      ref_event_buffer.push_back(*refPixels);
+      refPixels->clear();
+      std::vector<CMSPixel::pixel> temp2  = ref_event_buffer.front();
+      for(size_t px = 0; px < temp2.size(); px++) { refPixels->push_back(temp2.at(px)); }
+      ref_event_buffer.erase(ref_event_buffer.begin());
+    }
+
+    if(!tel_event_buffer.empty()) {
+      tel_event_buffer.push_back(*hits);
+      hits->clear();
+      std::vector<hit> temp3  = tel_event_buffer.front();
+      for(size_t px = 0; px < temp3.size(); px++) { hits->push_back(temp3.at(px)); }
+      tel_event_buffer.erase(tel_event_buffer.begin());
+    }
+
+    streamlog_out ( DEBUG5 ) << "Evt " << event->getEventNumber() << " buffers post-read: DUT " << dut_event_buffer.size() 
+			     << "ev, REF " << ref_event_buffer.size()
+			     << "ev, TEL" << tel_event_buffer.size() << "ev" << endl;
+
+    streamlog_out ( DEBUG5 ) << "Evt " << event->getEventNumber() << " fetched: DUT " << dutPixels->size() << "px, REF " << refPixels->size() << "px, TEL " << hits->size() << "px" << endl;
+  }
+
+
 
 
   // Fill the telescope plane correlation plots:

@@ -439,6 +439,12 @@ namespace eutelescope {
     double * _planeX0;
     double * _planeResolution;
 
+    // Event buffer for event shifting in DUT:
+    int _skip_dut, _skip_ref, _skip_tel;
+    std::vector<std::vector<CMSPixel::pixel> > dut_event_buffer;
+    std::vector<std::vector<CMSPixel::pixel> > ref_event_buffer;
+    std::vector<std::vector<hit> > tel_event_buffer;
+
     // Reading in CMS clusters:
     CMSPixel::timing evt_time_dut;
     CMSPixel::timing evt_time_ref;
