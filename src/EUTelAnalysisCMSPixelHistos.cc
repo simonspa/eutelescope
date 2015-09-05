@@ -214,6 +214,22 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "dutcol", 52, -0.5, 51.5 );
   dutcolHisto->setTitle( "DUT column;DUT cluster col;DUT clusters" );
 
+  dutcolfirstHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutcolfirst", 52, -0.5, 51.5 );
+  dutcolfirstHisto->setTitle( "DUT column;DUT cluster 1st col;DUT clusters" );
+
+  dutcollastHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutcollast", 52, -0.5, 51.5 );
+  dutcollastHisto->setTitle( "DUT column;DUT cluster last col;DUT clusters" );
+
+  dutcol1stevenqHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutcol1stevenq", 100, 0, 25 );
+  dutcol1stevenqHisto->setTitle( "DUT pixel charge 1st pixel, even columns;DUT pixel charge [ke];DUT pixels" );
+
+  dutcol1stoddqHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutcol1stoddq", 100, 0, 25 );
+  dutcol1stoddqHisto->setTitle( "DUT pixel charge 1st pixel, odd columns;DUT pixel charge [ke];DUT pixels" );
+  
   dutrowHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "dutrow", 80, -0.5, 79.5 );
   dutrowHisto->setTitle( "DUT row;DUT cluster row;DUT clusters" );

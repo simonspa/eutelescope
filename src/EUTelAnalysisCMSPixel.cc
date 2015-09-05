@@ -3640,6 +3640,15 @@ void EUTelAnalysisCMSPixel::FillClusterStatisticsPlots(std::vector<cluster> dutc
     for( std::vector<cluster>::iterator c = dutclusters.begin(); c != dutclusters.end(); c++ ){
       n_clusters_dut++;
       dutcolHisto->fill( c->col );
+
+      // Fill statistics for first and last pixel in the cluster:
+      // Used to monitor VIColOr effect
+      dutcolfirstHisto->fill( c->vpix.front().col );
+      dutcollastHisto->fill( c->vpix.back().col );
+      // Statistics for first DC, charge of left and right columns:
+      if(c->vpix.front().col%2 == 0) { dutcol1stevenqHisto->fill( c->vpix.front().vcal ); }
+      else { dutcol1stoddqHisto->fill( c->vpix.front().vcal ); }
+      
       dutrowHisto->fill( c->row );
       dutnpxHisto->fill( c->size );
       dutadcHisto->fill( c->charge );
