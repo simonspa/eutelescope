@@ -98,7 +98,6 @@ int n_matched_clusters_ref = 0;
 int naldut = 0;
 int ngbl = 0;
 bool ldb = 0;
-
 gbl::MilleBinary * mille; // for producing MillePede-II binary file
 
 double turn = 0;
@@ -3056,13 +3055,16 @@ void EUTelAnalysisCMSPixel::end(){
     << "," << REFy
     << "," << _REFz
     << "," << _REFrot
+    << "," << _skip_dut
+    << "," << _skip_ref
+    << "," << _skip_tel
     << std::endl;
   streamlog_out(MESSAGE5) << std::endl;
 
 
   ofstream prealignrunfile;
   prealignrunfile.open("prelines-for-runlist.txt",ios::app);
-  prealignrunfile << _nRun << "," << _alignmentrun << "," << _gearfile << "," <<_eBeam << "," << _DUT_chip << "," << _DUT_gain  << "," << _DUT_calibration_type << "," << _DUT_conversion << "," << _REF_chip << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTx << "," << DUTy << "," << DUTz - _planePosition[2] << "," << tilt << "," << turn << "," << DUTrot << "," << REFx << "," << REFy << "," << _REFz << "," << _REFrot << endl;
+  prealignrunfile << _nRun << "," << _alignmentrun << "," << _gearfile << "," <<_eBeam << "," << _DUT_chip << "," << _DUT_gain  << "," << _DUT_calibration_type << "," << _DUT_conversion << "," << _REF_chip << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTx << "," << DUTy << "," << DUTz - _planePosition[2] << "," << tilt << "," << turn << "," << DUTrot << "," << REFx << "," << REFy << "," << _REFz << "," << _REFrot << "," << _skip_dut << "," << _skip_ref << "," << _skip_tel << endl;
   prealignrunfile.close();
 
   // Clean memory:
@@ -3268,11 +3270,14 @@ void EUTelAnalysisCMSPixel::end(){
 	    << "," << _REFaligny
 	    << "," << _REFz
 	    << "," << _REFrot
+	    << "," << _skip_dut 
+	    << "," << _skip_ref 
+	    << "," << _skip_tel 
 	    << std::endl;
 
 	  ofstream runfile;
 	  runfile.open("lines-for-runlist.txt",ios::app);
-	  runfile << _nRun << "," << _alignmentrun << "," << _gearfile << "," << _eBeam << "," << _DUT_chip << "," << _DUT_gain << "," << _DUT_calibration_type << "," << _DUT_conversion << "," << _REF_chip << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTalignx-alpar[1] << "," << DUTaligny-alpar[2] << "," << DUTz-alpar[6] - _planePosition[2] << "," << tilt-alpar[4]*180/3.141592654 << "," << turn-alpar[5]*180/3.141592654 << "," << DUTrot-alpar[3] << "," << _REFalignx << "," << _REFaligny << "," << _REFz << "," << _REFrot << endl;
+	  runfile << _nRun << "," << _alignmentrun << "," << _gearfile << "," << _eBeam << "," << _DUT_chip << "," << _DUT_gain << "," << _DUT_calibration_type << "," << _DUT_conversion << "," << _REF_chip << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTalignx-alpar[1] << "," << DUTaligny-alpar[2] << "," << DUTz-alpar[6] - _planePosition[2] << "," << tilt-alpar[4]*180/3.141592654 << "," << turn-alpar[5]*180/3.141592654 << "," << DUTrot-alpar[3] << "," << _REFalignx << "," << _REFaligny << "," << _REFz << "," << _REFrot << "," << _skip_dut << "," << _skip_ref << "," << _skip_tel << endl;
 	  runfile.close();
 
 	} // ldut
