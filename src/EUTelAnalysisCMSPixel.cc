@@ -3807,7 +3807,9 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
     if(pixels->size() > 9) cmspxq9cHisto->fill(pixels->at(9).vcal);
   }
 
-  int fCluCut = 1; // clustering: 1 = no gap (15.7.2012)
+  // clustering: 1 = no gap, 2 = gap of 1px
+  int fCluCut = 1;
+  //int fCluCut = 2;
 
   int* gone = new int[pixels->size()];
   for(size_t i = 0; i < pixels->size(); i++) gone[i] = 0;
@@ -3834,11 +3836,11 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
       growing = 0;
       for(size_t i = 0; i < pixels->size(); i++ ){
         if( !gone[i] ){//unused pixel
-          for( unsigned int p = 0; p < c.vpix.size(); p++ ){//vpix in cluster so far
-            int dr = c.vpix.at(p).row - pixels->at(i).row;
-            int dc = c.vpix.at(p).col - pixels->at(i).col;
-            if( (   dr>=-fCluCut) && (dr<=fCluCut) 
-		&& (dc>=-fCluCut) && (dc<=fCluCut) ) {
+	  for(std::vector<CMSPixel::pixel>::iterator p = c.vpix.begin(); p != c.vpix.end(); p++ ) {//vpix in cluster so far
+	    int dr = p->row - pixels->at(i).row;
+            int dc = p->col - pixels->at(i).col;
+            if( dr >= -fCluCut && dr <= fCluCut &&
+	        dc >= -fCluCut && dc <= fCluCut) {
               c.vpix.push_back(pixels->at(i));
 	      gone[i] = 1;
               growing = 1;
