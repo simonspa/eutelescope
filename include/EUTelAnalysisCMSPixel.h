@@ -133,15 +133,13 @@ namespace eutelescope {
     //! CMS Pixel Cluster class:
     class cluster {
     public:
-      cluster() : vpix(), size(0), sumA(0), charge(0), col(0), row(0), layer(0), xy(), xyz() {};
+      cluster() : vpix(), size(0), sumA(0), charge(0), col(0), row(0), layer(0) {};
       std::vector <CMSPixel::pixel> vpix;
       int size;
       int sumA;
       float charge;
       float col,row;
       int layer;
-      double xy[2]; // local coordinates
-      double xyz[3];
     };
 
     //! Definition for calibration data format:

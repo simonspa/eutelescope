@@ -665,13 +665,13 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       // Deal with backwards-incompatible change in DAQ software:
       // before run 15268 the PCBTYPE flag has not been set and
       // col/row are not inverted:
-      //if(_nRun > 15268) {
-      px.col = pixel->getYCoord();
-      px.row = pixel->getXCoord();
-      //} else {
-      //px.col = pixel->getXCoord();
-      //px.row = pixel->getYCoord();
-      //}
+      if(_nRun > 15268) {
+	px.col = pixel->getYCoord();
+	px.row = pixel->getXCoord();
+      } else {
+	px.col = pixel->getXCoord();
+	px.row = pixel->getYCoord();
+      }
     }
     else {
       px.col = pixel->getXCoord();
@@ -3857,8 +3857,6 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
       c.sumA += p->raw; //Raw Chip pulse height value
       c.col += (*p).col*Qpix;
       c.row += (*p).row*Qpix;
-      //c.xy[0] += (*p).xy[0]*Qpix;
-      //c.xy[1] += (*p).xy[1]*Qpix;
     }
 
     c.size = c.vpix.size();
@@ -3868,14 +3866,10 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
     if( !c.charge == 0 ) {
       c.col = c.col/c.charge;
       c.row = c.row/c.charge;
-      //c.xy[0] /= c.charge;
-      //c.xy[1] /= c.charge;
     }
     else {
       c.col = (*c.vpix.begin()).col;
       c.row = (*c.vpix.begin()).row;
-      //c.xy[0] = (*c.vpix.begin()).xy[0];
-      //c.xy[1] = (*c.vpix.begin()).xy[1];
       streamlog_out(DEBUG3) << "GetHits: cluster with zero charge" << std::endl;
     }
 
