@@ -1010,6 +1010,17 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsdyfctq3d", 500, -500, 500 );
   cmsdyfctq3dHisto->setTitle( "fiducial Pixel - telescope y;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
 
+  cmsrmsxvsxmym = AIDAProcessor::histogramFactory(this)->
+    createProfile2D( "cmsrmsxvsxmym", 60, 0, 300, 40, 0, 200 );
+  cmsrmsxvsxmym->setTitle( "DUT x resolution;x mod 300 #mum;y mod 200 #mum;MAD(#Deltax) [#mum]" );
+
+  cmsrmsyvsxmym = AIDAProcessor::histogramFactory(this)->
+    createProfile2D( "cmsrmsyvsxmym", 60, 0, 300, 40, 0, 200 );
+  cmsrmsyvsxmym->setTitle( "DUT y resolution;x mod 300 #mum;y mod 200 #mum;MAD(#Deltay) [#mum]" );
+
+  cmsrmsxyvsxmym = AIDAProcessor::histogramFactory(this)->
+    createProfile2D( "cmsrmsxyvsxmym", 60, 0, 300, 40, 0, 200 );
+  cmsrmsxyvsxmym->setTitle( "DUT resolution;x mod 300 #mum;y mod 200 #mum;MAD(#sqrt{#Deltax^{2}+#Deltay^{2}}) [#mum]" );
 
   cmsdyfctq4Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfctq4", 500, -500, 500 );
@@ -1334,6 +1345,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createProfile2D( "cmsqvsxmym", 60, 0, 300, 40, 0, 200, 0, 250 );
   cmsqvsxmym->setTitle( "DUT cluster charge map;x_{track} mod 300 #mum;y_{track} mod 200 #mum;<cluster charge> [ke]" );
 
+  cmspxqvsxmym = AIDAProcessor::histogramFactory(this)->
+    createProfile2D( "cmspxqvsxmym", 60, 0, 300, 40, 0, 200, 0, 250 );
+  cmspxqvsxmym->setTitle( "DUT seed pixel charge map;x_{track} mod 300 #mum;y_{track} mod 200 #mum;<seed pixel charge> [ke]" );
+
   cmsqvsxmymdot = AIDAProcessor::histogramFactory(this)->
     createProfile2D( "cmsqvsxmymdot", 60, 0, 300, 40, 0, 200, 0, 250 );
   cmsqvsxmymdot->setTitle( "DUT cluster charge map - Dot;x_{track} mod 300 #mum;y_{track} mod 200 #mum;<cluster charge> [ke]" );
@@ -1609,6 +1624,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
   effvsx = AIDAProcessor::histogramFactory(this)->
     createProfile1D( "effvsx", 60, -4.5, 4.5, -1, 2 );
   effvsx->setTitle( "DUT efficiency;telescope track x_{DUT} [mm];CMS DUT efficiency" );
+
+  effvsndri = AIDAProcessor::histogramFactory(this)->
+    createProfile1D( "effvsndri", 9, 1, 10, -1, 2 );
+  effvsndri->setTitle( "DUT efficiency;downstream triplets;CMS DUT efficiency" );
 
   effvsxg = AIDAProcessor::histogramFactory(this)->
     createProfile1D( "effvsxg", 60, -4.5, 4.5, -1, 2 );

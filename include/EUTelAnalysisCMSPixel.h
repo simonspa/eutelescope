@@ -133,8 +133,9 @@ namespace eutelescope {
     //! CMS Pixel Cluster class:
     class cluster {
     public:
-      cluster() : vpix(), size(0), sumA(0), charge(0), col(0), row(0), layer(0) {};
+      cluster() : vpix(), seed_id(-1), size(0), sumA(0), charge(0), col(0), row(0), layer(0) {};
       std::vector <CMSPixel::pixel> vpix;
+      int seed_id;
       int size;
       int sumA;
       float charge;
@@ -607,7 +608,7 @@ namespace eutelescope {
     AIDA::IProfile1D * cmsqvsy;
     AIDA::IProfile1D * cmsqvsxm;
     AIDA::IProfile1D * cmsqvsym;
-    AIDA::IProfile2D * cmsqvsxmym;
+    AIDA::IProfile2D * cmsqvsxmym, * cmspxqvsxmym;
     AIDA::IProfile2D * cmsqvsxmymdot;
     AIDA::IProfile1D * cmsskwvsym;
     AIDA::IProfile1D * cmsskwvsxm;
@@ -632,6 +633,7 @@ namespace eutelescope {
     AIDA::IProfile1D * cmsqvsym150; // Dot
     AIDA::IProfile1D * cmsqvsym175;
 
+    AIDA::IProfile2D * cmsrmsxvsxmym, * cmsrmsyvsxmym, * cmsrmsxyvsxmym;
     AIDA::IProfile1D * cmsrmsxvsx;
     AIDA::IProfile1D * cmsrmsyvsx;
     AIDA::IProfile1D * cmsrmsxvsy;
@@ -681,6 +683,7 @@ namespace eutelescope {
     AIDA::IHistogram2D * effxyHisto;
     AIDA::IProfile2D * effvsxy;
     AIDA::IProfile1D * effvsx;
+    AIDA::IProfile1D * effvsndri;
     AIDA::IProfile1D * effvsxg;
     AIDA::IProfile1D * effvsy;
     AIDA::IProfile1D * eff300;

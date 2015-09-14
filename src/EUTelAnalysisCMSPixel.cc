@@ -1881,6 +1881,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    cmsqvsxm->fill( xmod, c->charge ); //q within pixel
 	    cmsqvsym->fill( ymod, c->charge ); //q within pixel
 	    cmsqvsxmym->fill( xmod, ymod, c->charge ); // cluster charge profile
+	    
+	    if(c->seed_id > -1) cmspxqvsxmym->fill( xmod, ymod, c->vpix.at(c->seed_id).vcal ); // cluster charge profile
+
 	    if(ldot) { cmsqvsxmymdot->fill( xmod, ymod, c->charge ); } // cluster charge profile
 
 	    // KIT: added for efficiency analysis
@@ -1958,6 +1961,12 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      cmsrmsyvsxm->fill( xmod, fabs(cmsdy)*1E3 ); //resolution within pixel
 	      cmsncolvsxm->fill( xmod, ncol );
 	      cmsnrowvsxm->fill( xmod, nrow );
+
+	      // Resolution vs. position within pixel
+	      cmsrmsxvsxmym->fill( xmod, ymod, fabs(cmsdx)*1E3 );
+	      cmsrmsyvsxmym->fill( xmod, ymod, fabs(cmsdy)*1E3 );
+	      cmsrmsxyvsxmym->fill( xmod, ymod, fabs(sqrt(cmsdx*cmsdx+cmsdy*cmsdy))*1E3 );
+
 	      if( !ldot ) {
 		cmsrmsxvsym->fill( ymod, fabs(cmsdx)*1E3 ); //resolution within pixel
 		cmsrmsyvsym->fill( ymod, fabs(cmsdy)*1E3 ); //resolution within pixel
@@ -2836,7 +2845,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	eff3600->fill( (time_now_tlu-time_event0)/fTLU, nm );
 
 	effvsxmym->fill( xmod, ymod, nm ); // CMS DUT efficiency profile
-	    
+	effvsndri->fill(downstream_triplets->size(), nm); // CMS DUT efficiency vs n drownstream tracks	    
+	
 	// KIT: added for efficiency analysis
 	double dotsize=10;
 	double cutsize=5;
@@ -3873,6 +3883,15 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
       c.col = (*c.vpix.begin()).col;
       c.row = (*c.vpix.begin()).row;
       streamlog_out(DEBUG3) << "GetHits: cluster with zero charge" << std::endl;
+    }
+
+    // Mark the pixel containing the COG as seed pixel:
+    int cog_col = static_cast<int>(round(c.col));
+    int cog_row = static_cast<int>(round(c.row));
+    for(size_t px = 0; px < c.vpix.size(); px++){
+      if(c.vpix.at(px).col == cog_col && c.vpix.at(px).row == cog_row) {
+	c.seed_id = px;
+      }
     }
 
     clusters.push_back(c);//add cluster to vector
