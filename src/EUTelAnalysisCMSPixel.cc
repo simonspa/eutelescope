@@ -687,13 +687,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   }
   //streamlog_out( WARNING ) << "Evt " << event->getEventNumber() << ": " << dutPixels->size() << " on DUT";
 
-
-  // Calibrate the pixel hits with the initialized calibration data:
-  if(!CalibratePixels(dutPixels,dut_calibration,_DUT_conversion))
-    throw StopProcessingException(this);
-  for(size_t i = 0; i < dutPixels->size(); i++) { dutpxqHisto->fill(dutPixels->at(i).vcal); }
-  ClustDUT = GetClusters(dutPixels,_DUT_chip);
-
   // Read the REF event:
   std::vector<CMSPixel::pixel> * refPixels = new std::vector<CMSPixel::pixel>;
   LCCollectionVec * refCollectionVec  = dynamic_cast < LCCollectionVec * > (refpx);
@@ -724,26 +717,6 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     refPixels->push_back(px);
   }
   //streamlog_out( WARNING ) << "Evt " << event->getEventNumber() << ": " << refPixels->size() << " on REF";
-
-  // Calibrate the pixel hits with the initialized calibration data:
-  if(!CalibratePixels(refPixels,ref_calibration,_REF_conversion))
-    throw StopProcessingException(this);
-
-  ClustREF = GetClusters(refPixels,_REF_chip);
-
-  streamlog_out(DEBUG4) << std::setw(6) << std::setiosflags(std::ios::right) << event->getEventNumber() << ". DUT pixels " << dutPixels->size();
-
-  if( dutPixels->size() > 0 ) {
-    streamlog_out(DEBUG3) << ", clusters at";
-    for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ ){
-      streamlog_out(DEBUG3) << "  (" << c->col << ", " << c->row << ")";
-    }
-  }
-  streamlog_out(DEBUG4) << std::endl;
-
-
-  // Fill some informational plots about the REF and DUT cluster distributions:
-  FillClusterStatisticsPlots( ClustDUT, dutPixels->size(), ClustREF, refPixels->size() );
 
 
   //----------------------------------------------------------------------------
@@ -809,11 +782,11 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 			<< " contains " << hits->size() << " hits" << std::endl;
 
 
- 
+
   // Do the event shifting if necessary:
   int nskip = max(_skip_dut,max(_skip_ref,_skip_tel));
   if(nskip > 0) {
-    streamlog_out ( DEBUG5 ) << "Evt " << event->getEventNumber() << " read: DUT " << dutPixels->size() << "px, REF " << refPixels->size() << "px, TEL " << hits->size() << "px" << endl;
+    streamlog_out ( DEBUG4 ) << "Evt " << event->getEventNumber() << " read: DUT " << dutPixels->size() << "px, REF " << refPixels->size() << "px, TEL " << hits->size() << "px" << endl;
 
     // Do the skipping magic:
     if(event->getEventNumber() < nskip) {
@@ -822,7 +795,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       if(event->getEventNumber() < _skip_tel) tel_event_buffer.push_back(*hits);
       throw SkipEventException(this);
     }
-    streamlog_out ( DEBUG5 ) << "Evt " << event->getEventNumber() << " buffers: DUT " << dut_event_buffer.size() 
+    streamlog_out ( DEBUG4 ) << "Evt " << event->getEventNumber() << " buffers: DUT " << dut_event_buffer.size() 
 			     << "ev, REF " << ref_event_buffer.size() 
 			     << "ev, TEL" << tel_event_buffer.size() << "ev" << endl;
 
@@ -853,15 +826,37 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       tel_event_buffer.erase(tel_event_buffer.begin());
     }
 
-    streamlog_out ( DEBUG5 ) << "Evt " << event->getEventNumber() << " buffers post-read: DUT " << dut_event_buffer.size() 
+    streamlog_out ( DEBUG4 ) << "Evt " << event->getEventNumber() << " buffers post-read: DUT " << dut_event_buffer.size() 
 			     << "ev, REF " << ref_event_buffer.size()
 			     << "ev, TEL" << tel_event_buffer.size() << "ev" << endl;
 
-    streamlog_out ( DEBUG5 ) << "Evt " << event->getEventNumber() << " fetched: DUT " << dutPixels->size() << "px, REF " << refPixels->size() << "px, TEL " << hits->size() << "px" << endl;
+    streamlog_out ( DEBUG4 ) << "Evt " << event->getEventNumber() << " fetched: DUT " << dutPixels->size() << "px, REF " << refPixels->size() << "px, TEL " << hits->size() << "px" << endl;
   }
 
+  // Calibrate the pixel hits with the initialized calibration data:
+  if(!CalibratePixels(dutPixels,dut_calibration,_DUT_conversion))
+    throw StopProcessingException(this);
+  for(size_t i = 0; i < dutPixels->size(); i++) { dutpxqHisto->fill(dutPixels->at(i).vcal); }
+  ClustDUT = GetClusters(dutPixels,_DUT_chip);
+
+  if(!CalibratePixels(refPixels,ref_calibration,_REF_conversion))
+    throw StopProcessingException(this);
+  ClustREF = GetClusters(refPixels,_REF_chip);
 
 
+  streamlog_out(DEBUG4) << std::setw(6) << std::setiosflags(std::ios::right) << event->getEventNumber() << ". DUT pixels " << dutPixels->size();
+
+  if( dutPixels->size() > 0 ) {
+    streamlog_out(DEBUG3) << ", clusters at";
+    for( std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++ ){
+      streamlog_out(DEBUG3) << "  (" << c->col << ", " << c->row << ")";
+    }
+  }
+  streamlog_out(DEBUG4) << std::endl;
+
+
+  // Fill some informational plots about the REF and DUT cluster distributions:
+  FillClusterStatisticsPlots( ClustDUT, dutPixels->size(), ClustREF, refPixels->size() );
 
   // Fill the telescope plane correlation plots:
   TelescopeCorrelationPlots(hits);
