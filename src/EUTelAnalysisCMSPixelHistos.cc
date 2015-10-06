@@ -1095,6 +1095,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsq0", 100, 0, 100 );
   cmsq0Histo->setTitle( "DUT cluster charge linked;normal DUT cluster charge [ke];DUT linked clusters" );
 
+  cmsqfctq4Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsqfctq4", 100, 0, 100 );
+  cmsqfctq4Histo->setTitle( "DUT cluster charge linked;normal DUT cluster charge [ke];DUT linked clusters" );
+
   cmslq0Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmslq0", 100, 0, 100 );
   cmslq0Histo->setTitle( "DUT cluster charge linked within Q0 cuts;normal DUT cluster charge [ke];DUT linked clusters" );
@@ -1364,6 +1368,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsqvsym = AIDAProcessor::histogramFactory(this)->
     createProfile1D( "cmsqvsym", 40, 0, 200, 0, 100 );
   cmsqvsym->setTitle( "DUT q vs ymod;telescope y_{DUT} mod 200 [#mum];<q> [ke]" );
+
+  cmspxqsvsym = AIDAProcessor::histogramFactory(this)->
+    createProfile1D( "cmspxqsvsym", 40, 0, 200, 0, 100 );
+  cmspxqsvsym->setTitle( "DUT seed pixel q vs ymod;telescope y_{DUT} mod 200 [#mum];<q> [ke]" );
 
   cmsqvsxmym = AIDAProcessor::histogramFactory(this)->
     createProfile2D( "cmsqvsxmym", 60, 0, 300, 40, 0, 200, 0, 250 );

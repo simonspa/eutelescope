@@ -1884,8 +1884,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    cmsqvsy->fill( yAt, c->charge ); // cluster charge profile
 	    cmsqvsxm->fill( xmod, c->charge ); //q within pixel
 	    cmsqvsym->fill( ymod, c->charge ); //q within pixel
+	    if(c->seed_id > -1) cmspxqsvsym->fill( ymod, c->vpix.at(c->seed_id).vcal ); //q within pixel
 	    cmsqvsxmym->fill( xmod, ymod, c->charge ); // cluster charge profile
-	    
 	    if(c->seed_id > -1) cmspxqvsxmym->fill( xmod, ymod, c->vpix.at(c->seed_id).vcal ); // cluster charge profile
 
 	    if(ldot) { cmsqvsxmymdot->fill( xmod, ymod, c->charge ); } // cluster charge profile
