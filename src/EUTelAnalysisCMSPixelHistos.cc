@@ -262,6 +262,86 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "dutpxadc", 120, -100, 500 );
   dutpxadcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
 
+  dutpx0adcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx0adc", 255, 0, 255 );
+  dutpx0adcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx1adcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx1adc", 255, 0, 255 );
+  dutpx1adcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx2adcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx2adc", 255, 0, 255 );
+  dutpx2adcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx3adcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx3adc", 255, 0, 255 );
+  dutpx3adcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx4adcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx4adc", 255, 0, 255 );
+  dutpx4adcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx5adcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx5adc", 255, 0, 255 );
+  dutpx5adcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx6adcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx6adc", 255, 0, 255 );
+  dutpx6adcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx7adcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx7adc", 255, 0, 255 );
+  dutpx7adcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx8adcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx8adc", 255, 0, 255 );
+  dutpx8adcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx9adcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx9adc", 255, 0, 255 );
+  dutpx9adcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx0cadcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx0cadc", 255, 0, 255 );
+  dutpx0cadcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx1cadcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx1cadc", 255, 0, 255 );
+  dutpx1cadcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx2cadcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx2cadc", 255, 0, 255 );
+  dutpx2cadcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx3cadcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx3cadc", 255, 0, 255 );
+  dutpx3cadcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx4cadcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx4cadc", 255, 0, 255 );
+  dutpx4cadcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx5cadcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx5cadc", 255, 0, 255 );
+  dutpx5cadcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx6cadcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx6cadc", 255, 0, 255 );
+  dutpx6cadcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx7cadcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx7cadc", 255, 0, 255 );
+  dutpx7cadcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx8cadcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx8cadc", 255, 0, 255 );
+  dutpx8cadcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
+  dutpx9cadcHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutpx9cadc", 255, 0, 255 );
+  dutpx9cadcHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ADC];DUT pixels" );
+
   dutpxqHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "dutpxq", 100, 0, 25 );
   dutpxqHisto->setTitle( "DUT pixel ADC;DUT pixel PH [ke];DUT pixels" );

@@ -470,6 +470,8 @@ namespace eutelescope {
     AIDA::IHistogram1D * dutnclusHisto, * dutcolHisto, * dutrowHisto, * dutnpxHisto, * dutadcHisto,* dutcolcorrHisto, * dutrowcorrHisto;
     AIDA::IHistogram1D * dutcolfirstHisto, * dutcollastHisto, * dutcol1stevenqHisto, *dutcol1stoddqHisto;
     AIDA::IHistogram1D * dutpxcolHisto, * dutpxrowHisto, * dutpxadcHisto, * dutpxqHisto;
+    AIDA::IHistogram1D * dutpx0adcHisto,* dutpx1adcHisto,* dutpx2adcHisto,* dutpx3adcHisto,* dutpx4adcHisto,* dutpx5adcHisto,* dutpx6adcHisto,* dutpx7adcHisto,* dutpx8adcHisto,* dutpx9adcHisto;
+    AIDA::IHistogram1D * dutpx0cadcHisto,* dutpx1cadcHisto,* dutpx2cadcHisto,* dutpx3cadcHisto,* dutpx4cadcHisto,* dutpx5cadcHisto,* dutpx6cadcHisto,* dutpx7cadcHisto,* dutpx8cadcHisto,* dutpx9cadcHisto;
     AIDA::IHistogram1D * refnclusHisto, * refcolHisto, * refrowHisto, * refnpxHisto, * refadcHisto;
 
     AIDA::IHistogram1D * tlutrigvstusHisto;

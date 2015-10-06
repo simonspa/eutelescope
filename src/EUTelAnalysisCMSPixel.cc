@@ -253,6 +253,8 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
 
 void EUTelAnalysisCMSPixel::init() {
 
+  srand( time(NULL) ); //Randomize seed initialization
+
   // usually a good idea to
   printParameters();
 
@@ -3947,7 +3949,25 @@ double EUTelAnalysisCMSPixel::GetConversionFactor(EUTelAnalysisCMSPixel::calibra
 
 bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixels, EUTelAnalysisCMSPixel::calibration cal, double keV) {
 
+  if(cal.chip_id == _DUT_chip) {
+    // Fill the readout order plots:
+    if(pixels->size() > 0) dutpx0adcHisto->fill(pixels->at(0).raw);
+    if(pixels->size() > 1) dutpx1adcHisto->fill(pixels->at(1).raw);
+    if(pixels->size() > 2) dutpx2adcHisto->fill(pixels->at(2).raw);
+    if(pixels->size() > 3) dutpx3adcHisto->fill(pixels->at(3).raw);
+    if(pixels->size() > 4) dutpx4adcHisto->fill(pixels->at(4).raw);
+    if(pixels->size() > 5) dutpx5adcHisto->fill(pixels->at(5).raw);
+    if(pixels->size() > 6) dutpx6adcHisto->fill(pixels->at(6).raw);
+    if(pixels->size() > 7) dutpx7adcHisto->fill(pixels->at(7).raw);
+    // 2px Clusters only
+    if(pixels->size() == 2) dutpx8adcHisto->fill(pixels->at(0).raw);
+    if(pixels->size() == 2) dutpx9adcHisto->fill(pixels->at(1).raw);
+  }
+
   for( std::vector<CMSPixel::pixel>::iterator pix = pixels->begin(); pix != pixels->end(); pix++) {
+
+    // try to average out the pixel 1 ADC response:
+    if(pix == (pixels->begin()+1)) pix->raw -= (rand()%2);
     
     // Correct ADC shift:
     if(pix != pixels->begin()) pix->raw -= _adc_correction;
@@ -4007,6 +4027,21 @@ bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixel
       (*pix).vcal = (TMath::ATanH( Ared / ma9 ) 
 		      * cal.fitParameter[1][col][row] + cal.fitParameter[2][col][row]) * keV; // [ke]
     }
+  }
+
+  if(cal.chip_id == _DUT_chip) {
+    // Fill the readout order plots:
+    if(pixels->size() > 0) dutpx0cadcHisto->fill(pixels->at(0).raw);
+    if(pixels->size() > 1) dutpx1cadcHisto->fill(pixels->at(1).raw);
+    if(pixels->size() > 2) dutpx2cadcHisto->fill(pixels->at(2).raw);
+    if(pixels->size() > 3) dutpx3cadcHisto->fill(pixels->at(3).raw);
+    if(pixels->size() > 4) dutpx4cadcHisto->fill(pixels->at(4).raw);
+    if(pixels->size() > 5) dutpx5cadcHisto->fill(pixels->at(5).raw);
+    if(pixels->size() > 6) dutpx6cadcHisto->fill(pixels->at(6).raw);
+    if(pixels->size() > 7) dutpx7cadcHisto->fill(pixels->at(7).raw);
+    // 2px Clusters only
+    if(pixels->size() == 2) dutpx8cadcHisto->fill(pixels->at(0).raw);
+    if(pixels->size() == 2) dutpx9cadcHisto->fill(pixels->at(1).raw);
   }
 
   return true;
