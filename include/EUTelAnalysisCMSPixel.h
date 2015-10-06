@@ -425,6 +425,7 @@ namespace eutelescope {
     double skew_par0, skew_par1;
     std::string _CMS_gain_path;
 
+    double _adc_correction;
     // Other variables only to print out the full runlist.csv line at
     // the end:
     std::string _gearfile;
@@ -525,8 +526,7 @@ namespace eutelescope {
     AIDA::IHistogram2D * cmsyyHisto;
 
     AIDA::IHistogram1D * cmspxqHisto,* cmspxq1stHisto,* cmspxq2ndHisto,* cmspxq3rdHisto,* cmspxq2c1stHisto,* cmspxq2c1stcHisto,* cmspxq2c2ndHisto, * cmspxqhp1Histo,* cmspxqhp1cHisto,* cmspxqhp0Histo, * cmspxqcl2Histo, * cmspxqrow2Histo,* cmspxqeveHisto, * cmspxqoddHisto;
-    AIDA::IHistogram1D * cmspxq0Histo,* cmspxq1Histo, * cmspxq2Histo, * cmspxq3Histo,* cmspxq4Histo, * cmspxq5Histo, * cmspxq6Histo,* cmspxq7Histo, * cmspxq8Histo, * cmspxq9Histo;
-    AIDA::IHistogram1D * cmspxq0cHisto,* cmspxq1cHisto, * cmspxq2cHisto, * cmspxq3cHisto,* cmspxq4cHisto, * cmspxq5cHisto, * cmspxq6cHisto,* cmspxq7cHisto, * cmspxq8cHisto, * cmspxq9cHisto;
+    AIDA::IHistogram1D * cms2pxq0Histo,* cms2pxq1Histo, * cms4pxq0Histo, * cms4pxq1Histo,* cms4pxq2Histo, * cms4pxq3Histo;
     AIDA::IProfile1D * cmspxqvsq;
     AIDA::IProfile1D * cmspxqvsqv;
     AIDA::IProfile1D * cmspxqvsxm;

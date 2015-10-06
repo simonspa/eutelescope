@@ -634,85 +634,29 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmspxqeve", 100, 0, 25 );
   cmspxqeveHisto->setTitle( "DUT pixel charge linked eve col;DUT pixel charge [ke];DUT linked pixels eve col" );
 
-  cmspxq0Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq0", 100, 0, 25 );
-  cmspxq0Histo->setTitle( "DUT pixel charge 0th pix, corr;DUT pixel charge [ke];DUT pixels" );
+  cms2pxq0Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cms2pxq0", 100, 0, 25 );
+  cms2pxq0Histo->setTitle( "DUT pixel charge 0th pix, corr;DUT pixel charge [ke];DUT pixels" );
 
-  cmspxq1Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq1", 100, 0, 25 );
-  cmspxq1Histo->setTitle( "DUT pixel charge 1st pix, corr;DUT pixel charge [ke];DUT pixels" );
+  cms2pxq1Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cms2pxq1", 100, 0, 25 );
+  cms2pxq1Histo->setTitle( "DUT pixel charge 1st pix, corr;DUT pixel charge [ke];DUT pixels" );
 
-  cmspxq2Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq2", 100, 0, 25 );
-  cmspxq2Histo->setTitle( "DUT pixel charge 2nd pix, corr;DUT pixel charge [ke];DUT pixels" );
+  cms4pxq0Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cms4pxq0", 100, 0, 25 );
+  cms4pxq0Histo->setTitle( "DUT pixel charge 0th pix, corr;DUT pixel charge [ke];DUT pixels" );
 
-  cmspxq3Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq3", 100, 0, 25 );
-  cmspxq3Histo->setTitle( "DUT pixel charge 3rd pix, corr;DUT pixel charge [ke];DUT pixels" );
+  cms4pxq1Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cms4pxq1", 100, 0, 25 );
+  cms4pxq1Histo->setTitle( "DUT pixel charge 1st pix, corr;DUT pixel charge [ke];DUT pixels" );
 
-  cmspxq4Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq4", 100, 0, 25 );
-  cmspxq4Histo->setTitle( "DUT pixel charge 4th pix, corr;DUT pixel charge [ke];DUT pixels" );
+  cms4pxq2Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cms4pxq2", 100, 0, 25 );
+  cms4pxq2Histo->setTitle( "DUT pixel charge 2nd pix, corr;DUT pixel charge [ke];DUT pixels" );
 
-  cmspxq5Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq5", 100, 0, 25 );
-  cmspxq5Histo->setTitle( "DUT pixel charge 5th pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq6Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq6", 100, 0, 25 );
-  cmspxq6Histo->setTitle( "DUT pixel charge 6th pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq7Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq7", 100, 0, 25 );
-  cmspxq7Histo->setTitle( "DUT pixel charge 7th pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq8Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq8", 100, 0, 25 );
-  cmspxq8Histo->setTitle( "DUT pixel charge 8th pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq9Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq9", 100, 0, 25 );
-  cmspxq9Histo->setTitle( "DUT pixel charge 9th pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq0cHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq0c", 100, 0, 25 );
-  cmspxq0cHisto->setTitle( "DUT pixel charge 0th pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq1cHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq1c", 100, 0, 25 );
-  cmspxq1cHisto->setTitle( "DUT pixel charge 1st pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq2cHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq2c", 100, 0, 25 );
-  cmspxq2cHisto->setTitle( "DUT pixel charge 2nd pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq3cHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq3c", 100, 0, 25 );
-  cmspxq3cHisto->setTitle( "DUT pixel charge 3rd pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq4cHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq4c", 100, 0, 25 );
-  cmspxq4cHisto->setTitle( "DUT pixel charge 4th pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq5cHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq5c", 100, 0, 25 );
-  cmspxq5cHisto->setTitle( "DUT pixel charge 5th pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq6cHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq6c", 100, 0, 25 );
-  cmspxq6cHisto->setTitle( "DUT pixel charge 6th pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq7cHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq7c", 100, 0, 25 );
-  cmspxq7cHisto->setTitle( "DUT pixel charge 7th pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq8cHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq8c", 100, 0, 25 );
-  cmspxq8cHisto->setTitle( "DUT pixel charge 8th pix, corr;DUT pixel charge [ke];DUT pixels" );
-
-  cmspxq9cHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq9c", 100, 0, 25 );
-  cmspxq9cHisto->setTitle( "DUT pixel charge 9th pix, corr;DUT pixel charge [ke];DUT pixels" );
+  cms4pxq3Histo = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cms4pxq3", 100, 0, 25 );
+  cms4pxq3Histo->setTitle( "DUT pixel charge 3rd pix, corr;DUT pixel charge [ke];DUT pixels" );
 
   cmspxqvsq = AIDAProcessor::histogramFactory(this)->
     createProfile1D( "cmspxqvsq", 150,  0, 150, 0, 99 );

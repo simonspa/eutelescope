@@ -108,7 +108,7 @@ double DUTaligny = 0;
 double DUTrot = 0;
 
 
-EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_conversion(0), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _skew_db(""), _have_skew_db(false), skew_par0(0), skew_par1(0), _CMS_gain_path(""), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), _skip_dut(0), _skip_ref(0), _skip_tel(0), dut_event_buffer(), ref_event_buffer(), tel_event_buffer(), ClustDUT(), ClustREF(), m_millefilename("") {
+EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_conversion(0), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _skew_db(""), _have_skew_db(false), skew_par0(0), skew_par1(0), _CMS_gain_path(""), _adc_correction(0), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), _skip_dut(0), _skip_ref(0), _skip_tel(0), dut_event_buffer(), ref_event_buffer(), tel_event_buffer(), ClustDUT(), ClustREF(), m_millefilename("") {
 
   // modify processor description
   _description = "Analysis for CMS PSI46 Pixel Detectors as DUT in AIDA telescopes ";
@@ -226,6 +226,10 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
   registerProcessorParameter( "skew_database",
                               "database file for skew corrections",
 			      _skew_db, std::string("none"));
+
+  registerProcessorParameter( "adc_correction",
+                              "ADC value c orrection for all but first pixel",
+			      _adc_correction, static_cast < double >(2.6));
 
   registerOptionalParameter( "skip_dut",
 			     "Skip N events from DUT data stream at beginning",
@@ -422,6 +426,9 @@ void EUTelAnalysisCMSPixel::processRunHeader( LCRunHeader* runHeader) {
   // Get conversion factors to kiloelectrons:
   _DUT_conversion = GetConversionFactor(dut_calibration,_DUT_conversion);
   _REF_conversion = GetConversionFactor(ref_calibration);
+
+  streamlog_out(MESSAGE0) << "DUT Conversion: " << _DUT_conversion << "ke" << endl;
+  streamlog_out(MESSAGE0) << "REF Conversion: " << _REF_conversion << "ke" << endl;
 
   if(_DUT_chip == 506 && _nRun <= 15268) {
     // Deal with backwards-incompatible change in DAQ software:
@@ -3753,20 +3760,6 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
   std::vector<cluster> clusters;
   if(pixels->empty()) return clusters;
 
-  if(chip == _DUT_chip) {
-    // Fill the readout order plots:
-    if(pixels->size() > 0) cmspxq0Histo->fill(pixels->at(0).vcal);
-    if(pixels->size() > 1) cmspxq1Histo->fill(pixels->at(1).vcal);
-    if(pixels->size() > 2) cmspxq2Histo->fill(pixels->at(2).vcal);
-    if(pixels->size() > 3) cmspxq3Histo->fill(pixels->at(3).vcal);
-    if(pixels->size() > 4) cmspxq4Histo->fill(pixels->at(4).vcal);
-    if(pixels->size() > 5) cmspxq5Histo->fill(pixels->at(5).vcal);
-    if(pixels->size() > 6) cmspxq6Histo->fill(pixels->at(6).vcal);
-    if(pixels->size() > 7) cmspxq7Histo->fill(pixels->at(7).vcal);
-    if(pixels->size() > 8) cmspxq8Histo->fill(pixels->at(8).vcal);
-    if(pixels->size() > 9) cmspxq9Histo->fill(pixels->at(9).vcal);
-  }
-
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // Tsunami correction
   double eps = 0; // for analog ROCs
@@ -3784,7 +3777,7 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
   std::vector<CMSPixel::pixel>::iterator px = pixels->begin();
   std::advance(px, 1);
   for(; px != pixels->end(); px++ ) {
-    px->vcal -= eps; // additive
+    //px->vcal -= eps; // additive
   }
 
   // Alternative by Daniel: correct by 3% of precursor:
@@ -3797,20 +3790,6 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
     previous_charge = temp_charge;
   }
   */
-
-  if(chip == _DUT_chip) {
-    // Fill the readout order plots:
-    if(pixels->size() > 0) cmspxq0cHisto->fill(pixels->at(0).vcal);
-    if(pixels->size() > 1) cmspxq1cHisto->fill(pixels->at(1).vcal);
-    if(pixels->size() > 2) cmspxq2cHisto->fill(pixels->at(2).vcal);
-    if(pixels->size() > 3) cmspxq3cHisto->fill(pixels->at(3).vcal);
-    if(pixels->size() > 4) cmspxq4cHisto->fill(pixels->at(4).vcal);
-    if(pixels->size() > 5) cmspxq5cHisto->fill(pixels->at(5).vcal);
-    if(pixels->size() > 6) cmspxq6cHisto->fill(pixels->at(6).vcal);
-    if(pixels->size() > 7) cmspxq7cHisto->fill(pixels->at(7).vcal);
-    if(pixels->size() > 8) cmspxq8cHisto->fill(pixels->at(8).vcal);
-    if(pixels->size() > 9) cmspxq9cHisto->fill(pixels->at(9).vcal);
-  }
 
   // clustering: 1 = no gap, 2 = gap of 1px
   int fCluCut = 1;
@@ -3895,6 +3874,27 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
     while((++seed < pixels->size()) && (gone[seed]));
   }//while over seeds
 
+  // Fill the pixel charge / readout order plots:
+  if(chip == _DUT_chip) {
+    // Select single 2px clusters:
+    if(clusters.size() == 1 && clusters.front().size == 2) {
+      if(pixels->size() == 2) {
+	cms2pxq0Histo->fill(pixels->at(0).vcal);
+	cms2pxq1Histo->fill(pixels->at(1).vcal);
+      }
+    }
+
+    // Select single 4px clusters:
+    if(clusters.size() == 1 && clusters.front().size == 4) {
+      if(pixels->size() == 4) {
+	cms4pxq0Histo->fill(pixels->at(0).vcal);
+	cms4pxq1Histo->fill(pixels->at(1).vcal);
+	cms4pxq2Histo->fill(pixels->at(2).vcal);
+	cms4pxq3Histo->fill(pixels->at(3).vcal);
+      }
+    }
+  }
+
   // nothing left to do, return clusters
   delete gone;
   return clusters;
@@ -3918,9 +3918,6 @@ double EUTelAnalysisCMSPixel::GetConversionFactor(EUTelAnalysisCMSPixel::calibra
     // Feb 2014
     if( cal.chip_id == 203) keV = 0.324;
 
-    //if( cal.chip_id == 405) keV = 0.290;
-    //if( cal.chip_id == 404) keV = 0.250;
-
     if( cal.chip_id == 400 ) keV = 0.288; // 12593 to get q0f peak at 22 ke
     if( cal.chip_id == 401 ) keV = 0.275; // 12603 to get q0f peak at 22 ke
     if( cal.chip_id == 402 ) keV = 0.295; // 12556 to get q0f peak at 22 ke
@@ -3930,14 +3927,20 @@ double EUTelAnalysisCMSPixel::GetConversionFactor(EUTelAnalysisCMSPixel::calibra
 
     //if( cal.chip_id == 500 ) keV = 0.312; // 14470 to get q0f peak at 22 ke
     if( cal.chip_id == 500 ) keV = 0.305; // 14393 to get q0f peak at 22 ke no eps in Q
-    //if( cal.chip_id == 504 ) keV = 0.254; // 14614 to get q0f peak at 22 ke
-    if( cal.chip_id == 504 ) keV = 0.235; // 19045 to get q0f peak at 22 ke
-    //if( cal.chip_id == 506 ) keV = 0.290; // 14654 to get q0f peak at 22 ke
-    //if( cal.chip_id == 506 ) keV = 0.252; // 19447 chiller off, large tilt
-    if( cal.chip_id == 506 ) keV = 0.268; // 19582 chiller off, tilt 28
-    //if(cal.chip_id == 506) keV = 0.274; // 19817 chiller on
 
-    if(cal.chip_id == 506 && _nRun >= 20160 && _nRun <= 20161) { keV = 0.23; }
+    if( cal.chip_id == 504 && _nRun < 20253) keV = 0.261; // 19045 to get q0f peak at 22 ke
+    else if( cal.chip_id == 504 ) keV = 0.253; // 19045 to get q0f peak at 22 ke
+
+    if( cal.chip_id == 506 ) keV = 0.295; // 19582 chiller off, tilt 28
+
+    if( cal.chip_id == 506 && _nRun >= 14697 && _nRun <= 14706) keV = 0.2897;
+
+    if( cal.chip_id == 506 && _nRun >= 19714 ) keV = 0.282;
+    if( cal.chip_id == 506 && _nRun >= 19714 && _nRun <= 19735) { keV = 0.275; }
+    if( cal.chip_id == 506 && _nRun >= 19845 && _nRun <= 19857) { keV = 0.287; }
+    if( cal.chip_id == 506 && _nRun >= 19866 && _nRun <= 19958) { keV = 0.2779; }
+    if( cal.chip_id == 506 && _nRun >= 20165 && _nRun <= 20179) { keV = 0.2736; }
+    if( cal.chip_id == 506 && _nRun >= 20749 && _nRun <= 20772) { keV = 0.2785; }
   }
   return keV;
 }
@@ -3946,6 +3949,9 @@ bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixel
 
   for( std::vector<CMSPixel::pixel>::iterator pix = pixels->begin(); pix != pixels->end(); pix++) {
     
+    // Correct ADC shift:
+    if(pix != pixels->begin()) pix->raw -= _adc_correction;
+
     size_t col = (*pix).col;
     size_t row = (*pix).row;
 
