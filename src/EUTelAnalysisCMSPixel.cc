@@ -404,10 +404,18 @@ void EUTelAnalysisCMSPixel::processRunHeader( LCRunHeader* runHeader) {
 
   // Scale cuty with the expected resolution (depending on tilt angle)
   // should always be around 10sigma
-  if     (_DUTtilt < 14) { _cuty = 0.40; }
-  else if(_DUTtilt < 19) { _cuty = 0.25; }
-  else if(_DUTtilt < 35) { _cuty = 0.10; }
-  else { _cuty = 0.1 + 0.00625*(_DUTtilt-35); }
+  if(_DUT_chip == 506) {
+    if     (_DUTtilt < 14) { _cuty = 0.40; }
+    else if(_DUTtilt < 19) { _cuty = 0.25; }
+    else if(_DUTtilt < 35) { _cuty = 0.10; }
+    else { _cuty = 0.1 + 0.00625*(_DUTtilt-35); }
+  }
+  else {
+    if     (_DUTtilt < 7) { _cuty = 0.30; }
+    else if(_DUTtilt < 15) { _cuty = 0.15; }
+    else if(_DUTtilt < 25) { _cuty = 0.05; }
+    else { _cuty = 0.10; }
+  }
   streamlog_out(MESSAGE0) << "Set matching cut Y to " << _cuty << "mm" << std::endl;
 
   const std::string detectorName = runHeader->getDetectorName();
@@ -3930,8 +3938,8 @@ double EUTelAnalysisCMSPixel::GetConversionFactor(EUTelAnalysisCMSPixel::calibra
     //if( cal.chip_id == 500 ) keV = 0.312; // 14470 to get q0f peak at 22 ke
     if( cal.chip_id == 500 ) keV = 0.305; // 14393 to get q0f peak at 22 ke no eps in Q
 
-    if( cal.chip_id == 504 && _nRun < 20253) keV = 0.261; // 19045 to get q0f peak at 22 ke
-    else if( cal.chip_id == 504 ) keV = 0.253; // 19045 to get q0f peak at 22 ke
+    if( cal.chip_id == 504 && _nRun < 20253) keV = 0.258; // 19045 to get q0f peak at 22 ke
+    else if( cal.chip_id == 504 ) keV = 0.2501; // 19045 to get q0f peak at 22 ke
 
     if( cal.chip_id == 506 ) keV = 0.295; // 19582 chiller off, tilt 28
 
