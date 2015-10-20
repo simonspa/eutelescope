@@ -1567,6 +1567,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	else if( _DUT_chip >= 200 ) { // even/odd col effect for dig
 	  oddcorr = 1.5E-3;
 	}
+	oddcorr = 0;
 
 	if(!rot90) {
 	  if( iodd ) {// odd
