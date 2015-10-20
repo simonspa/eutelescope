@@ -3948,8 +3948,12 @@ double EUTelAnalysisCMSPixel::GetConversionFactor(EUTelAnalysisCMSPixel::calibra
     //if( cal.chip_id == 500 ) keV = 0.312; // 14470 to get q0f peak at 22 ke
     if( cal.chip_id == 500 ) keV = 0.305; // 14393 to get q0f peak at 22 ke no eps in Q
 
-    if( cal.chip_id == 504 && _nRun < 20253) keV = 0.258; // 19045 to get q0f peak at 22 ke
-    else if( cal.chip_id == 504 ) keV = 0.2501; // 19045 to get q0f peak at 22 ke
+    //if( cal.chip_id == 504 && _nRun < 20253) keV = 0.258; // 19045 to get q0f peak at 22 ke
+    //else if( cal.chip_id == 504 ) keV = 0.2501; // 19045 to get q0f peak at 22 ke
+
+    if( cal.chip_id == 504) keV = 0.25721;
+    if( cal.chip_id == 504 && _nRun >= 20785) keV = 0.246;
+    if( cal.chip_id == 504 && _nRun >= 20811) keV = 0.24958;
 
     if( cal.chip_id == 506 ) keV = 0.295; // 19582 chiller off, tilt 28
 
