@@ -1548,6 +1548,15 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	// Comparison: new skew correction:
 	double cmsdy0 = dy4;
 
+	// Skew only for fiducial clusters, avoid edge effects:
+	if(fiducial && 
+	   fabs( cmsdx ) < cutx && 
+	   isolatedTrip &&
+	   fabs( ty-0.000 ) < slope_y &&
+	   fabs( tx-0.000 ) < slope_x) {
+	  cmsskwfctHisto->fill(skw);
+	}
+
 	// Even/odd effect:
 	int iodd = static_cast<int>(floor( fmod( c->col, 2 ) ));
 	if(iodd) { cmsdyoddHisto->fill(cmsdy*1E3); }

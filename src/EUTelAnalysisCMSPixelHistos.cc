@@ -766,6 +766,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "cmsskw4px", 80, -0.2, 0.2 );
   cmsskw4pxHisto->setTitle( "DUT cluster skew (tilt) 4px;DUT cluster skew;clusters" );
 
+  cmsskwfctHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "cmsskwfct", 80, -0.2, 0.2 );
+  cmsskwfctHisto->setTitle( "DUT linked cluster skew (tilt);DUT linked cluster skew;clusters" );
+
   cmsskwfcqHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsskwfcq", 80, -0.2, 0.2 );
   cmsskwfcqHisto->setTitle( "DUT linked cluster skew (tilt);DUT linked cluster skew;clusters" );
