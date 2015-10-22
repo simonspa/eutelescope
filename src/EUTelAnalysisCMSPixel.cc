@@ -108,7 +108,7 @@ double DUTaligny = 0;
 double DUTrot = 0;
 
 
-EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_conversion(0), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _skew_db(""), _have_skew_db(false), skew_par0(0), skew_par1(0), skew_par2(0), skew_par3(0), _CMS_gain_path(""), _adc_correction(0), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), _skip_dut(0), _skip_ref(0), _skip_tel(0), dut_event_buffer(), ref_event_buffer(), tel_event_buffer(), ClustDUT(), ClustREF(), m_millefilename("") {
+EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_conversion(0), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _skew_db(""), _have_skew_db(false), skew_par0(0), skew_par1(0), _CMS_gain_path(""), _adc_correction(0), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), _skip_dut(0), _skip_ref(0), _skip_tel(0), dut_event_buffer(), ref_event_buffer(), tel_event_buffer(), ClustDUT(), ClustREF(), m_millefilename("") {
 
   // modify processor description
   _description = "Analysis for CMS PSI46 Pixel Detectors as DUT in AIDA telescopes ";
@@ -324,8 +324,8 @@ void EUTelAnalysisCMSPixel::init() {
 
   bool have_lower_tilt = false;
   bool have_higher_tilt = false;
-  double lower_skew_par0 = 0, lower_skew_par1 = 0, lower_skew_par2 = 0, lower_skew_par3 = 0, lower_tilt = 0;
-  double higher_skew_par0 = 0, higher_skew_par1 = 0, higher_skew_par2 = 0, higher_skew_par3 = 0, higher_tilt = 0;
+  double lower_skew_par0 = 0, lower_skew_par1 = 0, lower_tilt = 0;
+  double higher_skew_par0 = 0, higher_skew_par1 = 0, higher_tilt = 0;
 
   if (in.is_open()) {
     string line;
@@ -341,22 +341,17 @@ void EUTelAnalysisCMSPixel::init() {
       while (s) {
 	string str;
 	if(!getline( s, str, ',' )) break;
-	streamlog_out(MESSAGE2) << "i = " << i << ": " << str << endl;
 	if(i == 0) {  // Read tilt angle
 	  if(atof(str.c_str()) < _DUTtilt) { have_lower_tilt = true; lower_tilt = atof(str.c_str()); }
 	  if(atof(str.c_str()) > _DUTtilt) { have_higher_tilt = true; higher_tilt = atof(str.c_str()); }
 	}
 	if(have_higher_tilt) {
 	  if(i == 1) { higher_skew_par0 = atof(str.c_str()); }
-	  if(i == 2) { higher_skew_par1 = atof(str.c_str()); }
-	  if(i == 3) { higher_skew_par2 = atof(str.c_str()); }
-	  if(i == 4) { higher_skew_par3 = atof(str.c_str()); break; }
+	  if(i == 2) { higher_skew_par1 = atof(str.c_str()); break; }
 	}
 	else if(have_lower_tilt) {
 	  if(i == 1) { lower_skew_par0 = atof(str.c_str()); }
-	  if(i == 2) { lower_skew_par1 = atof(str.c_str()); }
-	  if(i == 3) { lower_skew_par2 = atof(str.c_str()); }
-	  if(i == 4) { lower_skew_par3 = atof(str.c_str()); break; }
+	  if(i == 2) { lower_skew_par1 = atof(str.c_str()); break; }
 	}
 	i++;
       }
@@ -366,15 +361,9 @@ void EUTelAnalysisCMSPixel::init() {
 
     if(have_higher_tilt && have_lower_tilt) {
       streamlog_out(MESSAGE2) << "Skew correction parameters for tilt " << lower_tilt << " < " << _DUTtilt 
-			      << ": " << lower_skew_par0 << " " << lower_skew_par1 << " " << lower_skew_par2 << " " << lower_skew_par3 << endl;
+			      << ": " << lower_skew_par0 << " " << lower_skew_par1 << endl;
       streamlog_out(MESSAGE2) << "Skew correction parameters for tilt " << higher_tilt << " > " << _DUTtilt
-			      << ": " << higher_skew_par0 << " " << higher_skew_par1 << " " << higher_skew_par2 << " " << higher_skew_par3 << endl;
-
-      double slope3 = (higher_skew_par3-lower_skew_par3)/(higher_tilt-lower_tilt);
-      skew_par3 = lower_skew_par3 + (_DUTtilt-lower_tilt)*slope3;
-
-      double slope2 = (higher_skew_par2-lower_skew_par2)/(higher_tilt-lower_tilt);
-      skew_par2 = lower_skew_par2 + (_DUTtilt-lower_tilt)*slope2;
+			      << ": " << higher_skew_par0 << " " << higher_skew_par1 << endl;
 
       double slope1 = (higher_skew_par1-lower_skew_par1)/(higher_tilt-lower_tilt);
       skew_par1 = lower_skew_par1 + (_DUTtilt-lower_tilt)*slope1;
@@ -383,11 +372,8 @@ void EUTelAnalysisCMSPixel::init() {
       skew_par0 = lower_skew_par0 + (_DUTtilt-lower_tilt)*slope0;
 
       streamlog_out(MESSAGE2) << "Interpolated skew correction parameters for tilt " << _DUTtilt 
-			      << ": " << skew_par0 << " " << skew_par1 << " " << skew_par2 << " " << skew_par3 << endl;
+			      << ": " << skew_par0 << " " << skew_par1 << endl;
       _have_skew_db = true;
-    }
-    else {
-      streamlog_out(MESSAGE2) << "No skew correction parameters found for tilt " << _DUTtilt << " (" << have_lower_tilt << " " << have_higher_tilt << ")" << endl;
     }
   }
   else {
@@ -1549,10 +1535,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	// Skew correction, limit to multi-pixel clusters:
 	if(_have_skew_db) {
 	  if((rot90 && ncol > 1) || (!rot90 && nrow > 1)) {
-	    //dy5 += (skew_par0 + skew_par1*skw)*1E-3;
-	    double skwcorrection = (skew_par0 + skew_par1*skw + skew_par2*skw*skw + skew_par3*skw*skw*skw);
-	    dy5 += skwcorrection*1E-3;
-	    cmsskwcorrHisto->fill(skwcorrection);
+	    dy5 += (skew_par0 + skew_par1*skw)*1E-3;
+	    cmsskwcorrHisto->fill((skew_par0 + skew_par1*skw));
 	  }
 	}
 
