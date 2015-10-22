@@ -422,7 +422,7 @@ namespace eutelescope {
 
     std::string _skew_db;
     bool _have_skew_db;
-    double skew_par0, skew_par1;
+    double skew_par0, skew_par1, skew_par2, skew_par3;
     std::string _CMS_gain_path;
 
     double _adc_correction;
