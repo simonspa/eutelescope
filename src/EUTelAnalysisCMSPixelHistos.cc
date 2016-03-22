@@ -1307,6 +1307,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createProfile1D( "cmsdyvsym", 40, 0, 200, -150, 150 );
   cmsdyvsym->setTitle( "DUT y resid vs ymod;telescope y mod 200 [#mum];<DUT cluster - telescope triplet #Deltay> [#mum]" );
 
+  cmsdy0vsym = AIDAProcessor::histogramFactory(this)->
+    createProfile1D( "cmsdy0vsym", 40, 0, 200, -150, 150 );
+  cmsdy0vsym->setTitle( "DUT y resid vs ymod, no skew corr;telescope y mod 200 [#mum];<DUT cluster - telescope triplet #Deltay> [#mum]" );
+
   cmsdxvsxm = AIDAProcessor::histogramFactory(this)->
     createProfile1D( "cmsdxvsxm", 60, 0, 300, -150, 150 );
   cmsdxvsxm->setTitle( "DUT x resid vs xmod;telescope x mod 300 [#mum];<DUT cluster - telescope triplet #Deltax> [#mum]" );

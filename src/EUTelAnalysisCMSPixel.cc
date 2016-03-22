@@ -1981,6 +1981,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      cmsdyvsxm->fill( xmod, cmsdy*1E3 );
 	      cmsdy0vsxm->fill( xmod, cmsdy0*1E3 );
 	      cmsdyvsym->fill( ymod, cmsdy*1E3 );
+	      cmsdy0vsym->fill( ymod, cmsdy0*1E3 );
 
 	      cmsdxvsxm->fill( xmod, cmsdx*1E3 );
 	      cmsdxvsym->fill( ymod, cmsdx*1E3 );
