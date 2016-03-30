@@ -821,6 +821,7 @@ namespace eutelescope {
     AIDA::IHistogram2D * sixxyHisto;
     AIDA::IHistogram2D * sixxycHisto;
     AIDA::IProfile2D * kinkvsxy;
+    AIDA::IProfile2D * kinkvsxmym;
 
     AIDA::IHistogram1D * sixx0Histo;
     AIDA::IHistogram1D * sixy0Histo;

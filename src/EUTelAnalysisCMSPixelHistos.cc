@@ -2113,6 +2113,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createProfile2D( "Tracks/kinkvsxy", 120, -12, 12, 60, -6, 6, 0, 100 );
   kinkvsxy->setTitle( "kink;six x_{out} at DUT [mm];six y_{up} at DUT [mm];<kink^{2}> [mrad^{2}]" );
 
+  kinkvsxmym = AIDAProcessor::histogramFactory(this)->
+    createProfile2D( "Tracks/kinkvsxmym", 60, 0, 300, 40, 0, 200 );
+  kinkvsxmym->setTitle( "kink;x mod at DUT [um];y mod at DUT [um];<kink^{2}> [mrad^{2}]" );
+
   sixx0Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "Tracks/sixx0", 240, -12, 12 );
   sixx0Histo->setTitle( "six x at 0;six x_{out} at 0 [mm];six-plane tracks" );

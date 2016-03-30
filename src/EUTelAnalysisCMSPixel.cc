@@ -2775,6 +2775,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	gblry6Histo->fill( ( trip.cmsdy - aCorrection[4] ) * 1E3 ); // residual y [um]
 	gblpx6Histo->fill( aResiduals[0] / aResErrors[0] ); // pull
 	gblpy6Histo->fill( aResiduals[1] / aResErrors[1] ); // pull
+	kinkvsxmym->fill( xmod, ymod, (kx*kx+ky*ky)*1E6 );
       }
       ax[k] = aCorrection[1]; // angle correction at plane, for kinks
       //ay[k] = aCorrection[2]; // angle correction at plane, for kinks
