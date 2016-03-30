@@ -1988,6 +1988,10 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      cmsrmsxvsxmym->fill( xmod, ymod, fabs(cmsdx)*1E3 );
 	      cmsrmsyvsxmym->fill( xmod, ymod, fabs(cmsdy)*1E3 );
 	      cmsrmsxyvsxmym->fill( xmod, ymod, fabs(sqrt(cmsdx*cmsdx+cmsdy*cmsdy))*1E3 );
+	      double xmdist = fmod( xmod, 150. ) - 75.;
+	      double ymdist = fmod( ymod, 100. ) - 50.;
+	      double xmymdist = sqrt(xmdist*xmdist+ymdist*ymdist);
+	      cmsrmsxymposvsxmym->fill( xmod, ymod, (sqrt(cmsdx*cmsdx+cmsdy*cmsdy)*1E3-xmymdist) );
 
 	      if( !ldot ) {
 		cmsrmsxvsym->fill( ymod, fabs(cmsdx)*1E3 ); //resolution within pixel

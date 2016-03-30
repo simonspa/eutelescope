@@ -1050,6 +1050,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createProfile2D( "cmsrmsxyvsxmym", 60, 0, 300, 40, 0, 200 );
   cmsrmsxyvsxmym->setTitle( "DUT resolution;x mod 300 #mum;y mod 200 #mum;MAD(#sqrt{#Deltax^{2}+#Deltay^{2}}) [#mum]" );
 
+  cmsrmsxymposvsxmym = AIDAProcessor::histogramFactory(this)->
+    createProfile2D( "cmsrmsxymposvsxmym", 60, 0, 300, 40, 0, 200 );
+  cmsrmsxymposvsxmym->setTitle( "DUT resolution;x mod 300 #mum;y mod 200 #mum;MAD(#sqrt{#Deltax^{2}+#Deltay^{2}}) - (distance to pixel center) [#mum]" );
+
   cmsdyfctq4Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfctq4", 500, -500, 500 );
   cmsdyfctq4Histo->setTitle( "fiducial Pixel - telescope y;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
