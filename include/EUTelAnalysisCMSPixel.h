@@ -454,6 +454,12 @@ namespace eutelescope {
     // Millepede binary file name:
     std::string m_millefilename;
 
+    std::string _skip_db;
+    bool _have_skip_db;
+    std::vector<double> _uptimestart;
+    std::vector<double> _uptimeend;
+
+
     // definition of static members mainly used to name histograms
 #if defined(USE_AIDA) || defined(MARLIN_USE_AIDA)
 
