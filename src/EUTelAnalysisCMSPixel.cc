@@ -1015,7 +1015,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   double dNzdo = so*ca;
   double dNzda = co*sa;
 
-  double norm = cos( turn*wt ) * cos( tilt*wt ); // length of Nz. Landau 21.6
+  double norm = fabs(cos( turn*wt )) * fabs(cos( tilt*wt )); // length of Nz. Landau 21.6
   //double path = sqrt( 1 + tan(turn*wt)*tan(turn*wt) + tan(tilt*wt)*tan(tilt*wt) );
   //norm = 1/path; // test. Landau 22.4
 
