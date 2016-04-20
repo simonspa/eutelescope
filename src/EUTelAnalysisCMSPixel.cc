@@ -4029,6 +4029,8 @@ double EUTelAnalysisCMSPixel::GetConversionFactor(EUTelAnalysisCMSPixel::calibra
     if( cal.chip_id == 506 && _nRun >= 19866 && _nRun <= 19958) { keV = 0.2779; }
     if( cal.chip_id == 506 && _nRun >= 20165 && _nRun <= 20179) { keV = 0.2736; }
     if( cal.chip_id == 506 && _nRun >= 20749 && _nRun <= 20772) { keV = 0.2785; }
+    
+    if( cal.chip_id == 603 ) { keV = 0.289; }
   }
   return keV;
 }
