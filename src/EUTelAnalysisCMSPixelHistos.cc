@@ -1055,16 +1055,20 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsdyfctq3dHisto->setTitle( "fiducial Pixel - telescope y;fiducial cluster - triplet #Deltay [#mum];fiducial clusters" );
 
   cmsrmsxvsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "cmsrmsxvsxmym", 60, 0, 300, 40, 0, 200 );
+    createProfile2D( "cmsrmsxvsxmym", 150, 0, 300, 100, 0, 200 );
   cmsrmsxvsxmym->setTitle( "DUT x resolution;x mod 300 #mum;y mod 200 #mum;MAD(#Deltax) [#mum]" );
 
   cmsrmsyvsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "cmsrmsyvsxmym", 60, 0, 300, 40, 0, 200 );
+    createProfile2D( "cmsrmsyvsxmym", 150, 0, 300, 100, 0, 200 );
   cmsrmsyvsxmym->setTitle( "DUT y resolution;x mod 300 #mum;y mod 200 #mum;MAD(#Deltay) [#mum]" );
 
   cmsrmsxyvsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "cmsrmsxyvsxmym", 60, 0, 300, 40, 0, 200 );
+    createProfile2D( "cmsrmsxyvsxmym", 150, 0, 300, 100, 0, 200 );
   cmsrmsxyvsxmym->setTitle( "DUT resolution;x mod 300 #mum;y mod 200 #mum;MAD(#sqrt{#Deltax^{2}+#Deltay^{2}}) [#mum]" );
+
+  cmsdiffxyvsxmym = AIDAProcessor::histogramFactory(this)->
+    createProfile2D( "cmsdiffxyvsxmym", 150, 0, 300, 100, 0, 200 );
+  cmsdiffxyvsxmym->setTitle( "DUT resolution minus tel track pos;x mod 300 #mum;y mod 200 #mum;MAD(#sqrt{#Deltax^{2}+#Deltay^{2}}) [#mum]" );
 
   cmsdyfctq4Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfctq4", 500, -500, 500 );
@@ -1414,15 +1418,15 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmspxqsvsym->setTitle( "DUT seed pixel q vs ymod;telescope y_{DUT} mod 200 [#mum];<q> [ke]" );
 
   cmsqvsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "cmsqvsxmym", 60, 0, 300, 40, 0, 200, 0, 250 );
+    createProfile2D( "cmsqvsxmym", 150, 0, 300, 100, 0, 200, 0, 250 );
   cmsqvsxmym->setTitle( "DUT cluster charge map;x_{track} mod 300 #mum;y_{track} mod 200 #mum;<cluster charge> [ke]" );
 
   cmspxqvsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "cmspxqvsxmym", 60, 0, 300, 40, 0, 200, 0, 250 );
+    createProfile2D( "cmspxqvsxmym", 150, 0, 300, 100, 0, 200, 0, 250 );
   cmspxqvsxmym->setTitle( "DUT seed pixel charge map;x_{track} mod 300 #mum;y_{track} mod 200 #mum;<seed pixel charge> [ke]" );
 
   cmsqvsxmymdot = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "cmsqvsxmymdot", 60, 0, 300, 40, 0, 200, 0, 250 );
+    createProfile2D( "cmsqvsxmymdot", 150, 0, 300, 100, 0, 200, 0, 250 );
   cmsqvsxmymdot->setTitle( "DUT cluster charge map - Dot;x_{track} mod 300 #mum;y_{track} mod 200 #mum;<cluster charge> [ke]" );
 
   cmsskwvsym = AIDAProcessor::histogramFactory(this)->
@@ -1640,23 +1644,23 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsrmsyvsp->setTitle( "DUT y resolution vs prob;cluster charge [Moyal prob];RMS(#Deltay) [#mum]" );
 
   cmsnpxvsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "cmsnpxvsxmym", 60, 0, 300, 40, 0, 200, 0, 4.5 );
+    createProfile2D( "cmsnpxvsxmym", 150, 0, 300, 100, 0, 200, 0, 4.5 );
   cmsnpxvsxmym->setTitle( "DUT cluster size vs xm-ym;telescope x mod 300 [#mum];telescope y mod 200 [#mum];<pixels/cluster>" );
 
   cmsnpx1vsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "cmsnpx1vsxmym", 60, 0, 300, 40, 0, 200, 0, 4.5 );
+    createProfile2D( "cmsnpx1vsxmym", 150, 0, 300, 100, 0, 200, 0, 4.5 );
   cmsnpx1vsxmym->setTitle( "DUT 1px clusters vs xm-ym;telescope x mod 300 [#mum];telescope y mod 200 [#mum];<pixels/cluster>" );
 
   cmsnpx2vsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "cmsnpx2vsxmym", 60, 0, 300, 40, 0, 200, 0, 4.5 );
+    createProfile2D( "cmsnpx2vsxmym", 150, 0, 300, 100, 0, 200, 0, 4.5 );
   cmsnpx2vsxmym->setTitle( "DUT 2px clusters vs xm-ym;telescope x mod 300 [#mum];telescope y mod 200 [#mum];<pixels/cluster>" );
 
   cmsnpx3vsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "cmsnpx3vsxmym", 60, 0, 300, 40, 0, 200, 0, 4.5 );
+    createProfile2D( "cmsnpx3vsxmym", 150, 0, 300, 100, 0, 200, 0, 4.5 );
   cmsnpx3vsxmym->setTitle( "DUT 3px clusters vs xm-ym;telescope x mod 300 [#mum];telescope y mod 200 [#mum];<pixels/cluster>" );
 
   cmsnpx4vsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "cmsnpx4vsxmym", 60, 0, 300, 40, 0, 200, 0, 4.5 );
+    createProfile2D( "cmsnpx4vsxmym", 150, 0, 300, 100, 0, 200, 0, 4.5 );
   cmsnpx4vsxmym->setTitle( "DUT 4px clusters vs xm-ym;telescope x mod 300 [#mum];telescope y mod 200 [#mum];<pixels/cluster>" );
 
   cmsncolvsym = AIDAProcessor::histogramFactory(this)->
@@ -1802,7 +1806,7 @@ void EUTelAnalysisCMSPixel::bookHistos()
   effvsddt->setTitle( "DUT efficiency;TLU-DUT #delta#Deltat [ns];<CMS DUT efficiency>" );
 
   effvsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "effvsxmym", 60, 0, 300, 40, 0, 200, -1, 2 );
+    createProfile2D( "effvsxmym", 150, 0, 300, 100, 0, 200, -1, 2 );
   effvsxmym->setTitle( "DUT efficiency;telescope x' mod 300 [um];telescope y' mod 200 [um];efficiency" );
 
   // KIT: added for efficiency analysis - efficiency
@@ -2035,7 +2039,7 @@ void EUTelAnalysisCMSPixel::bookHistos()
   refqHisto->setTitle( "REF cluster charge linked;REF cluster charge [ke];REF linked clusters" );
 
   refqvsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "refqvsxmym", 60, 0, 300, 40, 0, 200, 0, 100 );
+    createProfile2D( "refqvsxmym", 150, 0, 300, 100, 0, 200, 0, 100 );
   refqvsxmym->setTitle( "REF cluster charge map;x mod 300 #mum;y mod 200 #mum;<cluster charge> [ke]" );
 
 
