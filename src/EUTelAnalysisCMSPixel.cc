@@ -2504,6 +2504,18 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       ymod = fmod( 9.030 + xAt, 0.2 ) * 1E3; // [0,200] um
     }
 
+    // Get Kink angle
+
+    double fidxmax =  3.8;
+    double fidxmin = -3.8;
+    double fidymax =  3.8;
+    double fidymin = -3.8;
+
+    if( xAt > fidxmin && xAt < fidxmax && yAt > fidymin && yAt < fidymax ) {
+      kinkvsxmym->fill( xmod, ymod, (kx*kx+ky*ky)*1E6 ); // kink angle
+    }
+
+
     // GBL with triplet A as seed:
 
     std::vector<gbl::GblPoint> traj_points;
@@ -2828,13 +2840,13 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       gblqx6Histo->fill( aKinks[0]*1E3 ); // x kink
       gblsx6Histo->fill( aKinks[0]/aKinkErrors[0] ); // x kink pull
       gbltx6Histo->fill( aKinks[0]/kResErrors[0] ); // x kink pull
+
       if( trip.linked_dut ) {
 	traj.getMeasResults(static_cast<unsigned int>(ipos), ndim, aResiduals, aMeasErrors, aResErrors, aDownWeights );
 	gblrx6Histo->fill( ( trip.cmsdx - aCorrection[3] ) * 1E3 ); // residual x [um]
 	gblry6Histo->fill( ( trip.cmsdy - aCorrection[4] ) * 1E3 ); // residual y [um]
 	gblpx6Histo->fill( aResiduals[0] / aResErrors[0] ); // pull
 	gblpy6Histo->fill( aResiduals[1] / aResErrors[1] ); // pull
-	kinkvsxmym->fill( xmod, ymod, (kx*kx+ky*ky)*1E6 );
       }
       ax[k] = aCorrection[1]; // angle correction at plane, for kinks
       //ay[k] = aCorrection[2]; // angle correction at plane, for kinks
