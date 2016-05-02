@@ -1514,9 +1514,12 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	// skew calculation (3rd moment):
 	double skw = 0;
+	double skw_unnorm = 0;
+	double tst = 0;
 	if(rot90) {
 	  // Sum third powers of x-x_cog:
-	  for(int col = colmin; col <= colmax; col++) { skw += pow((col - c->col),3)*qcol[col]; }
+	  for(int col = colmin; col <= colmax; col++) { skw += pow((col - c->col),3)*qcol[col]; tst += qcol[col];}
+	  skw_unnorm = 8*skw/pow(ncol,3);
 	  // Normalize to total charge and cluster length/2 ^3:
 	  skw /= (c->charge*pow(ncol,3));
 	  skw *= 8;
@@ -1524,6 +1527,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	else {
 	  // Sum third powers of x-x_cog:
 	  for(int row = rowmin; row <= rowmax; row++) { skw += pow((row - c->row),3)*qrow[row]; }
+	  skw_unnorm = 8*skw/pow(nrow,3);
 	  // Normalize to total charge and cluster length/2 ^3:
 	  skw /= (c->charge*pow(nrow,3));
 	  skw *= 8;
@@ -1614,6 +1618,13 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	   fabs( ty-0.000 ) < slope_y &&
 	   fabs( tx-0.000 ) < slope_x) {
 	  cmsskwfctHisto->fill(skw);
+	  cmsskwufctHisto->fill(skw_unnorm);
+	  cmsskwuvsq->fill(Q0,skw_unnorm);
+	  cmsskwvsq->fill(Q0,skw);
+	  if(rot90) cmsskwvsqn->fill(Q0/ncol,skw);
+	  else cmsskwvsqn->fill(Q0/nrow,skw);
+	  cmsqvsskwu->fill(skw_unnorm,Q0);
+	  cmsqvsskw->fill(skw,Q0);
 	}
 
 	// Even/odd effect:
@@ -1763,7 +1774,19 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      else
 		cmsdyfctq3dHisto->fill( cmsdy*1E3 ); // 7.2 um in run 5234
 	    }
-	    if( Q0 < 23 ) {
+	    bool inner_cut = false;
+	    if(rot90) {
+	      if(Q0 < 25 && Q0 > 19) inner_cut = true;
+	    }
+	    else if(Q0 < 23) inner_cut = true;
+
+	    if(inner_cut) {
+	      cmsskwfctq4Histo->fill(skw);
+	      cmsdy0vsskwfctq4->fill( skw, cmsdy0*1E3 ); //skew vs uncorrected residual
+	      cmsskwvsdy0fctq4->fill( cmsdy0*1E3, skw ); //skew vs uncorrected residual
+	      cmsdyvsskwfctq4->fill( skw, cmsdy*1E3 ); //skew vs uncorrected residual
+
+	      cmsqfctq4Histo->fill(Q0);
 	      cmsdy0fctq4Histo->fill( cmsdy0*1E3 ); // for comparison, without skew correction
 	      cmsdyfctq4Histo->fill( cmsdy*1E3 ); // was fctq2. 7.4 um
 						  // @ 4 GeV, 19 deg
@@ -1835,6 +1858,14 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	  cmscolHisto->fill( c->col );
 	  cmsrowHisto->fill( c->row );
+
+	  // Fill statistics for first and last pixel in the cluster:
+	  // Used to monitor VIColOr effect
+	  cmscolfirstHisto->fill( c->vpix.front().col );
+	  cmscollastHisto->fill( c->vpix.back().col );
+	  // Statistics for first DC, charge of left and right columns:
+	  if(c->vpix.front().col%2 == 0) { cmscol1stevenqHisto->fill( c->vpix.front().vcal ); }
+	  else { cmscol1stoddqHisto->fill( c->vpix.front().vcal ); }
 
 	  cmsqHisto->fill( c->charge );
 	  cmsq0Histo->fill( Q0 );
@@ -2009,6 +2040,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      cmsdyvsxm->fill( xmod, cmsdy*1E3 );
 	      cmsdy0vsxm->fill( xmod, cmsdy0*1E3 );
 	      cmsdyvsym->fill( ymod, cmsdy*1E3 );
+	      cmsdy0vsym->fill( ymod, cmsdy0*1E3 );
 
 	      cmsdxvsxm->fill( xmod, cmsdx*1E3 );
 	      cmsdxvsym->fill( ymod, cmsdx*1E3 );
@@ -2040,6 +2072,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      cmsrmsyvsy->fill( yAt, fabs(cmsdy)*1E3 ); //resolution across rows
 	      cmsrmsxvsxm->fill( xmod, fabs(cmsdx)*1E3 ); //resolution within pixel
 	      cmsrmsyvsxm->fill( xmod, fabs(cmsdy)*1E3 ); //resolution within pixel
+	      cmsrmsy0vsxm->fill( xmod, fabs(cmsdy0)*1E3 ); //resolution within pixel,noskewcorr
 	      cmsncolvsxm->fill( xmod, ncol );
 	      cmsnrowvsxm->fill( xmod, nrow );
 
@@ -2065,7 +2098,12 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 		cmsrmsyvseta->fill( eta, fabs(cmsdy)*1E3 );
 	      }
 
-	      cmsnpxvsxmym->fill( xmod, ymod, c->size ); // cluster size map
+	      cmsnpxvsxmym->fill( xmod, ymod, c->size ); // cluster
+							 // size map
+	      if(c->size ==  1) cmsnpx1vsxmym->fill( xmod, ymod, 1); // cluster
+	      if(c->size ==  2) cmsnpx2vsxmym->fill( xmod, ymod, 1); // cluster size
+	      if(c->size ==  3) cmsnpx3vsxmym->fill( xmod, ymod, 1); // cluster size
+	      if(c->size ==  4) cmsnpx4vsxmym->fill( xmod, ymod, 1); // cluster size map
 	      cmsncolvsym->fill( ymod, ncol ); // within pixel
 	      cmsnrowvsym->fill( ymod, nrow ); // within pixel
 
@@ -2101,6 +2139,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 		cmsskwvsym->fill( ymod, skw ); //skew within pixel
 		cmsskwvsxm->fill( xmod, skw ); //skew within pixel
 		cmsdy0vsskw->fill( skw, cmsdy0*1E3 ); //skew vs uncorrected residual
+		cmsskwvsdy0->fill( cmsdy0*1E3, skw ); //skew vs uncorrected residual
 		cmsdyvsskw->fill( skw, cmsdy*1E3 ); //skew vs corrected residual
 		cmsskwfcqHisto->fill(skw);
 	      }
@@ -3820,12 +3859,30 @@ void EUTelAnalysisCMSPixel::FillClusterStatisticsPlots(std::vector<cluster> dutc
       dutcolHisto->fill( c->col );
 
       // Fill statistics for first and last pixel in the cluster:
-      // Used to monitor VIColOr effect
-      dutcolfirstHisto->fill( c->vpix.front().col );
-      dutcollastHisto->fill( c->vpix.back().col );
-      // Statistics for first DC, charge of left and right columns:
-      if(c->vpix.front().col%2 == 0) { dutcol1stevenqHisto->fill( c->vpix.front().vcal ); }
-      else { dutcol1stoddqHisto->fill( c->vpix.front().vcal ); }
+      // Used to monitor VIColOr effect, only look at long clusters:
+      if(c->size > 2) {
+	int colmin = 99;
+	int rowmin = 99;
+	double qmin = 0;
+	int colmax = -1;
+	int rowmax = -1;
+	double qmax = 0;
+
+	for( std::vector<CMSPixel::pixel>::iterator px = c->vpix.begin(); px != c->vpix.end(); px++ ){
+	  if( px->col < colmin ) { colmin = px->col; qmin = px->vcal; }
+	  if( px->col > colmax ) { colmax = px->col; qmax = px->vcal; }
+	  if( px->row < rowmin ) { rowmin = px->row; }
+	  if( px->row > rowmax ) { rowmax = px->row; }
+	}//pix
+
+	dutcolfirstHisto->fill( colmin );
+	dutcollastHisto->fill( colmax );
+	dutrowfirstHisto->fill( rowmin );
+	dutrowlastHisto->fill( rowmax );
+	// Statistics for first DC, charge of left and right columns:
+	if(colmin%2 == 0) { dutcol1stevenqHisto->fill( qmin ); }
+	else { dutcol1stoddqHisto->fill( qmin ); }
+      }
       
       dutrowHisto->fill( c->row );
       dutnpxHisto->fill( c->size );
@@ -3931,6 +3988,9 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
       }//loop over all pix
     }while(growing);
 
+    // sort pixels along col*80 + row:
+    //c.vpix.sort();
+
     // Added all we could. determine position and append it to the list of clusters:
     for( std::vector<CMSPixel::pixel>::iterator p=c.vpix.begin();  p!=c.vpix.end();  p++){
       double Qpix = p->vcal; // calibrated [keV]
@@ -4033,6 +4093,8 @@ double EUTelAnalysisCMSPixel::GetConversionFactor(EUTelAnalysisCMSPixel::calibra
     if( cal.chip_id == 504) keV = 0.25721;
     if( cal.chip_id == 504 && _nRun >= 20785) keV = 0.246;
     if( cal.chip_id == 504 && _nRun >= 20811) keV = 0.24958;
+
+    if( cal.chip_id == 504 && _nRun >= 20386 && _nRun <= 20398) keV = 0.245;
 
     if( cal.chip_id == 506 ) keV = 0.295; // 19582 chiller off, tilt 28
 

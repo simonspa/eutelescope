@@ -474,7 +474,8 @@ namespace eutelescope {
     AIDA::IHistogram1D * nAllHitHisto;
 
     AIDA::IHistogram1D * dutnclusHisto, * dutcolHisto, * dutrowHisto, * dutnpxHisto, * dutadcHisto,* dutcolcorrHisto, * dutrowcorrHisto;
-    AIDA::IHistogram1D * dutcolfirstHisto, * dutcollastHisto, * dutcol1stevenqHisto, *dutcol1stoddqHisto;
+    AIDA::IHistogram1D * dutcolfirstHisto, * dutcollastHisto,* dutrowfirstHisto, * dutrowlastHisto, * dutcol1stevenqHisto, *dutcol1stoddqHisto;
+    AIDA::IHistogram1D * cmscolfirstHisto, * cmscollastHisto, * cmscol1stevenqHisto, *cmscol1stoddqHisto;
     AIDA::IHistogram1D * dutpxcolHisto, * dutpxrowHisto, * dutpxadcHisto, * dutpxqHisto;
     AIDA::IHistogram1D * dutpx0adcHisto,* dutpx1adcHisto,* dutpx2adcHisto,* dutpx3adcHisto,* dutpx4adcHisto,* dutpx5adcHisto,* dutpx6adcHisto,* dutpx7adcHisto,* dutpx8adcHisto,* dutpx9adcHisto;
     AIDA::IHistogram1D * dutpx0cadcHisto,* dutpx1cadcHisto,* dutpx2cadcHisto,* dutpx3cadcHisto,* dutpx4cadcHisto,* dutpx5cadcHisto,* dutpx6cadcHisto,* dutpx7cadcHisto,* dutpx8cadcHisto,* dutpx9cadcHisto;
@@ -539,7 +540,7 @@ namespace eutelescope {
     AIDA::IProfile1D * cmspxqvsqv;
     AIDA::IProfile1D * cmspxqvsxm;
     AIDA::IProfile1D * cmspxqvsym;
-    AIDA::IHistogram1D *cmsskwHisto, *cmsskw3pxHisto, *cmsskw4pxHisto, *cmsskwfcqHisto, *cmsskwfctHisto, *cmsskwfcHisto, *cmsskwcorrHisto, *cmsskw1colcogHisto, *cmsskw1rowcogHisto, *cmsskw1qHisto, *cmsskw1ncolHisto, *cmsskw1nrowHisto, *cmsskw0qHisto, *cmsskw0ncolHisto, *cmsskw0nrowHisto, * cmssxaHisto, * cmsdyaHisto, * cmsdxaHisto, * cmssyaHisto, * cmsdx4Histo, * cmsdy4Histo, * cmsdx5Histo, *cmsdy5Histo, * cmsdxHisto, * cmsdyHisto, * cmsdyevenHisto, * cmsdyoddHisto, * cmsdy0Histo, * cmsdxfHisto, * cmsdyfHisto, * cmsdyfdc1Histo, * cmsdyfdc2Histo, * cmsdyfdc1qHisto, * cmsdyfdc2qHisto, * cmsdxfcHisto, * cmsdyfcHisto, * cmsdyfc1Histo, * cmsdyfc2Histo, * cmsdyfc3Histo, * cmsdyfc1cHisto, * cmsdyfc2cHisto, * cmsdyfc3cHisto, * cmsdyq0Histo, * cmsdyq1Histo, * cmsdyq2Histo, * cmsdyeta0Histo, * cmsdyeta1Histo, * cmsdxfctHisto, * cmsdyfctHisto, * cmsdyfcntHisto, * cmsdxfctqHisto, * cmsdyfctqHisto, * cmsdyfcntqHisto, * cmsdxfctq1Histo, * cmsdyfctq1Histo, * cmsdyfcntq1Histo, * cmsdyfctq1lHisto, * cmsdyfctq1rHisto, * cmsdxfctq2Histo, * cmsdyfctq2Histo, * cmsdxfctq3Histo, * cmsdyfctq3Histo, * cmsdy0fctq3Histo, * cmsdyfctqdotHisto, * cmsdyfctq3dHisto, * cmsdy0fctq4Histo, * cmsdyfctq4Histo, * cmsdyfctq4dc1Histo, * cmsdyfctq4dc2Histo, * cmsdyfctq4dc1qHisto, * cmsdyfctq4dc2qHisto, * cmsdyfctq4dHisto, * cmsdy0fctq4dHisto, * cmscolHisto, * cmsrowHisto, * cmsqHisto, * cmsq0Histo, * cmsqfctq4Histo, * cmslq0Histo, * trixlkHisto, * triylkHisto, * cmsqseedfHisto,* cmsdyfctOnePixelHisto, * cmsdyfctLowChargeHisto, * cmsdyfctHighChargeHisto, * cmsdyfctOnePixelLowChargeHisto,* cmsdyfctOnePixelHighChargeHisto,* cmsdxfctLowChargeHisto;
+    AIDA::IHistogram1D *cmsskwHisto, *cmsskw3pxHisto, *cmsskw4pxHisto, *cmsskwfcqHisto, *cmsskwfctq4Histo, *cmsskwfctHisto, *cmsskwufctHisto, *cmsskwfcHisto, *cmsskwcorrHisto, *cmsskw1colcogHisto, *cmsskw1rowcogHisto, *cmsskw1qHisto, *cmsskw1ncolHisto, *cmsskw1nrowHisto, *cmsskw0qHisto, *cmsskw0ncolHisto, *cmsskw0nrowHisto, * cmssxaHisto, * cmsdyaHisto, * cmsdxaHisto, * cmssyaHisto, * cmsdx4Histo, * cmsdy4Histo, * cmsdx5Histo, *cmsdy5Histo, * cmsdxHisto, * cmsdyHisto, * cmsdyevenHisto, * cmsdyoddHisto, * cmsdy0Histo, * cmsdxfHisto, * cmsdyfHisto, * cmsdyfdc1Histo, * cmsdyfdc2Histo, * cmsdyfdc1qHisto, * cmsdyfdc2qHisto, * cmsdxfcHisto, * cmsdyfcHisto, * cmsdyfc1Histo, * cmsdyfc2Histo, * cmsdyfc3Histo, * cmsdyfc1cHisto, * cmsdyfc2cHisto, * cmsdyfc3cHisto, * cmsdyq0Histo, * cmsdyq1Histo, * cmsdyq2Histo, * cmsdyeta0Histo, * cmsdyeta1Histo, * cmsdxfctHisto, * cmsdyfctHisto, * cmsdyfcntHisto, * cmsdxfctqHisto, * cmsdyfctqHisto, * cmsdyfcntqHisto, * cmsdxfctq1Histo, * cmsdyfctq1Histo, * cmsdyfcntq1Histo, * cmsdyfctq1lHisto, * cmsdyfctq1rHisto, * cmsdxfctq2Histo, * cmsdyfctq2Histo, * cmsdxfctq3Histo, * cmsdyfctq3Histo, * cmsdy0fctq3Histo, * cmsdyfctqdotHisto, * cmsdyfctq3dHisto, * cmsdy0fctq4Histo, * cmsdyfctq4Histo, * cmsdyfctq4dc1Histo, * cmsdyfctq4dc2Histo, * cmsdyfctq4dc1qHisto, * cmsdyfctq4dc2qHisto, * cmsdyfctq4dHisto, * cmsdy0fctq4dHisto, * cmscolHisto, * cmsrowHisto, * cmsqHisto, * cmsq0Histo, * cmsqfctq4Histo, * cmslq0Histo, * trixlkHisto, * triylkHisto, * cmsqseedfHisto,* cmsdyfctOnePixelHisto, * cmsdyfctLowChargeHisto, * cmsdyfctHighChargeHisto, * cmsdyfctOnePixelLowChargeHisto,* cmsdyfctOnePixelHighChargeHisto,* cmsdxfctLowChargeHisto;
 
     AIDA::IHistogram2D * trixylkHisto;
     AIDA::IHistogram1D * cmstimingcut;
@@ -591,7 +592,7 @@ namespace eutelescope {
     AIDA::IHistogram1D * cmsqf3Histo;
 
     AIDA::IProfile1D * cmsdyvsxm, * cmsdy0vsxm, * cmsdxvsxm;
-    AIDA::IProfile1D * cmsdyvsym, * cmsdxvsym;
+    AIDA::IProfile1D * cmsdyvsym, * cmsdy0vsym, * cmsdxvsym;
     AIDA::IHistogram2D * cmspixvsxmym;
     AIDA::IHistogram2D * cmspix1vsxmym;
     AIDA::IHistogram2D * cmspixvsxmymLowCharge;
@@ -619,9 +620,11 @@ namespace eutelescope {
     AIDA::IProfile2D * cmsqvsxmym, * cmspxqvsxmym;
     AIDA::IProfile2D * cmsqvsxmymdot;
     AIDA::IProfile1D * cmsskwvsym;
+    AIDA::IProfile1D * cmsskwvsq, * cmsskwuvsq, * cmsskwvsqn;
+    AIDA::IProfile1D * cmsqvsskw, * cmsqvsskwu;
     AIDA::IProfile1D * cmsskwvsxm;
-    AIDA::IProfile1D * cmsdyvsskw;
-    AIDA::IProfile1D * cmsdy0vsskw;
+    AIDA::IProfile1D * cmsdyvsskw, * cmsdyvsskwfctq4;
+    AIDA::IProfile1D * cmsdy0vsskw, * cmsskwvsdy0, * cmsdy0vsskwfctq4, * cmsskwvsdy0fctq4;
     AIDA::IProfile1D * cmsqvsddt;
     AIDA::IProfile1D * cmsqvst1;
     AIDA::IProfile1D * cmsqvst2;
@@ -648,7 +651,7 @@ namespace eutelescope {
     AIDA::IProfile1D * cmsrmsxvsy;
     AIDA::IProfile1D * cmsrmsyvsy;
     AIDA::IProfile1D * cmsrmsxvsxm;
-    AIDA::IProfile1D * cmsrmsyvsxm;
+    AIDA::IProfile1D * cmsrmsyvsxm, * cmsrmsy0vsxm;
     AIDA::IProfile1D * cmsncolvsxm;
     AIDA::IProfile1D * cmsnrowvsxm;
     AIDA::IProfile1D * cmsrmsxvsym;
@@ -668,6 +671,7 @@ namespace eutelescope {
     AIDA::IProfile1D * cmsrmsyvsp;
 
     AIDA::IProfile2D * cmsnpxvsxmym;
+    AIDA::IProfile2D * cmsnpx1vsxmym, * cmsnpx2vsxmym, * cmsnpx3vsxmym, * cmsnpx4vsxmym;
     AIDA::IProfile1D * cmsncolvsym;
     AIDA::IProfile1D * cmsnrowvsym;
     AIDA::IProfile1D * cmsetavsym;
