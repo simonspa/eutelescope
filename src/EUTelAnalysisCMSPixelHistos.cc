@@ -1421,6 +1421,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createProfile2D( "cmsqvsxmym", 150, 0, 300, 100, 0, 200, 0, 250 );
   cmsqvsxmym->setTitle( "DUT cluster charge map;x_{track} mod 300 #mum;y_{track} mod 200 #mum;<cluster charge> [ke]" );
 
+  cmsqMoyalvsxmym = AIDAProcessor::histogramFactory(this)->
+    createProfile2D( "cmsqMoyalvsxmym", 150, 0, 300, 100, 0, 200, 0, 250 );
+  cmsqMoyalvsxmym->setTitle( "DUT cluster charge map, Moyal approx;x_{track} mod 300 #mum;y_{track} mod 200 #mum;cluster charge MPV [ke]" );
+
   cmspxqvsxmym = AIDAProcessor::histogramFactory(this)->
     createProfile2D( "cmspxqvsxmym", 150, 0, 300, 100, 0, 200, 0, 250 );
   cmspxqvsxmym->setTitle( "DUT seed pixel charge map;x_{track} mod 300 #mum;y_{track} mod 200 #mum;<seed pixel charge> [ke]" );
