@@ -2035,8 +2035,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 		cmsrmsyvseta->fill( eta, fabs(cmsdy)*1E3 );
 	      }
 
-	      cmsnpxvsxmym->fill( xmod, ymod, c->size ); // cluster
-							 // size map
+	      cmsnpxvsxmym->fill( xmod, ymod, c->size ); // cluster size map
+	      cmsnpxvsxm->fill( xmod, c->size ); // cluster size profile
+	      cmsnpxvsym->fill( ymod, c->size ); // cluster size profile
 	      if(c->size ==  1) cmsnpx1vsxmym->fill( xmod, ymod, 1); // cluster
 	      if(c->size ==  2) cmsnpx2vsxmym->fill( xmod, ymod, 1); // cluster size
 	      if(c->size ==  3) cmsnpx3vsxmym->fill( xmod, ymod, 1); // cluster size

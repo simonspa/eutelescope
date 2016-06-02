@@ -1651,6 +1651,14 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createProfile2D( "cmsnpxvsxmym", 150, 0, 300, 100, 0, 200, 0, 4.5 );
   cmsnpxvsxmym->setTitle( "DUT cluster size vs xm-ym;telescope x mod 300 [#mum];telescope y mod 200 [#mum];<pixels/cluster>" );
 
+  cmsnpxvsxm = AIDAProcessor::histogramFactory(this)->
+    createProfile1D( "cmsnpxvsxm", 150, 0, 300, 0, 100 );
+  cmsnpxvsxm->setTitle( "DUT cluster size vs xmod;telescope x_{DUT} mod 300 [#mum];<pixels/cluster>" );
+
+  cmsnpxvsym = AIDAProcessor::histogramFactory(this)->
+    createProfile1D( "cmsnpxvsym", 100, 0, 200, 0, 100 );
+  cmsnpxvsym->setTitle( "DUT cluster size vs ymod;telescope y_{DUT} mod 200 [#mum];<pixels/cluster>" );
+
   cmsnpx1vsxmym = AIDAProcessor::histogramFactory(this)->
     createProfile2D( "cmsnpx1vsxmym", 150, 0, 300, 100, 0, 200, 0, 4.5 );
   cmsnpx1vsxmym->setTitle( "DUT 1px clusters vs xm-ym;telescope x mod 300 [#mum];telescope y mod 200 [#mum];<pixels/cluster>" );

@@ -664,6 +664,7 @@ namespace eutelescope {
     AIDA::IProfile1D * cmsrmsyvsp;
 
     AIDA::IProfile2D * cmsnpxvsxmym;
+    AIDA::IProfile1D * cmsnpxvsxm, * cmsnpxvsym;
     AIDA::IProfile2D * cmsnpx1vsxmym, * cmsnpx2vsxmym, * cmsnpx3vsxmym, * cmsnpx4vsxmym;
     AIDA::IProfile1D * cmsncolvsym;
     AIDA::IProfile1D * cmsnrowvsym;
