@@ -2538,6 +2538,10 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     double xmod = fmod( 9.075 + xAt, 0.3 ) * 1E3; // [0,300] um, 2 pixel wide
     double ymod = fmod( 9.050 + yAt, 0.2 ) * 1E3; // [0,200] um
 
+    if(hanging) {
+      xmod = fmod( 9.075 - xAt, 0.3 ) * 1E3; // [0,300] um, 2 pixel wide
+      ymod = fmod( 9.050 - yAt, 0.2 ) * 1E3; // [0,200] um
+    }
     if (FPIX || ETHh){
       xmod = fmod( 9.075 + yAt, 0.3 ) * 1E3; // [0,300] um, 2 pixel wide
       ymod = fmod( 9.030 + xAt, 0.2 ) * 1E3; // [0,200] um
