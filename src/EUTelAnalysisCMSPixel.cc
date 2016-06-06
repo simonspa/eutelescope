@@ -4082,6 +4082,10 @@ double EUTelAnalysisCMSPixel::GetConversionFactor(EUTelAnalysisCMSPixel::calibra
 
     if( cal.chip_id == 504 && _nRun >= 20386 && _nRun <= 20398) keV = 0.245;
 
+    if( cal.chip_id == 504 && _nRun >= 23500) keV = 0.2365;
+
+
+
     if( cal.chip_id == 506 ) keV = 0.295; // 19582 chiller off, tilt 28
 
     if( cal.chip_id == 506 && _nRun >= 14697 && _nRun <= 14706) keV = 0.2897;
