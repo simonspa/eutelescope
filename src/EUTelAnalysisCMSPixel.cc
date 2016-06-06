@@ -4114,6 +4114,7 @@ double EUTelAnalysisCMSPixel::GetConversionFactor(EUTelAnalysisCMSPixel::calibra
     //else if( cal.chip_id == 504 ) keV = 0.2501; // 19045 to get q0f peak at 22 ke
 
     if( cal.chip_id == 502) keV = 0.225;
+    if( cal.chip_id == 502) keV = 0.314;
     
 
     if( cal.chip_id == 504) keV = 0.25721;
