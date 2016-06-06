@@ -1994,8 +1994,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    cmsqvsym->fill( ymod, c->charge ); //q within pixel
 	    if(c->seed_id > -1) cmspxqsvsym->fill( ymod, c->vpix.at(c->seed_id).vcal ); //q within pixel
 	    cmsqvsxmym->fill( xmod, ymod, c->charge ); // cluster charge profile
+	    cmsqMoyalvsxmym->fill( xmod, ymod, exp(- Q0 / 3.5) ); // cluster charge profile
 	    if(c->seed_id > -1) cmspxqvsxmym->fill( xmod, ymod, c->vpix.at(c->seed_id).vcal ); // cluster charge profile
-
 	    if(ldot) { cmsqvsxmymdot->fill( xmod, ymod, c->charge ); } // cluster charge profile
 
 	    // KIT: added for efficiency analysis
@@ -2098,8 +2098,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 		cmsrmsyvseta->fill( eta, fabs(cmsdy)*1E3 );
 	      }
 
-	      cmsnpxvsxmym->fill( xmod, ymod, c->size ); // cluster
-							 // size map
+	      cmsnpxvsxmym->fill( xmod, ymod, c->size ); // cluster size map
+	      cmsnpxvsxm->fill( xmod, c->size ); // cluster size profile
+	      cmsnpxvsym->fill( ymod, c->size ); // cluster size profile
 	      if(c->size ==  1) cmsnpx1vsxmym->fill( xmod, ymod, 1); // cluster
 	      if(c->size ==  2) cmsnpx2vsxmym->fill( xmod, ymod, 1); // cluster size
 	      if(c->size ==  3) cmsnpx3vsxmym->fill( xmod, ymod, 1); // cluster size
@@ -4122,6 +4123,10 @@ double EUTelAnalysisCMSPixel::GetConversionFactor(EUTelAnalysisCMSPixel::calibra
     if( cal.chip_id == 504 && _nRun >= 20811) keV = 0.24958;
 
     if( cal.chip_id == 504 && _nRun >= 20386 && _nRun <= 20398) keV = 0.245;
+
+    if( cal.chip_id == 504 && _nRun >= 23500) keV = 0.2365;
+
+
 
     if( cal.chip_id == 506 ) keV = 0.295; // 19582 chiller off, tilt 28
 
