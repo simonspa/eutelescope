@@ -2555,7 +2555,14 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     double fidymin = -3.8;
 
     if( xAt > fidxmin && xAt < fidxmax && yAt > fidymin && yAt < fidymax ) {
-      kinkvsxmym->fill( xmod, ymod, (kx*kx+ky*ky)*1E6 ); // kink angle
+      double kinkangle = (kx*kx+ky*ky)*1E6;
+      kinkvsxmym->fill( xmod, ymod, kinkangle ); // kink angle
+      kinkvsxm->fill(xmod, kinkangle);
+      kinkvsym->fill(ymod, kinkangle);
+      kinksqdutl->fill(kinkangle);
+      kinksqduth->fill(kinkangle);
+      kinkxdut->fill(kx*1E3);
+      kinkydut->fill(ky*1E3);
     }
 
 

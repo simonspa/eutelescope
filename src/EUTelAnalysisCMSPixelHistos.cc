@@ -2206,8 +2206,32 @@ void EUTelAnalysisCMSPixel::bookHistos()
   kinkvsxy->setTitle( "kink;six x_{out} at DUT [mm];six y_{up} at DUT [mm];<kink^{2}> [mrad^{2}]" );
 
   kinkvsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "Tracks/kinkvsxmym", 60, 0, 300, 40, 0, 200 );
+    createProfile2D( "Tracks/kinkvsxmym", 150, 0, 300, 100, 0, 200 );
   kinkvsxmym->setTitle( "kink;x mod at DUT [um];y mod at DUT [um];<kink^{2}> [mrad^{2}]" );
+
+  kinkvsxm = AIDAProcessor::histogramFactory(this)->
+    createProfile1D( "Tracks/kinkvsxm", "", 150, 0, 300, 0, 50 );
+  kinkvsxm->setTitle( "kink at DUT vs x mod 300;telescope x mod 300 [#mum];<kink^{2}> [mrad^{2}]" );
+
+  kinkvsym = AIDAProcessor::histogramFactory(this)->
+    createProfile1D( "Tracks/kinkvsym", "", 100, 0, 200, 0, 50 );
+  kinkvsym->setTitle( "kink at DUT vs y mod 200;telescope y mod 200 [#mum];<kink^{2}> [mrad^{2}]" );
+
+  kinksqdutl = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "Tracks/kinksqdutl", 200, 0, 10 );
+  kinksqdutl->setTitle( "squared kink angle distribution at DUT;kink^{2} [mrad^{2}];tracks" );
+
+  kinksqduth = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "Tracks/kinksqduth", 100, 0, 200 );
+  kinksqduth->setTitle( "squared kink angle distribution at DUT;kink^{2} [mrad^{2}];tracks" );
+
+  kinkxdut = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "Tracks/kinkxdut", 200, -10, 10 );
+  kinkxdut->setTitle( "x-kink angle distribution at DUT;kink [mrad];tracks" );
+
+  kinkydut = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "Tracks/kinkydut", 200, -10, 10 );
+  kinkydut->setTitle( "y-kink angle distribution at DUT;kink [mrad];tracks" );
 
   sixx0Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "Tracks/sixx0", 240, -12, 12 );
