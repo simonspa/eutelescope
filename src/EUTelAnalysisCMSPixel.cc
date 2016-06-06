@@ -3188,11 +3188,24 @@ void EUTelAnalysisCMSPixel::end(){
   }
   streamlog_out(MESSAGE5) << "REFy    " << REFy << std::endl;
 
+  char cCurrentPath[150];
+  int nRunNew;
+  
+  if (!getcwd(cCurrentPath, sizeof(cCurrentPath))){
+    printf("No working directory found.");
+    nRunNew = _nRun;
+  }else{
+    streamlog_out(MESSAGE5) << "Working in directory: " << cCurrentPath << endl;
+    string path(cCurrentPath);
+    istringstream(path.substr(path.find_last_of("/run")+1,6)) >> nRunNew;
+    if(nRunNew!=_nRun)streamlog_out(MESSAGE5) << "Overwriting runnumber " << _nRun << " with " << nRunNew << endl;
+  }
+
 
   streamlog_out(MESSAGE5) 
     << std::endl
     << "runlistPreAlign: "
-    << _nRun
+    << nRunNew
     << "," << _alignmentrun
     << "," << _gearfile
     << "," <<_eBeam
@@ -3222,7 +3235,7 @@ void EUTelAnalysisCMSPixel::end(){
 
   ofstream prealignrunfile;
   prealignrunfile.open("prelines-for-runlist.txt",ios::app);
-  prealignrunfile << _nRun << "," << _alignmentrun << "," << _gearfile << "," <<_eBeam << "," << _DUT_chip << "," << _DUT_gain  << "," << _DUT_calibration_type << "," << _DUT_conversion << "," << _REF_chip << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTx << "," << DUTy << "," << DUTz - _planePosition[2] << "," << tilt << "," << turn << "," << DUTrot << "," << REFx << "," << REFy << "," << _REFz << "," << _REFrot << "," << _skip_dut << "," << _skip_ref << "," << _skip_tel << endl;
+  prealignrunfile << nRunNew << "," << _alignmentrun << "," << _gearfile << "," <<_eBeam << "," << _DUT_chip << "," << _DUT_gain  << "," << _DUT_calibration_type << "," << _DUT_conversion << "," << _REF_chip << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTx << "," << DUTy << "," << DUTz - _planePosition[2] << "," << tilt << "," << turn << "," << DUTrot << "," << REFx << "," << REFy << "," << _REFz << "," << _REFrot << "," << _skip_dut << "," << _skip_ref << "," << _skip_tel << endl;
   prealignrunfile.close();
 
   // Clean memory:
@@ -3407,7 +3420,7 @@ void EUTelAnalysisCMSPixel::end(){
 	    << std::endl
 	    << "for runlist.csv:" << std::endl
 	    << "runlistFullAlign: "
-	    << _nRun
+	    << nRunNew
 	    << "," << _alignmentrun
 	    << "," << _gearfile
 	    << std::setprecision(2) << "," << _eBeam
@@ -3433,9 +3446,11 @@ void EUTelAnalysisCMSPixel::end(){
 	    << "," << _skip_tel 
 	    << std::endl;
 
+
+	  
 	  ofstream runfile;
 	  runfile.open("lines-for-runlist.txt",ios::app);
-	  runfile << _nRun << "," << _alignmentrun << "," << _gearfile << "," << _eBeam << "," << _DUT_chip << "," << _DUT_gain << "," << _DUT_calibration_type << "," << _DUT_conversion << "," << _REF_chip << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTalignx-alpar[1] << "," << DUTaligny-alpar[2] << "," << DUTz-alpar[6] - _planePosition[2] << "," << tilt-alpar[4]*180/3.141592654 << "," << turn-alpar[5]*180/3.141592654 << "," << DUTrot-alpar[3] << "," << _REFalignx << "," << _REFaligny << "," << _REFz << "," << _REFrot << "," << _skip_dut << "," << _skip_ref << "," << _skip_tel << endl;
+	  runfile << nRunNew << "," << _alignmentrun << "," << _gearfile << "," << _eBeam << "," << _DUT_chip << "," << _DUT_gain << "," << _DUT_calibration_type << "," << _DUT_conversion << "," << _REF_chip << "," << _REF_gain << "," << _REF_calibration_type << "," << DUTalignx-alpar[1] << "," << DUTaligny-alpar[2] << "," << DUTz-alpar[6] - _planePosition[2] << "," << tilt-alpar[4]*180/3.141592654 << "," << turn-alpar[5]*180/3.141592654 << "," << DUTrot-alpar[3] << "," << _REFalignx << "," << _REFaligny << "," << _REFz << "," << _REFrot << "," << _skip_dut << "," << _skip_ref << "," << _skip_tel << endl;
 	  runfile.close();
 
 	} // ldut
