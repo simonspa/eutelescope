@@ -128,7 +128,7 @@ void EUTelPreAlign::init () {
 
     // This approach for histogram binning takes the beam divergence into account:
     float ourZ = _siPlanesLayerLayout->getSensitivePositionZ(iPlane);
-    float spread = 0.001 * abs( ourZ - _fixedZ ); // beam divergence
+    float spread = 0.0005 * abs( ourZ - _fixedZ ); // beam divergence
 
     streamlog_out(MESSAGE5) << "Booking for plane" << iPlane << ": bin size " << spread << endl;
     

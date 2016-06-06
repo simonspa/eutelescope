@@ -104,10 +104,10 @@ namespace eutelescope {
       } catch (std::out_of_range& e) {;}
     }
     float getPeakX(){
-      return( (getMaxBin(histoX) * pitchX) + minX) ;
+      return( ((getMaxBin(histoX)+0.5) * pitchX) + minX) ;
     }
     float getPeakY(){
-      return( (getMaxBin(histoY) * pitchY) + minX) ;
+      return( ((getMaxBin(histoY)+0.5) * pitchY) + minX) ;
     }
 
 

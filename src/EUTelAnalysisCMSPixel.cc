@@ -108,7 +108,7 @@ double DUTaligny = 0;
 double DUTrot = 0;
 
 
-EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_conversion(0), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _skew_db(""), _have_skew_db(false), skew_par0(0), skew_par1(0), _CMS_gain_path(""), _adc_correction(0), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), _skip_dut(0), _skip_ref(0), _skip_tel(0), dut_event_buffer(), ref_event_buffer(), tel_event_buffer(), ClustDUT(), ClustREF(), m_millefilename("") {
+EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixel"), _siPlanesParameters(), _siPlanesLayerLayout(), _inputCollectionTelescope(""), _inputCollectionDUT(""), _inputCollectionREF(""), _inputTrackCollection(""), _isFirstEvent(0), _eBeam(0), _nEvt(0), _nTelPlanes(0), time_event0(0), time_event1(0), time_reference(0), fTLU(0), gTLU(0), _DUT_chip(0), _DUT_gain(""), _DUT_conversion(0), _DUT_calibration_type(""), dut_calibration(), _DUTalignx(0), _DUTaligny(0), _DUTz(0), _DUTrot(0), _DUTtilt(0), _DUTturn(0), _REF_chip(0), _REF_gain(""), _REF_calibration_type(""), ref_calibration(), _REFalignx(0), _REFaligny(0), _REFz(0), _REFrot(0), _cutx(0.15), _cuty(0.1), _skew_db(""), _have_skew_db(false), skew_par0(0), skew_par1(0), _CMS_gain_path(""), _adc_correction(0), _gearfile(""), _alignmentrun(""), _planeSort(), _planeID(), _planePosition(), _planeThickness(), _planeX0(), _planeResolution(), _skip_dut(0), _skip_ref(0), _skip_tel(0), dut_event_buffer(), ref_event_buffer(), tel_event_buffer(), ClustDUT(), ClustREF(), m_millefilename(""), _skip_db("") , _have_skip_db(false), _uptimestart(), _uptimeend() {
 
   // modify processor description
   _description = "Analysis for CMS PSI46 Pixel Detectors as DUT in AIDA telescopes ";
@@ -240,6 +240,10 @@ EUTelAnalysisCMSPixel::EUTelAnalysisCMSPixel() : Processor("EUTelAnalysisCMSPixe
   registerOptionalParameter( "skip_tel",
 			     "Skip N events from TEL data stream at beginning",
 			     _skip_tel, static_cast < int >(0) );
+
+  registerOptionalParameter( "skip_database",
+			     "Database for skipping of faulty time regions",
+			     _skip_db, std::string("none") );
 
   // Stuff only needed for the printout of the updated runlist line:
   registerOptionalParameter( "gearfile",
@@ -447,6 +451,44 @@ void EUTelAnalysisCMSPixel::processRunHeader( LCRunHeader* runHeader) {
     streamlog_out(WARNING) << "Old data run without PCBTYPE set by EUDAQ producer. Assuming rotated chip..." << endl;
   }
 
+  
+  // Read database from uptime recognition:
+
+  if(_skip_db.at(_skip_db.size()-1) != '/'){
+    _skip_db.append("/");
+  }
+  char buffer[100];
+  sprintf(buffer, "run%06d-uptime.dat", _nRun);
+  _skip_db.append(buffer);
+
+  std::ifstream in2;
+  streamlog_out(MESSAGE2) << "Attempting to open uptime database from " << endl;
+  streamlog_out(MESSAGE2) << _skip_db << endl;
+
+  in2.open(_skip_db.c_str(), std::ifstream::in);
+
+  double upt, downt;
+  if (in2.is_open()) {
+    while(in2 >> upt >> downt){
+      _uptimestart.push_back(upt);
+      _uptimeend.push_back(downt);
+    }
+    _have_skip_db = true;
+
+    streamlog_out(DEBUG2) << "uptime\tdowntime" << endl;
+
+    for(int i = 0; i < _uptimestart.size(); i++){
+      
+      streamlog_out(DEBUG2) << _uptimestart.at(i) << "\t" << _uptimeend.at(i) << endl;
+      
+    }
+
+    
+  }else{
+    streamlog_out(MESSAGE2) << "Could not open uptime database, no events skipped." << endl;
+  }
+  
+
 } // processRunHeader
 
 //----------------------------------------------------------------------------
@@ -539,6 +581,23 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   fTLU = gTLU * 1E9;
 
   double eventTime =  (time_now_tlu-time_event0)/fTLU;
+  
+  if(_have_skip_db){
+    
+    bool is_in_uptime = false;
+    
+    for(unsigned int i = 0; i < _uptimestart.size(); i++){
+      if(eventTime > _uptimestart.at(i) && eventTime < _uptimeend.at(i) ){
+	is_in_uptime = true;
+	break;
+      }
+      
+    }
+
+    if(!is_in_uptime) return;
+    
+  }
+
 
   if( _nEvt > 0 ) {
     // Fill the dt plots (scanning for Umlauftakt etc.)
@@ -956,7 +1015,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   double dNzdo = so*ca;
   double dNzda = co*sa;
 
-  double norm = cos( turn*wt ) * cos( tilt*wt ); // length of Nz. Landau 21.6
+  double norm = fabs(cos( turn*wt )) * fabs(cos( tilt*wt )); // length of Nz. Landau 21.6
   //double path = sqrt( 1 + tan(turn*wt)*tan(turn*wt) + tan(tilt*wt)*tan(tilt*wt) );
   //norm = 1/path; // test. Landau 22.4
 
@@ -2021,6 +2080,10 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      cmsrmsxvsxmym->fill( xmod, ymod, fabs(cmsdx)*1E3 );
 	      cmsrmsyvsxmym->fill( xmod, ymod, fabs(cmsdy)*1E3 );
 	      cmsrmsxyvsxmym->fill( xmod, ymod, fabs(sqrt(cmsdx*cmsdx+cmsdy*cmsdy))*1E3 );
+	      double xmdist = fmod( xmod, 150. ) - 75.;
+	      double ymdist = fmod( ymod, 100. ) - 50.;
+	      double xmymdist = sqrt(xmdist*xmdist+ymdist*ymdist);
+	      cmsrmsxymposvsxmym->fill( xmod, ymod, (sqrt(cmsdx*cmsdx+cmsdy*cmsdy)*1E3-xmymdist) );
 
 	      if( !ldot ) {
 		cmsrmsxvsym->fill( ymod, fabs(cmsdx)*1E3 ); //resolution within pixel
@@ -2811,6 +2874,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	gblry6Histo->fill( ( trip.cmsdy - aCorrection[4] ) * 1E3 ); // residual y [um]
 	gblpx6Histo->fill( aResiduals[0] / aResErrors[0] ); // pull
 	gblpy6Histo->fill( aResiduals[1] / aResErrors[1] ); // pull
+	kinkvsxmym->fill( xmod, ymod, (kx*kx+ky*ky)*1E6 );
       }
       ax[k] = aCorrection[1]; // angle correction at plane, for kinks
       //ay[k] = aCorrection[2]; // angle correction at plane, for kinks
@@ -4028,6 +4092,8 @@ double EUTelAnalysisCMSPixel::GetConversionFactor(EUTelAnalysisCMSPixel::calibra
     if( cal.chip_id == 506 && _nRun >= 19866 && _nRun <= 19958) { keV = 0.2779; }
     if( cal.chip_id == 506 && _nRun >= 20165 && _nRun <= 20179) { keV = 0.2736; }
     if( cal.chip_id == 506 && _nRun >= 20749 && _nRun <= 20772) { keV = 0.2785; }
+    
+    if( cal.chip_id == 603 ) { keV = 0.289; }
   }
   return keV;
 }

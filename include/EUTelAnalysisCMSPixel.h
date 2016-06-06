@@ -454,6 +454,12 @@ namespace eutelescope {
     // Millepede binary file name:
     std::string m_millefilename;
 
+    std::string _skip_db;
+    bool _have_skip_db;
+    std::vector<double> _uptimestart;
+    std::vector<double> _uptimeend;
+
+
     // definition of static members mainly used to name histograms
 #if defined(USE_AIDA) || defined(MARLIN_USE_AIDA)
 
@@ -639,6 +645,7 @@ namespace eutelescope {
     AIDA::IProfile1D * cmsqvsym175;
 
     AIDA::IProfile2D * cmsrmsxvsxmym, * cmsrmsyvsxmym, * cmsrmsxyvsxmym;
+    AIDA::IProfile2D * cmsrmsxymposvsxmym;
     AIDA::IProfile1D * cmsrmsxvsx;
     AIDA::IProfile1D * cmsrmsyvsx;
     AIDA::IProfile1D * cmsrmsxvsy;
@@ -825,6 +832,7 @@ namespace eutelescope {
     AIDA::IHistogram2D * sixxyHisto;
     AIDA::IHistogram2D * sixxycHisto;
     AIDA::IProfile2D * kinkvsxy;
+    AIDA::IProfile2D * kinkvsxmym;
 
     AIDA::IHistogram1D * sixx0Histo;
     AIDA::IHistogram1D * sixy0Histo;

@@ -1066,9 +1066,9 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createProfile2D( "cmsrmsxyvsxmym", 150, 0, 300, 100, 0, 200 );
   cmsrmsxyvsxmym->setTitle( "DUT resolution;x mod 300 #mum;y mod 200 #mum;MAD(#sqrt{#Deltax^{2}+#Deltay^{2}}) [#mum]" );
 
-  cmsdiffxyvsxmym = AIDAProcessor::histogramFactory(this)->
-    createProfile2D( "cmsdiffxyvsxmym", 150, 0, 300, 100, 0, 200 );
-  cmsdiffxyvsxmym->setTitle( "DUT resolution minus tel track pos;x mod 300 #mum;y mod 200 #mum;MAD(#sqrt{#Deltax^{2}+#Deltay^{2}}) [#mum]" );
+  cmsrmsxymposvsxmym = AIDAProcessor::histogramFactory(this)->
+    createProfile2D( "cmsrmsxymposvsxmym", 150, 0, 300, 100, 0, 200 );
+  cmsrmsxymposvsxmym->setTitle( "DUT resolution;x mod 300 #mum;y mod 200 #mum;MAD(#sqrt{#Deltax^{2}+#Deltay^{2}}) - (distance to pixel center) [#mum]" );
 
   cmsdyfctq4Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmsdyfctq4", 500, -500, 500 );
@@ -2216,6 +2216,10 @@ void EUTelAnalysisCMSPixel::bookHistos()
   kinkvsxy = AIDAProcessor::histogramFactory(this)->
     createProfile2D( "Tracks/kinkvsxy", 120, -12, 12, 60, -6, 6, 0, 100 );
   kinkvsxy->setTitle( "kink;six x_{out} at DUT [mm];six y_{up} at DUT [mm];<kink^{2}> [mrad^{2}]" );
+
+  kinkvsxmym = AIDAProcessor::histogramFactory(this)->
+    createProfile2D( "Tracks/kinkvsxmym", 60, 0, 300, 40, 0, 200 );
+  kinkvsxmym->setTitle( "kink;x mod at DUT [um];y mod at DUT [um];<kink^{2}> [mrad^{2}]" );
 
   sixx0Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "Tracks/sixx0", 240, -12, 12 );
